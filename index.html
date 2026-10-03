@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="fr">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Grades">
 <meta name="theme-color" content="#000000">
-<title>Grades</title>
+<title>Gymnase</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -186,19 +186,19 @@ nav.tabs{position:fixed;left:0;right:0;bottom:0;background:#000;box-shadow:0 -1p
 </head>
 <body>
 <div class="wrap">
-  <div class="top"><h1 id="title">Grades</h1><button class="icon" id="openSettings" aria-label="Settings"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button></div>
+  <div class="top"><h1 id="title">Notes</h1><button class="icon" id="openSettings" aria-label="Réglages"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button></div>
   <section id="sched" hidden></section>
   <main id="main"></main>
 </div>
-<nav class="tabs" aria-label="Main"><div class="tabsin"><span class="navind" id="navind"></span>
-  <button class="navbtn" data-tab="sched"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>Schedule</button>
-  <button class="navbtn" data-tab="grades"><svg viewBox="0 0 24 24"><path d="M5 19V9M12 19V5M19 19v-7"/></svg>Grades</button>
+<nav class="tabs" aria-label="Navigation"><div class="tabsin"><span class="navind" id="navind"></span>
+  <button class="navbtn" data-tab="sched"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>Horaire</button>
+  <button class="navbtn" data-tab="grades"><svg viewBox="0 0 24 24"><path d="M5 19V9M12 19V5M19 19v-7"/></svg>Notes</button>
 </div></nav>
-<div class="ob" id="ob" role="dialog" aria-modal="true" aria-label="Setup"><div class="obin">
-  <div class="obtop"><button class="icon" id="obBack" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button><div class="obprog"><i id="obProg"></i></div></div>
+<div class="ob" id="ob" role="dialog" aria-modal="true" aria-label="Configuration"><div class="obin">
+  <div class="obtop"><button class="icon" id="obBack" aria-label="Retour"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button><div class="obprog"><i id="obProg"></i></div></div>
   <div class="obslide" id="obSlide"></div>
 </div></div>
-<button class="fab" id="fab">+ Add grade</button>
+<button class="fab" id="fab">+ Ajouter une note</button>
 <div class="screen" id="screen"><div class="sin" id="screenBody"></div></div>
 <div class="sheet" id="sheet"><div class="sbox" id="sheetBody"></div></div>
 <input type="file" id="importFile" accept="application/json,.json" hidden>
@@ -208,13 +208,13 @@ nav.tabs{position:fixed;left:0;right:0;bottom:0;background:#000;box-shadow:0 -1p
 /* ============ data ============ */
 const KEY = "grades-v1";
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-const SUBJECTS = ["Mathématiques","Français","Allemand","Anglais","Histoire","Géographie","Biologie","Philo & Psycho","OC Sport","Sport"];
+const SUBJECTS = ["Français","Allemand","Anglais","Mathématiques","Biologie","Histoire","Géographie","Philosophie","Option spécifique","Option complémentaire"];
 const PP_PARTS = [{key:"philo", name:"Philosophie", share:3}, {key:"psycho", name:"Psychologie", share:2}];
 function defaults(){
   return {v:1,
-    subjects: SUBJECTS.map(n => Object.assign({id:uid(), name:n, counts:n !== "Sport", grades:[]}, n === "Philo & Psycho" ? {parts:PP_PARTS.map(x => ({...x}))} : {})),
+    subjects: SUBJECTS.map(n => ({id:uid(), name:n, counts:true, grades:[]})),
     tm:{g:null},
-    locked:[{id:uid(), name:"Chimie", g:null}, {id:uid(), name:"Physique", g:null}, {id:uid(), name:"Musique", g:null}],
+    locked:[], lockedPoints:null, lockMig:true,
     settings:{bonus:0.5, round:true, lastSub:null, lastW:1}};
 }
 function migrate(st){
@@ -229,12 +229,16 @@ function migrate(st){
   st.subjects.splice(at, 0, combo);
   return st;
 }
+function lockedMig(st){
+  if(!st.lockMig){ const L = st.locked || []; if(st.lockedPoints == null && L.length && L.every(l => l.g != null)) st.lockedPoints = L.reduce((a,l) => a + l.g, 0); st.lockMig = true; }
+  return st;
+}
 function load(){
-  try{ const s = JSON.parse(localStorage.getItem(KEY)); if(s && s.v === 1 && Array.isArray(s.subjects)){ const d = defaults(); return migrate(Object.assign(d, s, {settings:Object.assign(d.settings, s.settings || {})})); } }catch(e){}
-  return defaults();
+  try{ const s = JSON.parse(localStorage.getItem(KEY)); if(s && s.v === 1 && Array.isArray(s.subjects)){ const d = defaults(); return migrate(Object.assign(d, lockedMig(s), {settings:Object.assign(d.settings, s.settings || {})})); } }catch(e){}
+  return lockedMig(defaults());
 }
 let state = load();
-function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){ toast("Couldn't save"); } }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){ toast("Impossible d'enregistrer"); } }
 
 /* ============ helpers ============ */
 const $ = id => document.getElementById(id);
@@ -257,18 +261,20 @@ function avg(s){
 const shareTxt = (s, p) => p.share + "/" + s.parts.reduce((a,x) => a + x.share, 0);
 function final(s){ const a = avg(s); return a == null ? null : state.settings.round ? half(a) : a; }
 function overall(){
-  // Vaud maturité: total of all maturity grades, minus how far each grade under 4 falls below 4
-  // (double compensation), must reach 4 points per grade. At most 4 grades under 4.
+  // Règle vaudoise : total des notes de maturité, moins l'écart à 4 des notes insuffisantes
+  // (double compensation), doit atteindre 4 points par note. Au maximum 4 notes sous 4.
   const items = [], missing = [];
   state.subjects.forEach(s => { if(!s.counts) return; const f = final(s); if(f != null) items.push({name:s.name, g:f}); else missing.push(s.name); });
   if(state.tm.g != null) items.push({name:"TM", g:state.tm.g}); else missing.push("TM");
-  state.locked.forEach(l => { if(l.g != null) items.push({name:l.name, g:l.g}); else missing.push(l.name); });
-  if(!items.length) return null;
-  const raw = items.reduce((a,x) => a + x.g, 0);
+  const lp = state.lockedPoints;
+  if(!items.length && lp == null) return null;
+  if(lp == null) missing.push("notes de 2e année");
+  const n = items.length + (lp != null ? 3 : 0);
+  const raw = items.reduce((a,x) => a + x.g, 0) + (lp || 0);
   const comp = items.reduce((a,x) => a + Math.max(0, 4 - x.g), 0);
-  const total = raw - comp, need = 4 * items.length;
+  const total = raw - comp, need = 4 * n;
   const under = items.filter(x => x.g < 4);
-  return {raw, comp, total, need, n:items.length, expected:items.length + missing.length, missing, under, avg:raw / items.length};
+  return {raw, comp, total, need, n, expected:n + missing.length + (lp == null ? 2 : 0), missing, under, avg:raw / n};
 }
 function needed(s, target, w, part){
   // with rounding on, a raw average of target - 0.25 rounds up to target
@@ -290,47 +296,48 @@ function needed(s, target, w, part){
 const lockSvg = '<svg class="lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
 function renderHome(){
   const o = overall();
-  let h = `<section class="card hero"><div class="lab">Total points</div>`;
+  let h = `<section class="card hero"><div class="lab">Total des points</div>`;
   if(o){
     const r = x => Math.round(x * 100) / 100;
     const diff = r(o.total - o.need), ok = diff >= 0 && o.under.length <= 4;
     const max = 6 * o.n, pct = Math.max(0, o.total) / max * 100, minPct = o.need / max * 100;
     h += `<div class="big ${ok ? (diff >= o.n * 0.5 ? "c-green" : "") : "c-red"}">${f2(r(o.total))}</div>
-      <div class="break">${diff >= 0 ? `<b class="c-green">+${f2(diff)}</b> above the minimum of ${o.need}` : `<b class="c-red">${f2(-diff)} short</b> of the minimum of ${o.need}`} (${o.n} grades × 4)</div>
+      <div class="break">${diff >= 0 ? `<b class="c-green">+${f2(diff)}</b> au-dessus du minimum de ${o.need}` : `<b class="c-red">Il manque ${f2(-diff)}</b> pour le minimum de ${o.need}`} (${o.n} notes × 4)</div>
       <div class="scale"><div class="fill" style="width:${pct}%;background:${ok ? "var(--green)" : "var(--red)"}"></div><div class="pass" style="left:${minPct}%"></div></div>
-      <div class="scaleL"><span>0</span><span>White line = minimum</span><span>${max}</span></div>
+      <div class="scaleL"><span>0</span><span>Ligne blanche = minimum</span><span>${max}</span></div>
       <div class="checks">
-        <div class="${diff >= 0 ? "c-green" : "c-red"}">${diff >= 0 ? "✓" : "✗"} At least ${o.need} points after double compensation</div>
-        <div class="${o.under.length <= 4 ? "c-green" : "c-red"}">${o.under.length <= 4 ? "✓" : "✗"} ${o.under.length} ${o.under.length === 1 ? "grade" : "grades"} under 4 (max 4)${o.under.length ? ": " + o.under.map(x => esc(x.name)).join(", ") : ""}</div>
+        <div class="${diff >= 0 ? "c-green" : "c-red"}">${diff >= 0 ? "✓" : "✗"} Au moins ${o.need} points après double compensation</div>
+        <div class="${o.under.length <= 4 ? "c-green" : "c-red"}">${o.under.length <= 4 ? "✓" : "✗"} ${o.under.length} ${o.under.length > 1 ? "notes" : "note"} sous 4 (max. 4)${o.under.length ? ": " + o.under.map(x => esc(x.name)).join(", ") : ""}</div>
       </div>
-      <div class="break" style="margin-top:10px">Average ${f2(r(o.avg))}.${o.comp ? ` Raw total ${f2(r(o.raw))}, minus ${f2(r(o.comp))} for grades under 4.` : ""}</div>
-      ${o.n < o.expected ? `<div class="break" style="margin-top:6px">Based on ${o.n} of ${o.expected} grades. Still missing: ${o.missing.map(esc).join(", ")}.</div>` : ""}`;
-  } else h += `<div class="big muted">–</div><div class="break">Add your first grade to see your total.</div>`;
+      <div class="break" style="margin-top:10px">Moyenne ${f2(r(o.avg))}.${o.comp ? ` Total brut ${f2(r(o.raw))}, moins ${f2(r(o.comp))} pour les notes sous 4.` : ""}</div>
+      ${o.n < o.expected ? `<div class="break" style="margin-top:6px">Calculé sur ${o.n} notes sur ${o.expected}. Il manque encore : ${o.missing.map(esc).join(", ")}.</div>` : ""}`;
+  } else h += `<div class="big muted">–</div><div class="break">Ajoute ta première note pour voir ton total.</div>`;
   h += `</section>`;
 
   const counted = state.subjects.filter(s => s.counts), extra = state.subjects.filter(s => !s.counts);
-  h += `<h2>Subjects<small>${state.settings.round ? "Rounded to 0.5" : "Exact averages"}</small></h2><div class="list">${counted.map(rowHTML).join("")}</div>`;
+  h += `<h2>Branches<small>${state.settings.round ? "Arrondies au demi-point" : "Moyennes exactes"}</small></h2><div class="list">${counted.map(rowHTML).join("")}</div>`;
 
-  h += `<h2>Travail de maturité<small>Counts as one grade</small></h2><div class="list">
-    <button class="row" data-act="tm"><div class="rname"><b>TM</b><span>${state.tm.g != null ? "Final grade" : "Not graded yet"}</span></div>
-    <div class="rval ${state.tm.g != null ? col(state.tm.g) : "none"}">${state.tm.g != null ? f2(state.tm.g) : "Add"}</div></button></div>`;
+  h += `<h2>Travail de maturité<small>Compte comme une note</small></h2><div class="list">
+    <button class="row" data-act="tm"><div class="rname"><b>TM</b><span>${state.tm.g != null ? "Note finale" : "Pas encore noté"}</span></div>
+    <div class="rval ${state.tm.g != null ? col(state.tm.g) : "none"}">${state.tm.g != null ? f2(state.tm.g) : "Ajouter"}</div></button></div>`;
 
-  h += `<h2>Locked<small>Finished, count in your total</small></h2><div class="list">${state.locked.map(l => `
-    <button class="row" data-act="locked" data-id="${l.id}">${lockSvg}<div class="rname"><b>${esc(l.name)}</b></div><div class="rval ${l.g != null ? col(l.g) : "none"}">${l.g != null ? f2(l.g) : "–"}</div></button>`).join("")}</div>`;
+  { const lp = state.lockedPoints;
+  h += `<h2>Notes bloquées<small>2e année, comptent dans le total</small></h2><div class="list">
+    <button class="row" data-act="lockedpts">${lockSvg}<div class="rname"><b>Chimie, physique, arts</b><span>Total des 3 notes</span></div><div class="rval ${lp != null ? "" : "none"}">${lp != null ? f2(lp) + "<small>points</small>" : "Ajouter"}</div></button></div>`; }
 
-  if(extra.length) h += `<h2>Not counted<small>Doesn't affect your total</small></h2><div class="list">${extra.map(rowHTML).join("")}</div>`;
+  if(extra.length) h += `<h2>Hors total<small>Ne compte pas dans le total</small></h2><div class="list">${extra.map(rowHTML).join("")}</div>`;
   $("main").innerHTML = h;
 }
 function rowHTML(s){
   const a = avg(s), f = final(s), n = s.grades.length;
   const showExact = a != null && state.settings.round && Math.abs(a - f) > 0.001;
-  return `<button class="row" data-act="open" data-id="${s.id}"><div class="rname"><b>${esc(s.name)}</b><span>${s.parts ? s.parts.map(p => p.name.slice(0,5) + ". " + shareTxt(s, p)).join(", ") + (n ? ", " + n + (n === 1 ? " grade" : " grades") : "") : n ? n + (n === 1 ? " grade" : " grades") : "No grades yet"}</span></div>
+  return `<button class="row" data-act="open" data-id="${s.id}"><div class="rname"><b>${esc(s.name)}</b><span>${s.parts ? s.parts.map(p => p.name.slice(0,5) + ". " + shareTxt(s, p)).join(", ") + (n ? ", " + n + (n > 1 ? " notes" : " note") : "") : n ? n + (n > 1 ? " notes" : " note") : "Pas encore de note"}</span></div>
     <div class="rval ${a == null ? "none" : col(f)}">${a == null ? "–" : f2(f)}${showExact ? `<small>${f2(Math.round(a*100)/100)}</small>` : ""}</div></button>`;
 }
 
 /* ============ subject screen ============ */
 let openId = null, needT = 4, needW = 1, needP = "philo";
-function openSubject(id){ openId = id; const s0 = sub(id); if(s0 && s0.parts && !s0.parts.some(p => p.key === needP)) needP = s0.parts[0].key; renderSubject(); $("screen").classList.add("on"); $("fab").textContent = "+ Add grade"; }
+function openSubject(id){ openId = id; const s0 = sub(id); if(s0 && s0.parts && !s0.parts.some(p => p.key === needP)) needP = s0.parts[0].key; renderSubject(); $("screen").classList.add("on"); $("fab").textContent = "+ Ajouter une note"; }
 function closeSubject(){ openId = null; $("screen").classList.remove("on"); renderHome(); }
 function spark(s){
   const g = s.grades; if(g.length < 2) return "";
@@ -344,36 +351,36 @@ function spark(s){
 function renderSubject(){
   const s = sub(openId); if(!s){ closeSubject(); return; }
   const a = avg(s), f = final(s), W = s.grades.reduce((x,g) => x + g.w, 0);
-  let h = `<div class="shead"><button class="icon" data-act="back" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button><h1>${esc(s.name)}</h1></div>
+  let h = `<div class="shead"><button class="icon" data-act="back" aria-label="Retour"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button><h1>${esc(s.name)}</h1></div>
     <div class="stats">
-      <div class="stat"><b class="${col(f)}">${f2(f)}</b><span>${state.settings.round ? "Rounded" : "Average"}</span></div>
-      <div class="stat"><b>${a == null ? "–" : f2(Math.round(a*100)/100)}</b><span>Exact</span></div>
-      <div class="stat"><b>${s.grades.length}</b><span>${W ? "Total weight " + f2(W) : "Grades"}</span></div></div>`;
+      <div class="stat"><b class="${col(f)}">${f2(f)}</b><span>${state.settings.round ? "Arrondie" : "Moyenne"}</span></div>
+      <div class="stat"><b>${a == null ? "–" : f2(Math.round(a*100)/100)}</b><span>Exacte</span></div>
+      <div class="stat"><b>${s.grades.length}</b><span>${W ? "Poids total " + f2(W) : "Notes"}</span></div></div>`;
   if(s.parts) h += `<div class="list" style="margin-bottom:10px">${s.parts.map(p => { const a = partAvg(s, p.key), n = s.grades.filter(x => x.part === p.key).length;
-    return `<div class="row" style="cursor:default"><div class="rname"><b>${esc(p.name)}</b><span>Counts ${shareTxt(s, p)}, ${n} ${n === 1 ? "grade" : "grades"}</span></div><div class="rval ${a == null ? "none" : col(a)}">${a == null ? "–" : f2(Math.round(a*100)/100)}</div></div>`; }).join("")}</div>`;
+    return `<div class="row" style="cursor:default"><div class="rname"><b>${esc(p.name)}</b><span>Compte pour ${shareTxt(s, p)}, ${n} ${n > 1 ? "notes" : "note"}</span></div><div class="rval ${a == null ? "none" : col(a)}">${a == null ? "–" : f2(Math.round(a*100)/100)}</div></div>`; }).join("")}</div>`;
   h += spark(s);
   if(s.grades.length){
-    h += `<h2>Grades<small>Tap to edit</small></h2><div class="list">${[...s.grades].reverse().map(g => `
-      <button class="grow" data-act="editg" data-id="${g.id}"><span class="gbadge ${col(g.g)}">${f2(g.g)}</span><div class="rname"><b>${esc(g.name || "Test")}</b><span>${s.parts && g.part ? esc((s.parts.find(p => p.key === g.part) || {}).name || "") + ", " : ""}${new Date(g.date).toLocaleDateString(undefined, {day:"numeric", month:"short"})}</span></div><span class="gw">×${f2(g.w)}</span></button>`).join("")}</div>`;
-  } else h += `<div class="card muted" style="text-align:center;padding:26px">No grades yet. Tap Add grade below.</div>`;
-  h += `<h2>What do I need?</h2><div class="card need">
-    <div><span class="lab2" style="margin-top:0">Target ${state.settings.round ? "(after rounding)" : "average"}</span><div class="chips">${[4,4.5,5,5.5,6].map(t => `<button class="chip" data-act="needt" data-v="${t}" aria-pressed="${needT === t}">${t}</button>`).join("")}</div></div>
-    ${s.parts ? `<div><span class="lab2" style="margin-top:0">Next test is in</span><div class="chips">${s.parts.map(p => `<button class="chip" data-act="needp" data-v="${p.key}" aria-pressed="${needP === p.key}">${esc(p.name)}</button>`).join("")}</div></div>` : ""}
-    <div><span class="lab2" style="margin-top:0">Next test weight</span><div class="chips">${[0.5,1,2].map(w => `<button class="chip" data-act="needw" data-v="${w}" aria-pressed="${needW === w}">×${w}</button>`).join("")}</div></div>
+    h += `<h2>Notes<small>Touche pour modifier</small></h2><div class="list">${[...s.grades].reverse().map(g => `
+      <button class="grow" data-act="editg" data-id="${g.id}"><span class="gbadge ${col(g.g)}">${f2(g.g)}</span><div class="rname"><b>${esc(g.name || "Test")}</b><span>${s.parts && g.part ? esc((s.parts.find(p => p.key === g.part) || {}).name || "") + ", " : ""}${new Date(g.date).toLocaleDateString("fr-CH", {day:"numeric", month:"short"})}</span></div><span class="gw">×${f2(g.w)}</span></button>`).join("")}</div>`;
+  } else h += `<div class="card muted" style="text-align:center;padding:26px">Pas encore de note. Touche « Ajouter une note » en bas.</div>`;
+  h += `<h2>De combien ai-je besoin ?</h2><div class="card need">
+    <div><span class="lab2" style="margin-top:0">Objectif ${state.settings.round ? "(après arrondi)" : "(moyenne)"}</span><div class="chips">${[4,4.5,5,5.5,6].map(t => `<button class="chip" data-act="needt" data-v="${t}" aria-pressed="${needT === t}">${t}</button>`).join("")}</div></div>
+    ${s.parts ? `<div><span class="lab2" style="margin-top:0">Le prochain test est en</span><div class="chips">${s.parts.map(p => `<button class="chip" data-act="needp" data-v="${p.key}" aria-pressed="${needP === p.key}">${esc(p.name)}</button>`).join("")}</div></div>` : ""}
+    <div><span class="lab2" style="margin-top:0">Poids du prochain test</span><div class="chips">${[0.5,1,2].map(w => `<button class="chip" data-act="needw" data-v="${w}" aria-pressed="${needW === w}">×${w}</button>`).join("")}</div></div>
     <div class="needres" id="needres"></div></div>
-    <h2>Subject</h2><div class="card">
-      <div class="setting" style="padding-top:0"><p>Counts toward my total</p><button class="switch" role="switch" data-act="counts" aria-checked="${s.counts}"></button></div>
+    <h2>Branche</h2><div class="card">
+      <div class="setting" style="padding-top:0"><p>Compte dans mon total</p><button class="switch" role="switch" data-act="counts" aria-checked="${s.counts}"></button></div>
     </div>`;
   $("screenBody").innerHTML = h;
   renderNeed();
 }
 function renderNeed(){
   const s = sub(openId), el = $("needres"); if(!s || !el) return;
-  if(!s.grades.length){ el.innerHTML = `Any grade of <b>${needT}</b> or more gets you there.`; return; }
+  if(!s.grades.length){ el.innerHTML = `N'importe quelle note de <b>${needT}</b> ou plus suffit.`; return; }
   const n = needed(s, needT, needW, needP);
-  if(n <= 1) el.innerHTML = `You're already there. Even a 1 keeps you at ${needT} or above.`;
-  else if(n > 6) el.innerHTML = `Not reachable with one test. You'd need <b class="c-red">${f2(Math.round(n*100)/100)}</b>.`;
-  else el.innerHTML = `You need at least <b class="${col(n)}">${(Math.ceil(n * 10) / 10).toFixed(1)}</b> on your next ${s.parts ? esc((s.parts.find(p => p.key === needP) || s.parts[0]).name.toLowerCase()) + " " : ""}test.`;
+  if(n <= 1) el.innerHTML = `C'est déjà acquis. Même un 1 te garde à ${needT} ou plus.`;
+  else if(n > 6) el.innerHTML = `Impossible en un seul test. Il te faudrait <b class="c-red">${f2(Math.round(n*100)/100)}</b>.`;
+  else el.innerHTML = `Il te faut au moins <b class="${col(n)}">${(Math.ceil(n * 10) / 10).toFixed(1)}</b> au prochain test${s.parts ? " de " + esc((s.parts.find(p => p.key === needP) || s.parts[0]).name.toLowerCase()) : ""}.`;
 }
 
 /* ============ sheets ============ */
@@ -393,15 +400,15 @@ function gradeSheet(g){
 }
 function drawGradeSheet(editing){
   const d = draft;
-  openSheet(`<h3>${editing ? "Edit grade" : "Add grade"}</h3>
-    ${editing ? "" : `<span class="lab2">Subject</span><div class="chips">${state.subjects.map(s => `<button class="chip" data-g="sub" data-v="${s.id}" aria-pressed="${d.sid === s.id}">${esc(s.name)}</button>`).join("")}</div>`}
-    ${sub(d.sid).parts ? `<span class="lab2">Part</span><div class="chips">${sub(d.sid).parts.map(p => `<button class="chip" data-g="part" data-v="${p.key}" aria-pressed="${(sub(d.sid).parts.some(q => q.key === d.part) ? d.part : sub(d.sid).parts[0].key) === p.key}">${esc(p.name)} (${shareTxt(sub(d.sid), p)})</button>`).join("")}</div>` : ""}
-    <span class="lab2">Grade (1 to 6, pass is 4)</span><input class="gradein" id="gIn" inputmode="decimal" placeholder="5.5" value="${esc(d.g)}">
-    <span class="lab2">Weight</span><div class="chips">${[0.5,1,2,3].map(w => `<button class="chip" data-g="w" data-v="${w}" aria-pressed="${d.w === w}">×${w}</button>`).join("")}
-      <input class="num" id="wIn" inputmode="decimal" placeholder="other" value="${[0.5,1,2,3].includes(d.w) ? "" : d.w}" style="height:38px;width:76px;font-size:17px"></div>
-    <span class="lab2">Name (optional)</span><input class="inp" id="nIn" placeholder="e.g. TS chapitre 3" value="${esc(d.name)}">
-    <button class="primary" data-g="save">${editing ? "Save changes" : "Add grade"}</button>
-    ${editing ? `<button class="secondary danger" data-g="del">Delete grade</button>` : ""}`);
+  openSheet(`<h3>${editing ? "Modifier la note" : "Ajouter une note"}</h3>
+    ${editing ? "" : `<span class="lab2">Branche</span><div class="chips">${state.subjects.map(s => `<button class="chip" data-g="sub" data-v="${s.id}" aria-pressed="${d.sid === s.id}">${esc(s.name)}</button>`).join("")}</div>`}
+    ${sub(d.sid).parts ? `<span class="lab2">Partie</span><div class="chips">${sub(d.sid).parts.map(p => `<button class="chip" data-g="part" data-v="${p.key}" aria-pressed="${(sub(d.sid).parts.some(q => q.key === d.part) ? d.part : sub(d.sid).parts[0].key) === p.key}">${esc(p.name)} (${shareTxt(sub(d.sid), p)})</button>`).join("")}</div>` : ""}
+    <span class="lab2">Note (de 1 à 6, suffisant dès 4)</span><input class="gradein" id="gIn" inputmode="decimal" placeholder="5.5" value="${esc(d.g)}">
+    <span class="lab2">Pondération</span><div class="chips">${[0.5,1,2,3].map(w => `<button class="chip" data-g="w" data-v="${w}" aria-pressed="${d.w === w}">×${w}</button>`).join("")}
+      <input class="num" id="wIn" inputmode="decimal" placeholder="autre" value="${[0.5,1,2,3].includes(d.w) ? "" : d.w}" style="height:38px;width:76px;font-size:17px"></div>
+    <span class="lab2">Nom (facultatif)</span><input class="inp" id="nIn" placeholder="p. ex. TS chapitre 3" value="${esc(d.name)}">
+    <button class="primary" data-g="save">${editing ? "Enregistrer" : "Ajouter la note"}</button>
+    ${editing ? `<button class="secondary danger" data-g="del">Supprimer la note</button>` : ""}`);
   $("gIn").oninput = e => d.g = e.target.value;
   $("nIn").oninput = e => d.name = e.target.value;
   $("wIn").oninput = e => { const v = num(e.target.value); if(v && v > 0){ d.w = v; document.querySelectorAll('[data-g="w"]').forEach(c => c.setAttribute("aria-pressed", "false")); } };
@@ -414,55 +421,51 @@ $("sheetBody").addEventListener("click", e => {
   if(k === "w"){ d.w = +b.dataset.v; $("wIn").value = ""; document.querySelectorAll('[data-g="w"]').forEach(c => c.setAttribute("aria-pressed", c === b)); }
   if(k === "save"){
     const g = num(d.g);
-    if(g == null || g < 1 || g > 6){ toast("Enter a grade between 1 and 6"); $("gIn").focus(); return; }
+    if(g == null || g < 1 || g > 6){ toast("Entre une note entre 1 et 6"); $("gIn").focus(); return; }
     const s = sub(d.sid), part = s.parts ? (s.parts.some(q => q.key === d.part) ? d.part : s.parts[0].key) : undefined;
-    if(d.id){ const x = s.grades.find(x => x.id === d.id); x.g = g; x.w = d.w; x.name = d.name.trim(); if(part) x.part = part; toast("Saved"); }
+    if(d.id){ const x = s.grades.find(x => x.id === d.id); x.g = g; x.w = d.w; x.name = d.name.trim(); if(part) x.part = part; toast("Enregistré"); }
     else { s.grades.push({id:uid(), g, w:d.w, name:d.name.trim(), date:new Date().toISOString(), ...(part ? {part} : {})}); state.settings.lastSub = d.sid; state.settings.lastW = d.w; if(part) state.settings.lastPart = part;
-      toast(f2(g) + " added to " + (part ? s.parts.find(p => p.key === part).name : s.name)); }
+      toast(f2(g) + " ajouté en " + (part ? s.parts.find(p => p.key === part).name : s.name)); }
     save(); closeSheet(); draft = null; refresh();
   }
   if(k === "del"){
     const s = sub(d.sid), i = s.grades.findIndex(x => x.id === d.id), [gone] = s.grades.splice(i, 1);
     save(); closeSheet(); draft = null; refresh();
-    toast("Grade deleted", {label:"Undo", fn:() => { s.grades.splice(i, 0, gone); save(); refresh(); }});
+    toast("Note supprimée", {label:"Annuler", fn:() => { s.grades.splice(i, 0, gone); save(); refresh(); }});
   }
 });
 
-function valueSheet(title, sub, val, onSave, onClear){
+function valueSheet(title, sub, val, onSave, onClear, min = 1, max = 6){
   openSheet(`<h3>${esc(title)}</h3><p class="note" style="margin:0 0 4px">${esc(sub)}</p>
     <input class="gradein" id="vIn" inputmode="decimal" placeholder="–" value="${val ?? ""}" style="margin-top:12px">
-    <button class="primary" id="vSave">Save</button>${val != null ? `<button class="secondary danger" id="vClear">Clear grade</button>` : ""}`);
-  $("vSave").onclick = () => { const v = num($("vIn").value); if(v == null || v < 1 || v > 6){ toast("Enter a grade between 1 and 6"); return; } onSave(v); save(); closeSheet(); refresh(); };
+    <button class="primary" id="vSave">Enregistrer</button>${val != null ? `<button class="secondary danger" id="vClear">Effacer</button>` : ""}`);
+  $("vSave").onclick = () => { const v = num($("vIn").value); if(v == null || v < min || v > max){ toast(`Entre un nombre entre ${min} et ${max}`); return; } onSave(v); save(); closeSheet(); refresh(); };
   if($("vClear")) $("vClear").onclick = () => { onClear(); save(); closeSheet(); refresh(); };
   setTimeout(() => $("vIn").focus(), 320);
 }
 
 function settingsSheet(){
   const st = state.settings;
-  openSheet(`<h3>Settings</h3>
-    <div class="setting"><p>Round subject averages to 0.5<small>How subject grades are usually set on the report</small></p><button class="switch" role="switch" id="roundSw" aria-checked="${st.round}"></button></div>
-    <span class="lab2">Timetable and options</span>
-    <div class="row2"><button class="secondary" id="redo" style="margin:0">Redo setup</button><button class="secondary" id="unhide" style="margin:0">Show hidden lessons${tt().hidden.length ? " (" + tt().hidden.length + ")" : ""}</button></div>
-    <span class="lab2">Subjects</span><div id="subList"></div>
-    <div class="mrow"><input class="inp" id="newSub" placeholder="New subject"><span></span><button class="mini" id="addSub">Add</button></div>
-    <span class="lab2">Locked subjects</span><div id="lockList"></div>
-    <div class="mrow"><input class="inp" id="newLock" placeholder="New locked subject"><span></span><button class="mini" id="addLock">Add</button></div>
-    <span class="lab2">Data</span>
-    <div class="row2"><button class="secondary" id="exp" style="margin:0">Export backup</button><button class="secondary" id="imp" style="margin:0">Import</button></div>
-    <button class="secondary danger" id="wipe">Delete everything</button>
-    <p class="note">Everything stays on this phone.</p>`);
+  openSheet(`<h3>Réglages</h3>
+    <div class="setting"><p>Arrondir les moyennes au demi-point<small>Comme sur le bulletin</small></p><button class="switch" role="switch" id="roundSw" aria-checked="${st.round}"></button></div>
+    <span class="lab2">Horaire et options</span>
+    <div class="row2"><button class="secondary" id="redo" style="margin:0">Refaire la configuration</button><button class="secondary" id="unhide" style="margin:0">Cours masqués${tt().hidden.length ? " (" + tt().hidden.length + ")" : ""}</button></div>
+    <span class="lab2">Branches</span><div id="subList"></div>
+    <div class="mrow"><input class="inp" id="newSub" placeholder="Nouvelle branche"><span></span><button class="mini" id="addSub">Ajouter</button></div>
+    <span class="lab2">Données</span>
+    <div class="row2"><button class="secondary" id="exp" style="margin:0">Exporter une sauvegarde</button><button class="secondary" id="imp" style="margin:0">Importer</button></div>
+    <button class="secondary danger" id="wipe">Tout effacer</button>
+    <p class="note">Tout reste sur ce téléphone.</p>`);
   drawManage();
   $("roundSw").onclick = e => { st.round = !st.round; e.target.setAttribute("aria-checked", st.round); save(); refresh(); };
   $("addSub").onclick = () => { const n = $("newSub").value.trim(); if(!n) return; state.subjects.push({id:uid(), name:n, counts:true, grades:[]}); $("newSub").value = ""; save(); drawManage(); renderHome(); };
-  $("addLock").onclick = () => { const n = $("newLock").value.trim(); if(!n) return; state.locked.push({id:uid(), name:n, g:null}); $("newLock").value = ""; save(); drawManage(); renderHome(); };
   $("redo").onclick = () => { closeSheet(); openOnboarding("class"); };
-  $("unhide").onclick = () => { const n = tt().hidden.length; tt().hidden = []; tt().rooms = {}; save(); closeSheet(); renderSched(); toast(n ? "Hidden lessons are back" : "No hidden lessons"); };
+  $("unhide").onclick = () => { const n = tt().hidden.length; tt().hidden = []; tt().rooms = {}; save(); closeSheet(); renderSched(); toast(n ? "Les cours masqués sont de retour" : "Aucun cours masqué"); };
   $("exp").onclick = exportData; $("imp").onclick = () => $("importFile").click();
-  $("wipe").onclick = () => { if(confirm("Delete all grades and subjects?") && confirm("This can't be undone. Delete everything?")){ state = defaults(); save(); closeSheet(); refresh(); toast("Everything deleted"); } };
+  $("wipe").onclick = () => { if(confirm("Effacer toutes les notes et les branches ?") && confirm("C'est définitif. Tout effacer ?")){ state = defaults(); save(); closeSheet(); refresh(); renderSched(); toast("Tout a été effacé"); } };
 }
 function drawManage(){
   $("subList").innerHTML = state.subjects.map((s, i) => `<div class="mrow" data-i="${i}"><input class="inp" data-m="sname" value="${esc(s.name)}"><button class="mini" data-m="sup" ${i ? "" : "disabled"}>↑</button><button class="mini danger" data-m="sdel">✕</button></div>`).join("");
-  $("lockList").innerHTML = state.locked.map((l, i) => `<div class="mrow" data-i="${i}"><input class="inp" data-m="lname" value="${esc(l.name)}"><span></span><button class="mini danger" data-m="ldel">✕</button></div>`).join("");
   $("subList").querySelectorAll(".mrow").forEach(r => r.style.gridTemplateColumns = "1fr 46px 46px");
 }
 $("sheetBody").addEventListener("input", e => {
@@ -475,8 +478,8 @@ $("sheetBody").addEventListener("click", e => {
   const b = e.target.closest("[data-m]"); if(!b || b.tagName === "INPUT") return;
   const i = +b.closest(".mrow").dataset.i, m = b.dataset.m;
   if(m === "sup" && i > 0){ [state.subjects[i-1], state.subjects[i]] = [state.subjects[i], state.subjects[i-1]]; }
-  if(m === "sdel"){ const s = state.subjects[i]; if(!confirm(`Delete ${s.name}${s.grades.length ? " and its " + s.grades.length + " grades" : ""}?`)) return; state.subjects.splice(i, 1); }
-  if(m === "ldel"){ if(!confirm("Delete " + state.locked[i].name + "?")) return; state.locked.splice(i, 1); }
+  if(m === "sdel"){ const s = state.subjects[i]; if(!confirm(`Supprimer ${s.name}${s.grades.length ? " et ses " + s.grades.length + " notes" : ""} ?`)) return; state.subjects.splice(i, 1); }
+  if(m === "ldel"){ if(!confirm("Supprimer " + state.locked[i].name + " ?")) return; state.locked.splice(i, 1); }
   save(); drawManage(); renderHome();
 });
 
@@ -486,8 +489,8 @@ $("main").addEventListener("click", e => {
   const b = e.target.closest("[data-act]"); if(!b) return;
   const a = b.dataset.act;
   if(a === "open") openSubject(b.dataset.id);
-  if(a === "tm") valueSheet("Travail de maturité", "Your TM grade counts as one full grade in your total.", state.tm.g, v => state.tm.g = v, () => state.tm.g = null);
-  if(a === "locked"){ const l = state.locked.find(x => x.id === b.dataset.id); valueSheet(l.name, "Your final grade. It counts in your total like any other subject.", l.g, v => l.g = v, () => l.g = null); }
+  if(a === "tm") valueSheet("Travail de maturité", "La note du TM compte comme une note entière dans ton total.", state.tm.g, v => state.tm.g = v, () => state.tm.g = null);
+  if(a === "lockedpts") valueSheet("Notes bloquées de 2e année", "Additionne tes notes finales de chimie, de physique et d'arts visuels ou de musique. Exemple : 4,5 + 4 + 5 = 13,5.", state.lockedPoints, v => state.lockedPoints = v, () => state.lockedPoints = null, 3, 18);
 });
 $("screenBody").addEventListener("click", e => {
   const b = e.target.closest("[data-act]"); if(!b) return;
@@ -498,7 +501,7 @@ $("screenBody").addEventListener("click", e => {
     if(a === "needt") needT = +b.dataset.v; else if(a === "needw") needW = +b.dataset.v; else needP = b.dataset.v;
     b.parentElement.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", c === b)); renderNeed();
   }
-  if(a === "counts"){ s.counts = !s.counts; b.setAttribute("aria-checked", s.counts); save(); renderHome(); toast(s.counts ? "Counts toward your total" : "No longer counted"); }
+  if(a === "counts"){ s.counts = !s.counts; b.setAttribute("aria-checked", s.counts); save(); renderHome(); toast(s.counts ? "Compte dans ton total" : "Ne compte plus dans ton total"); }
 });
 $("fab").onclick = () => gradeSheet(null);
 $("openSettings").onclick = settingsSheet;
@@ -511,15 +514,15 @@ window.addEventListener("popstate", () => { if($("sheet").classList.contains("on
 function exportData(){
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([JSON.stringify(state, null, 2)], {type:"application/json"}));
-  a.download = "grades-backup-" + new Date().toISOString().slice(0,10) + ".json";
-  document.body.appendChild(a); a.click(); a.remove(); toast("Backup exported");
+  a.download = "gymnase-sauvegarde-" + new Date().toISOString().slice(0,10) + ".json";
+  document.body.appendChild(a); a.click(); a.remove(); toast("Sauvegarde exportée");
 }
 $("importFile").onchange = async e => {
   const f = e.target.files[0]; e.target.value = ""; if(!f) return;
   try{ const d = JSON.parse(await f.text()); if(!d || !Array.isArray(d.subjects)) throw 0;
-    if(!confirm("Replace your grades with this backup?")) return;
-    const x = defaults(); state = migrate(Object.assign(x, d, {settings:Object.assign(x.settings, d.settings || {})})); save(); closeSheet(); refresh(); toast("Backup imported");
-  }catch(err){ toast("That file isn't a Grades backup"); }
+    if(!confirm("Remplacer tes données par cette sauvegarde ?")) return;
+    const x = defaults(); state = migrate(Object.assign(x, lockedMig(d), {settings:Object.assign(x.settings, d.settings || {})})); save(); closeSheet(); refresh(); renderSched(); toast("Sauvegarde importée");
+  }catch(err){ toast("Ce fichier n'est pas une sauvegarde de l'app"); }
 };
 
 let tT;
@@ -667,12 +670,13 @@ const OC_SLOTS = {
   "Géographie":["Thu 7 Géographie (OC)","Thu 7-9 Géographie (OC)","Thu 9 Géographie (OC)"],
   "Histoire":["Thu 6 Histoire (OC)","Thu 6-8 Histoire (OC)","Thu 7-9 Histoire (OC)"],
   "Informatique":["Thu 6-8 Informatique (OC)"],
+  "Physique":["Thu 6-7 Physique (OC)","Thu 8-9 Physique (OC)"],
   "Sport":["Thu 7-10 Sport (OC) @P02.31, VD6"]
 };
 
 /* ============ timetable engine ============ */
 const PERIODS = {1:["08:10","08:55"],2:["09:00","09:45"],3:["10:05","10:50"],4:["10:55","11:40"],5:["11:45","12:30"],6:["12:35","13:20"],7:["13:25","14:10"],8:["14:15","15:00"],9:["15:10","15:55"],10:["16:00","16:45"]};
-const DAYS = ["Mon","Tue","Wed","Thu","Fri"], DAYNAMES = ["Monday","Tuesday","Wednesday","Thursday","Friday"];
+const DAYS = ["Mon","Tue","Wed","Thu","Fri"], DAYS_FR = ["Lun","Mar","Mer","Jeu","Ven"], DAYNAMES = ["Lundi","Mardi","Mercredi","Jeudi","Vendredi"];
 const RX = /^(Mon|Tue|Wed|Thu|Fri) (\d+)(?:-(\d+))? ([^@#]+?)\s*(?:@([^#]+?))?\s*((?:#\S+\s*)*)$/;
 const mins = t => { const [h, m] = t.split(":").map(Number); return h * 60 + m; };
 const PALETTE = ["#F2A3C2","#93C3F2","#9FDDBE","#C7B5F4","#EBCB7A","#F5B38A","#8FD3D9","#E8A0A0","#B7D58A","#D9DCE0"];
@@ -689,8 +693,13 @@ const OSMAP = {
   "3MSED":{long:"Économie et droit", name:"Économie et droit (OS)", noOC:["Économie et droit"]},
   "3MSEs":{long:"Espagnol", name:"Espagnol (OS)", noOC:[]},
   "3MSLa":{long:"Latin", name:"Latin (OS)", noOC:[]},
-  "3MSAV":{long:"Arts visuels", name:"Arts visuels (OS)", noOC:["Arts visuels"]}
+  "3MSAV":{long:"Arts visuels", name:"Arts visuels (OS)", noOC:["Arts visuels"]},
+  "3MSGr":{long:"Grec", name:"Grec (OS)", noOC:[]},
+  "3MSIt":{long:"Italien", name:"Italien (OS)", noOC:[]},
+  "3MSMu":{long:"Musique", name:"Musique (OS)", noOC:["Musique"]}
 };
+const OS_ORDER = ["3MSAV","3MSBC","3MSED","3MSEs","3MSGr","3MSIt","3MSLa","3MSMu","3MSPP","3MSPM"];
+const osLabel = code => GROUPS[code] ? GROUPS[code].label : (OSMAP[code] ? OSMAP[code].long : code);
 const osOf = code => code ? OSMAP[code.replace(/\d+$/, "")] : null;
 
 function tt(){ if(!state.tt) state.tt = {cls:null, ans:{}, art:null, oc:null, ocSlots:null, hidden:[], extra:[], rooms:{}}; return state.tt; }
@@ -704,7 +713,9 @@ function weekLessons(){
     C.g.forEach(code => { const G = GROUPS[code], dimGroups = groupsOf(t.cls, G.dim), chosen = t.ans[G.dim];
       if(chosen && chosen !== code) return;
       G.L.forEach(s => { const l = parseL(s, {group:code, gdim:G.dim, gshow:!chosen && dimGroups.length > 1}); if(l) out.push(l); }); });
-    out = out.filter(l => Object.entries(l.tags).every(([k, v]) => !t.ans[k] || t.ans[k] === v));
+    const other = x => x === "A" ? "B" : "A";
+    const want = k => k === "aben" ? t.ans.ab : k === "abl2" ? (t.ans.ab ? other(t.ans.ab) : null) : t.ans[k];
+    out = out.filter(l => Object.entries(l.tags).every(([k, v]) => !want(k) || want(k) === v));
   }
   if(t.oc && OC_SLOTS[t.oc]) OC_SLOTS[t.oc].forEach((s, i) => { if(t.ocSlots && !t.ocSlots.includes(i)) return; const l = parseL(s, {oc:true}); if(l) out.push(l); });
   out.forEach(l => { l.key = [l.day, l.p1, l.name, l.group || "", l.tags.abl2 || l.tags.aben || l.tags.tp || ""].join("|"); if(t.rooms[l.key] != null) l.room = t.rooms[l.key]; });
@@ -720,7 +731,7 @@ function showTab(next, animate){
   const prev = tab; tab = next;
   document.querySelectorAll(".navbtn").forEach(b => b.setAttribute("aria-current", b.dataset.tab === tab ? "page" : "false"));
   $("navind").style.transform = `translateX(${TABS.indexOf(tab) * 100}%)`;
-  $("title").textContent = tab === "sched" ? "Schedule" : "Grades";
+  $("title").textContent = tab === "sched" ? "Horaire" : "Notes";
   $("fab").style.display = tab === "grades" ? "" : "none";
   $("sched").hidden = tab !== "sched"; $("main").hidden = tab !== "grades";
   if(tab === "sched") renderSched(); else renderHome();
@@ -738,43 +749,43 @@ const todayIdx = () => { const d = new Date().getDay(); return d >= 1 && d <= 5 
 function renderSched(animDir){
   const t = tt(), el = $("sched");
   if(!t.cls && !t.extra.length){
-    el.innerHTML = `<div class="card empty2"><b>No timetable yet</b><p>Pick your class and options and your week fills in by itself.</p><button class="primary" data-s="setup">Set up my timetable</button></div>`;
+    el.innerHTML = `<div class="card empty2"><b>Pas encore d'horaire</b><p>Choisis ta classe et tes options, et ta semaine se remplit toute seule.</p><button class="primary" data-s="setup">Configurer mon horaire</button></div>`;
     return;
   }
   const all = weekLessons(), day = all.filter(l => l.day === sDay), ti = todayIdx(), isToday = ti === sDay;
   const nowM = new Date().getHours() * 60 + new Date().getMinutes();
-  let h = `<div class="dseg" role="tablist"><span class="dind" style="transform:translateX(${sDay * 100}%)"></span>${DAYS.map((d, i) => `<button role="tab" data-s="day" data-d="${i}" aria-selected="${i === sDay}">${d}${i === ti ? '<i></i>' : ""}</button>`).join("")}</div>`;
-  h += `<div class="dhead"><h2 class="dname">${DAYNAMES[sDay]}</h2><span class="muted">${t.cls ? esc(t.cls) : ""}${day.length ? ", " + day.length + " lessons" : ""}</span></div>`;
-  if(isWeekend() && sDay === 0) h += `<p class="note" style="margin:-4px 2px 10px">It's the weekend. Here's Monday.</p>`;
+  let h = `<div class="dseg" role="tablist"><span class="dind" style="transform:translateX(${sDay * 100}%)"></span>${DAYS.map((d, i) => `<button role="tab" data-s="day" data-d="${i}" aria-selected="${i === sDay}">${DAYS_FR[i]}${i === ti ? '<i></i>' : ""}</button>`).join("")}</div>`;
+  h += `<div class="dhead"><h2 class="dname">${DAYNAMES[sDay]}</h2><span class="muted">${t.cls ? esc(t.cls) : ""}${day.length ? ", " + day.length + " cours" : ""}</span></div>`;
+  if(isWeekend() && sDay === 0) h += `<p class="note" style="margin:-4px 2px 10px">C'est le week-end. Voici lundi.</p>`;
   if(isToday && day.length){
     const cur = day.find(l => mins(PERIODS[l.p1][0]) <= nowM && nowM < mins(PERIODS[l.p2][1]));
     const nxt = day.find(l => mins(PERIODS[l.p1][0]) > nowM);
     if(cur){ const s = mins(PERIODS[cur.p1][0]), e = mins(PERIODS[cur.p2][1]);
-      h += `<div class="nowc"><span class="lab">Now, until ${PERIODS[cur.p2][1]}</span><b>${esc(cur.name)}</b><span>${cur.room ? esc(cur.room) : "No room set"}${nxt ? `. Next: ${esc(nxt.name)} at ${PERIODS[nxt.p1][0]}${nxt.room ? " in " + esc(nxt.room) : ""}` : ". Last lesson today"}</span><div class="nbar"><i style="width:${(nowM - s) / (e - s) * 100}%"></i></div></div>`; }
+      h += `<div class="nowc"><span class="lab">En cours, jusqu'à ${PERIODS[cur.p2][1]}</span><b>${esc(cur.name)}</b><span>${cur.room ? esc(cur.room) : "Salle inconnue"}${nxt ? `. Ensuite : ${esc(nxt.name)} à ${PERIODS[nxt.p1][0]}${nxt.room ? " en " + esc(nxt.room) : ""}` : ". Dernier cours de la journée"}</span><div class="nbar"><i style="width:${(nowM - s) / (e - s) * 100}%"></i></div></div>`; }
     else if(nxt){ const m = mins(PERIODS[nxt.p1][0]) - nowM;
-      h += `<div class="nowc"><span class="lab">Next, in ${m >= 60 ? Math.floor(m / 60) + " h " + (m % 60) + " min" : m + " min"}</span><b>${esc(nxt.name)}</b><span>${PERIODS[nxt.p1][0]}${nxt.room ? " in " + esc(nxt.room) : ""}</span></div>`; }
-    else h += `<div class="nowc done"><b>Done for today</b><span>Enjoy your evening.</span></div>`;
+      h += `<div class="nowc"><span class="lab">Prochain cours dans ${m >= 60 ? Math.floor(m / 60) + " h " + (m % 60) + " min" : m + " min"}</span><b>${esc(nxt.name)}</b><span>${PERIODS[nxt.p1][0]}${nxt.room ? " en " + esc(nxt.room) : ""}</span></div>`; }
+    else h += `<div class="nowc done"><b>Fini pour aujourd'hui</b><span>Bonne soirée.</span></div>`;
   }
-  if(!day.length) h += `<div class="card empty2"><b>No lessons</b><p>Nothing on ${DAYNAMES[sDay]}.</p></div>`;
+  if(!day.length) h += `<div class="card empty2"><b>Pas de cours</b><p>Rien le ${DAYNAMES[sDay].toLowerCase()}.</p></div>`;
   else {
     h += `<div class="lessons">`; let lastEnd = null;
     day.forEach(l => {
       const st = PERIODS[l.p1][0], en = PERIODS[l.p2][1];
-      if(lastEnd !== null && l.p1 > lastEnd + 1){ h += `<div class="free">Free ${PERIODS[lastEnd + 1][0]} to ${PERIODS[l.p1 - 1][1]}</div>`; }
+      if(lastEnd !== null && l.p1 > lastEnd + 1){ h += `<div class="free">Libre de ${PERIODS[lastEnd + 1][0]} à ${PERIODS[l.p1 - 1][1]}</div>`; }
       lastEnd = Math.max(lastEnd ?? 0, l.p2);
       const past = isToday && mins(en) <= nowM, live = isToday && mins(st) <= nowM && nowM < mins(en);
       const tags = [];
       if(l.gshow) tags.push(GROUPS[l.group].label + " " + l.group);
-      if(l.tags.abl2 || l.tags.aben) tags.push("Group " + (l.tags.abl2 || l.tags.aben));
-      if(l.tags.tp) tags.push("TP group " + l.tags.tp);
-      if(l.extra) tags.push("Added by you");
+      if(l.tags.abl2 || l.tags.aben) tags.push("Groupe " + (l.tags.abl2 || l.tags.aben));
+      if(l.tags.tp) tags.push("Groupe TP " + l.tags.tp);
+      if(l.extra) tags.push("Ajouté par toi");
       h += `<button class="les${past ? " past" : ""}${live ? " live" : ""}" data-s="les" data-k="${esc(l.key)}">
         <span class="lt"><b>${st}</b><span>${en}</span></span><span class="lbar" style="background:${colorFor(l.name)}"></span>
-        <span class="lc"><b>${esc(l.name)}</b><span>${l.room ? esc(l.room) : "No room"}${tags.length ? " · " + tags.map(esc).join(", ") : ""}</span></span></button>`;
+        <span class="lc"><b>${esc(l.name)}</b><span>${l.room ? esc(l.room) : "Salle ?"}${tags.length ? " · " + tags.map(esc).join(", ") : ""}</span></span></button>`;
     });
     h += `</div>`;
   }
-  h += `<button class="secondary" data-s="add" style="margin-top:12px">+ Add a lesson</button>`;
+  h += `<button class="secondary" data-s="add" style="margin-top:12px">+ Ajouter un cours</button>`;
   el.innerHTML = h;
   if(animDir && el.animate && !matchMedia("(prefers-reduced-motion: reduce)").matches){
     const box = el.querySelector(".lessons") || el.querySelector(".empty2");
@@ -798,32 +809,32 @@ $("sched").addEventListener("touchend", e => { if(tx === null) return; const dx 
 
 function lessonSheet(key){
   const l = weekLessons().find(x => x.key === key); if(!l) return;
-  openSheet(`<h3>${esc(l.name)}</h3><p class="note" style="margin:0 0 6px">${DAYNAMES[l.day]}, ${PERIODS[l.p1][0]} to ${PERIODS[l.p2][1]}${l.group ? ", group " + esc(l.group) : ""}</p>
-    <span class="lab2">Room</span><input class="inp" id="roomIn" value="${esc(l.room)}" placeholder="e.g. S2.14">
-    <button class="primary" id="roomSave">Save</button>
-    <button class="secondary ${l.extra ? "danger" : ""}" id="hideL">${l.extra ? "Delete lesson" : "Hide this lesson"}</button>`);
+  openSheet(`<h3>${esc(l.name)}</h3><p class="note" style="margin:0 0 6px">${DAYNAMES[l.day]}, de ${PERIODS[l.p1][0]} à ${PERIODS[l.p2][1]}${l.group ? ", groupe " + esc(l.group) : ""}</p>
+    <span class="lab2">Salle</span><input class="inp" id="roomIn" value="${esc(l.room)}" placeholder="p. ex. S2.14">
+    <button class="primary" id="roomSave">Enregistrer</button>
+    <button class="secondary ${l.extra ? "danger" : ""}" id="hideL">${l.extra ? "Supprimer ce cours" : "Masquer ce cours"}</button>`);
   $("roomSave").onclick = () => { const t = tt(), v = $("roomIn").value.trim();
     if(l.extra){ const x = t.extra.find(x => "x|" + x.id === key); if(x) x.room = v; } else t.rooms[key] = v;
-    save(); closeSheet(); renderSched(); toast("Saved"); };
+    save(); closeSheet(); renderSched(); toast("Enregistré"); };
   $("hideL").onclick = () => { const t = tt();
-    if(l.extra){ t.extra = t.extra.filter(x => "x|" + x.id !== key); save(); closeSheet(); renderSched(); toast("Lesson deleted"); return; }
+    if(l.extra){ t.extra = t.extra.filter(x => "x|" + x.id !== key); save(); closeSheet(); renderSched(); toast("Cours supprimé"); return; }
     t.hidden.push(key); save(); closeSheet(); renderSched();
-    toast("Lesson hidden", {label:"Undo", fn:() => { t.hidden = t.hidden.filter(k => k !== key); save(); renderSched(); }}); };
+    toast("Cours masqué", {label:"Annuler", fn:() => { t.hidden = t.hidden.filter(k => k !== key); save(); renderSched(); }}); };
 }
 function addLessonSheet(){
   const d = {day:sDay, p1:1, len:1};
-  openSheet(`<h3>Add a lesson</h3>
-    <span class="lab2">Name</span><input class="inp" id="alName" placeholder="e.g. Musique (OC)">
-    <span class="lab2">Day</span><div class="chips" id="alDay">${DAYS.map((x, i) => `<button class="chip" data-v="${i}" aria-pressed="${i === d.day}">${x}</button>`).join("")}</div>
-    <span class="lab2">Starts</span><div class="chips" id="alP">${Object.keys(PERIODS).map(p => `<button class="chip" data-v="${p}" aria-pressed="${+p === d.p1}">${PERIODS[p][0]}</button>`).join("")}</div>
-    <span class="lab2">Length</span><div class="chips" id="alLen">${[1,2,3,4].map(n => `<button class="chip" data-v="${n}" aria-pressed="${n === d.len}">${n} ${n === 1 ? "period" : "periods"}</button>`).join("")}</div>
-    <span class="lab2">Room (optional)</span><input class="inp" id="alRoom" placeholder="e.g. S1.06">
-    <button class="primary" id="alSave">Add lesson</button>`);
+  openSheet(`<h3>Ajouter un cours</h3>
+    <span class="lab2">Nom</span><input class="inp" id="alName" placeholder="p. ex. Appui de maths">
+    <span class="lab2">Jour</span><div class="chips" id="alDay">${DAYS_FR.map((x, i) => `<button class="chip" data-v="${i}" aria-pressed="${i === d.day}">${x}</button>`).join("")}</div>
+    <span class="lab2">Début</span><div class="chips" id="alP">${Object.keys(PERIODS).map(p => `<button class="chip" data-v="${p}" aria-pressed="${+p === d.p1}">${PERIODS[p][0]}</button>`).join("")}</div>
+    <span class="lab2">Durée</span><div class="chips" id="alLen">${[1,2,3,4].map(n => `<button class="chip" data-v="${n}" aria-pressed="${n === d.len}">${n} ${n > 1 ? "périodes" : "période"}</button>`).join("")}</div>
+    <span class="lab2">Salle (facultatif)</span><input class="inp" id="alRoom" placeholder="p. ex. S1.06">
+    <button class="primary" id="alSave">Ajouter le cours</button>`);
   const pick = (id, k) => $(id).onclick = e => { const c = e.target.closest(".chip"); if(!c) return; d[k] = +c.dataset.v; $(id).querySelectorAll(".chip").forEach(x => x.setAttribute("aria-pressed", x === c)); };
   pick("alDay", "day"); pick("alP", "p1"); pick("alLen", "len");
-  $("alSave").onclick = () => { const n = $("alName").value.trim(); if(!n){ toast("Give the lesson a name"); return; }
+  $("alSave").onclick = () => { const n = $("alName").value.trim(); if(!n){ toast("Donne un nom au cours"); return; }
     tt().extra.push({id:uid(), day:d.day, p1:d.p1, p2:Math.min(10, d.p1 + d.len - 1), name:n, room:$("alRoom").value.trim()});
-    save(); closeSheet(); sDay = d.day; renderSched(); toast("Lesson added"); };
+    save(); closeSheet(); sDay = d.day; renderSched(); toast("Cours ajouté"); };
 }
 
 /* ============ onboarding ============ */
@@ -835,14 +846,12 @@ function obSteps(){
     if(groupsOf(t.cls, "hist").length > 1) s.push("hist");
     if(groupsOf(t.cls, "l2").length > 1) s.push("l2");
     const C = CLASSES[t.cls];
-    const hasAB = k => C.L.some(x => x.includes("#" + k + "=")) || (k === "abl2" && groupsOf(t.cls, "l2").length > 0);
-    if(hasAB("abl2")) s.push("abl2");
-    if(hasAB("aben")) s.push("aben");
-    if(groupsOf(t.cls, "os").length > 1) s.push("os");
-    const os = effOS();
-    if((os ? [os] : groupsOf(t.cls, "os")).some(g => GROUPS[g].L.some(x => x.includes("#tp="))) && (!os || os.startsWith("3MSBC"))) s.push("tp");
+    if(C.L.some(x => /#ab(l2|en)=/.test(x)) || groupsOf(t.cls, "l2").length) s.push("ab");
   }
-  s.push("art", "oc");
+  s.push("os");
+  const os = effOS();
+  if(t.cls && GROUPS[os] && GROUPS[os].L.some(x => x.includes("#tp="))) s.push("tp");
+  s.push("locked", "oc");
   if(t.oc && OC_SLOTS[t.oc] && OC_SLOTS[t.oc].length > 1) s.push("ocslots");
   s.push("done");
   return s;
@@ -852,48 +861,46 @@ function closeOb(){ $("ob").classList.remove("on"); state.onboarded = true; save
 function obNext(){ const s = obSteps(), i = s.indexOf(obStep); obHist.push(obStep); obStep = s[Math.min(s.length - 1, i + 1)]; drawOb(1); }
 function obBack(){ if(!obHist.length){ closeOb(); return; } obStep = obHist.pop(); drawOb(-1); }
 const opt = (v, label, hint, on) => `<button class="opt" data-o="${esc(v)}" aria-pressed="${!!on}"><b>${esc(label)}</b>${hint ? `<span>${esc(hint)}</span>` : ""}</button>`;
-function slotText(s){ const l = parseL(s); return `${DAYNAMES[l.day]}, ${PERIODS[l.p1][0]} to ${PERIODS[l.p2][1]}${l.room ? ", " + l.room : ""}`; }
+function slotText(s){ const l = parseL(s); return `${DAYNAMES[l.day]}, de ${PERIODS[l.p1][0]} à ${PERIODS[l.p2][1]}${l.room ? ", " + l.room : ""}`; }
 function drawOb(dir){
   const t = tt(), s = obSteps(), i = Math.max(0, s.indexOf(obStep));
   $("obProg").style.width = (i / (s.length - 1) * 100) + "%";
   $("obBack").style.visibility = obStep === "welcome" ? "hidden" : "visible";
   let h = "", skip = true;
-  const l2name = t.ans.l2 ? GROUPS[t.ans.l2].label : "Allemand or Italien";
   switch(obStep){
     case "welcome": skip = false;
-      h = `<div class="obhero">📅</div><h2>Set up your year</h2><p>Pick your class and your options once. Your timetable and your 14 grades fill in by themselves.</p><p class="muted">You can skip any question. Skipped questions show every group, and you can change everything later in Settings.</p>
-        <button class="primary" data-o="start">Start</button><button class="textlink" data-o="skipall">Skip setup</button>`; break;
+      h = `<div class="obhero">📅</div><h2>Configure ton année</h2><p>Choisis ta classe et tes options une seule fois. Ton horaire et tes 14 notes de maturité se mettent en place tout seuls.</p><p class="muted">Tu peux passer chaque question. Une question passée affiche tous les groupes, et tout se modifie plus tard dans les réglages.</p>
+        <button class="primary" data-o="start">Commencer</button><button class="textlink" data-o="skipall">Passer la configuration</button>`; break;
     case "class":
-      h = `<h2>Which class are you in?</h2><p>Your class code from Hermes, like 3M09.</p><div class="grid3">${Object.keys(CLASSES).map(c => `<button class="opt sm" data-o="${c}" aria-pressed="${t.cls === c}"><b>${c}</b></button>`).join("")}</div>`; break;
+      h = `<h2>Dans quelle classe es-tu ?</h2><p>Le code de ta classe sur Hermes, par exemple 3M09.</p><div class="grid3">${Object.keys(CLASSES).map(c => `<button class="opt sm" data-o="${c}" aria-pressed="${t.cls === c}"><b>${c}</b></button>`).join("")}</div>`; break;
     case "math":
-      h = `<h2>Your maths group</h2><p>Check Hermes if you're not sure.</p>${groupsOf(t.cls, "math").map(g => opt(g, GROUPS[g].label, g, t.ans.math === g)).join("")}`; break;
+      h = `<h2>Ton groupe de maths</h2><p>Regarde sur Hermes si tu n'es pas sûr·e.</p>${groupsOf(t.cls, "math").map(g => opt(g, GROUPS[g].label, g, t.ans.math === g)).join("")}`; break;
     case "hist":
-      h = `<h2>Your history group</h2><p>Some classes split history into two groups.</p>${groupsOf(t.cls, "hist").map(g => opt(g, GROUPS[g].label, g, t.ans.hist === g)).join("")}`; break;
+      h = `<h2>Ton groupe d'histoire</h2><p>Certaines classes ont deux groupes d'histoire.</p>${groupsOf(t.cls, "hist").map(g => opt(g, GROUPS[g].label, g, t.ans.hist === g)).join("")}`; break;
     case "l2":
-      h = `<h2>Your language 2</h2><p>Allemand or Italien, and your group.</p>${groupsOf(t.cls, "l2").map(g => opt(g, GROUPS[g].label, g, t.ans.l2 === g)).join("")}`; break;
-    case "abl2":
-      h = `<h2>${esc(l2name)}: group A or B?</h2><p>Half of the class has some ${esc(l2name)} lessons at a different time.</p>${opt("A", "Group A", "", t.ans.abl2 === "A")}${opt("B", "Group B", "", t.ans.abl2 === "B")}`; break;
-    case "aben":
-      h = `<h2>Anglais: group A or B?</h2><p>Your half-group for split English lessons.</p>${opt("A", "Group A", "", t.ans.aben === "A")}${opt("B", "Group B", "", t.ans.aben === "B")}`; break;
-    case "os":
-      h = `<h2>Your option spécifique</h2><p>The subject you chose in 1st year.</p>${groupsOf(t.cls, "os").map(g => opt(g, GROUPS[g].label, g, t.ans.os === g)).join("")}`; break;
-    case "tp": { const os = effOS(), g = os || groupsOf(t.cls, "os").find(x => x.startsWith("3MSBC"));
-      const rooms = GROUPS[g].L.map(x => parseL(x)).filter(x => x.tags.tp);
-      h = `<h2>Biologie-Chimie TP group</h2><p>The class splits in two for lab work.</p>${rooms.map(r => opt(r.tags.tp, "TP group " + r.tags.tp, "Room " + r.room, t.ans.tp === r.tags.tp)).join("")}`; break; }
-    case "art":
-      h = `<h2>Arts visuels or Musique?</h2><p>Your 2nd-year art subject. It's a locked grade in your total.</p>${opt("Arts visuels", "Arts visuels", "", t.art === "Arts visuels")}${opt("Musique", "Musique", "", t.art === "Musique")}`; break;
+      h = `<h2>Ta langue 2</h2><p>Allemand ou italien, et ton groupe.</p>${groupsOf(t.cls, "l2").map(g => opt(g, GROUPS[g].label, g, t.ans.l2 === g)).join("")}`; break;
+    case "ab":
+      h = `<h2>Ton groupe en anglais : A ou B ?</h2><p>Pour les cours de langue en demi-classe. Une seule question : quand ta moitié de classe a anglais, l'autre a allemand ou italien, donc l'app règle ta langue 2 toute seule.</p>${opt("A", "Groupe A en anglais", "Langue 2 : groupe B", t.ans.ab === "A")}${opt("B", "Groupe B en anglais", "Langue 2 : groupe A", t.ans.ab === "B")}`; break;
+    case "os": { const cg = groupsOf(t.cls, "os"), inClass = new Set(cg.map(g => g.replace(/\d+$/, "")));
+      h = `<h2>Ton option spécifique</h2><p>La branche choisie en 1re année.</p>${cg.map(g => opt(g, GROUPS[g].label, "Groupe " + g, t.ans.os === g)).join("")}${OS_ORDER.filter(k => !inClass.has(k)).map(k => opt(k, OSMAP[k].long, cg.length ? "Pas dans l'horaire de ta classe" : "", t.ans.os === k)).join("")}`; break; }
+    case "tp": { const rooms = GROUPS[effOS()].L.map(x => parseL(x)).filter(x => x.tags.tp);
+      h = `<h2>Groupe de TP biologie-chimie</h2><p>La classe se divise en deux pour les travaux pratiques.</p>${rooms.map(r => opt(r.tags.tp, "Groupe TP " + r.tags.tp, "Salle " + r.room, t.ans.tp === r.tags.tp)).join("")}`; break; }
+    case "locked":
+      h = `<h2>Tes notes bloquées de 2e année</h2><p>Additionne tes notes finales de chimie, de physique et d'arts visuels ou de musique. Elles comptent pour 3 notes dans ton total.</p>
+        <input class="gradein" id="lpIn" inputmode="decimal" placeholder="13.5" value="${state.lockedPoints ?? ""}"><p class="note" style="margin-top:8px">Exemple : 4,5 + 4 + 5 = 13,5 points.</p>
+        <button class="primary" data-o="lpok">Continuer</button>`; break;
     case "oc": { const os = osOf(effOS()), hide = os ? os.noOC : [];
-      h = `<h2>Your option complémentaire</h2><p>Your 3rd-year option, on Thursday afternoon.</p>${OC_LIST.filter(o => !hide.includes(o)).map(o => opt(o, o, OC_SLOTS[o] ? "" : "Add its lessons yourself later", t.oc === o)).join("")}`; break; }
+      h = `<h2>Ton option complémentaire</h2><p>Ton option de 3e année, le jeudi après-midi.</p>${OC_LIST.filter(o => !hide.includes(o)).map(o => opt(o, o, OC_SLOTS[o] ? "" : "Aucun cours trouvé dans les horaires, tu pourras les ajouter", t.oc === o)).join("")}`; break; }
     case "ocslots": { const sl = OC_SLOTS[t.oc], sel = t.ocSlots || [];
-      h = `<h2>Which ${esc(t.oc)} lessons are yours?</h2><p>This option runs in more than one block. Tick yours.</p>${sl.map((x, k) => `<button class="opt multi" data-m="${k}" aria-pressed="${sel.includes(k)}"><b>${esc(slotText(x))}</b></button>`).join("")}<button class="primary" data-o="slotsok">Continue</button>`; break; }
+      h = `<h2>Quels cours de ${esc(t.oc.toLowerCase())} sont les tiens ?</h2><p>Cette option a plusieurs blocs. Coche les tiens.</p>${sl.map((x, k) => `<button class="opt multi" data-m="${k}" aria-pressed="${sel.includes(k)}"><b>${esc(slotText(x))}</b></button>`).join("")}<button class="primary" data-o="slotsok">Continuer</button>`; break; }
     case "done": { skip = false;
-      const hasGrades = state.subjects.some(x => x.grades.length) || state.tm.g != null || state.locked.some(l => l.g != null);
-      const rows = [["Class", t.cls], ["Maths", t.ans.math], ["History", t.ans.hist], ["Language 2", t.ans.l2 ? GROUPS[t.ans.l2].label + " " + t.ans.l2 : null], ["Language 2 half-group", t.ans.abl2], ["Anglais half-group", t.ans.aben], ["Option spécifique", effOS() ? GROUPS[effOS()].label : null], ["TP group", t.ans.tp], ["Art", t.art], ["Option complémentaire", t.oc]];
-      h = `<h2>All set</h2><div class="list" style="margin:6px 0 16px">${rows.map(([k, v]) => `<div class="row" style="cursor:default"><div class="rname"><b>${k}</b></div><span class="${v ? "" : "muted"}">${v ? esc(v) : "All / later"}</span></div>`).join("")}</div>
-        ${hasGrades ? `<p>You already have grades. Update your 14 grade subjects to match these answers? Your grades stay.</p><button class="primary" data-o="apply">Update subjects and finish</button><button class="secondary" data-o="finish">Keep my subjects as they are</button>`
-                    : `<button class="primary" data-o="apply">Finish</button>`}`; break; }
+      const hasGrades = state.subjects.some(x => x.grades.length) || state.tm.g != null;
+      const rows = [["Classe", t.cls], ["Maths", t.ans.math], ["Histoire", t.ans.hist], ["Langue 2", t.ans.l2 ? GROUPS[t.ans.l2].label + " " + t.ans.l2 : null], ["Groupe d'anglais", t.ans.ab], ["Option spécifique", effOS() ? osLabel(effOS()) : null], ["Groupe TP", t.ans.tp], ["Notes de 2e année", state.lockedPoints != null ? f2(state.lockedPoints) + " points" : null], ["Option complémentaire", t.oc]];
+      h = `<h2>C'est prêt</h2><div class="list" style="margin:6px 0 16px">${rows.map(([k, v]) => `<div class="row" style="cursor:default"><div class="rname"><b>${k}</b></div><span class="${v ? "" : "muted"}">${v ? esc(v) : "Tous / plus tard"}</span></div>`).join("")}</div>
+        ${hasGrades ? `<p>Tu as déjà des notes. Mettre à jour tes branches selon ces réponses ? Tes notes sont gardées.</p><button class="primary" data-o="apply">Mettre à jour et terminer</button><button class="secondary" data-o="finish">Garder mes branches</button>`
+                    : `<button class="primary" data-o="apply">Terminer</button>`}`; break; }
   }
-  if(skip) h += `<button class="textlink" data-o="skip">Skip, I'll set it later</button>`;
+  if(skip) h += `<button class="textlink" data-o="skip">Passer, je le ferai plus tard</button>`;
   const el = $("obSlide"); el.innerHTML = h; el.scrollTop = 0;
   if(dir && el.animate && !matchMedia("(prefers-reduced-motion: reduce)").matches)
     el.animate([{transform:`translateX(${dir * 50}px)`, opacity:0}, {transform:"none", opacity:1}], {duration:260, easing:"cubic-bezier(.2,.8,.2,1)"});
@@ -906,12 +913,13 @@ $("obSlide").addEventListener("click", e => {
   const v = b.dataset.o;
   if(v === "start") return obNext();
   if(v === "skipall") return closeOb();
-  if(v === "apply"){ applyGrades(); closeOb(); showTab(t.cls ? "sched" : "grades", true); toast("Your year is set up"); return; }
+  if(v === "apply"){ applyGrades(); closeOb(); showTab(t.cls ? "sched" : "grades", true); toast("Ton année est configurée"); return; }
   if(v === "finish"){ closeOb(); showTab(t.cls ? "sched" : "grades", true); return; }
+  if(v === "lpok"){ const x = num($("lpIn").value); if($("lpIn").value.trim() && (x == null || x < 3 || x > 18)){ toast("Entre un total entre 3 et 18"); return; } state.lockedPoints = x; save(); return obNext(); }
   if(v === "slotsok"){ if(t.ocSlots && !t.ocSlots.length) t.ocSlots = null; save(); return obNext(); }
   if(v === "skip"){
     if(obStep === "class"){ t.cls = null; t.ans = {}; }
-    else if(obStep === "art") t.art = null;
+    else if(obStep === "locked") state.lockedPoints = null;
     else if(obStep === "oc"){ t.oc = null; t.ocSlots = null; }
     else if(obStep === "ocslots") t.ocSlots = null;
     else delete t.ans[obStep];
@@ -919,9 +927,9 @@ $("obSlide").addEventListener("click", e => {
   }
   b.parentElement.querySelectorAll(".opt").forEach(x => x.setAttribute("aria-pressed", x === b));
   if(obStep === "class"){ if(t.cls !== v){ t.ans = {}; t.hidden = []; t.rooms = {}; } t.cls = v; }
-  else if(obStep === "art") t.art = v;
+
   else if(obStep === "oc"){ if(t.oc !== v) t.ocSlots = null; t.oc = v; }
-  else { t.ans[obStep] = v; if(obStep === "os" && !v.startsWith("3MSBC")) delete t.ans.tp; }
+  else { t.ans[obStep] = v; if(obStep === "os" && !GROUPS[v]) delete t.ans.tp; }
   save(); setTimeout(obNext, 160);
 });
 
@@ -944,16 +952,7 @@ function applyGrades(){
     return Object.assign({id:uid(), name:w.name, counts:true, grades:[]}, w.parts ? {parts:w.parts.map(p => ({...p}))} : {});
   });
   old.forEach(o => { if(!used.has(o) && o.grades.length){ o.counts = false; subjects.push(o); } });
-  const usedL = new Set();
-  const take = f => { const m = state.locked.find(l => !usedL.has(l) && f(l)); if(m) usedL.add(m); return m; };
-  const ch = take(l => norm(l.name) === "chimie"), ph = take(l => norm(l.name) === "physique");
-  const art = take(l => t.art ? norm(l.name) === norm(t.art) : false) || take(l => /musique|arts/i.test(l.name));
-  const locked = [
-    {id:ch ? ch.id : uid(), name:"Chimie", g:ch ? ch.g : null},
-    {id:ph ? ph.id : uid(), name:"Physique", g:ph ? ph.g : null},
-    {id:art ? art.id : uid(), name:t.art || (art ? art.name : "Arts visuels ou Musique"), g:art ? art.g : null}];
-  state.locked.forEach(l => { if(!usedL.has(l) && l.g != null) locked.push(l); });
-  state.subjects = subjects; state.locked = locked; save();
+  state.subjects = subjects; save();
 }
 
 showTab(tab, false);
