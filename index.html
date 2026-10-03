@@ -104,6 +104,19 @@ nav.tabs{position:fixed;left:0;right:0;bottom:0;background:#000;box-shadow:0 -1p
 .lc span{font-size:13px;color:var(--muted)}
 .free{font-size:13px;color:var(--faint);text-align:center;padding:6px 0}
 .empty2{text-align:center;padding:28px 20px}
+.dseg button{height:50px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15}
+.dseg button small{font-size:11px;font-weight:500;color:var(--faint)}
+.dseg button[aria-selected="true"] small{color:var(--muted)}
+.dseg button i{bottom:3px}
+.wk{display:flex;align-items:center;gap:8px;margin:-6px 0 10px}
+.wk span{flex:1;text-align:center;font-size:14px;color:var(--muted)}
+.wk .icon{width:36px;height:36px}
+.wk .today{border:0;background:var(--surface);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600}
+.testc{display:flex;align-items:center;gap:12px;width:100%;border:0;background:var(--surface);border-radius:14px;padding:12px 14px;margin-bottom:6px;text-align:left;box-shadow:inset 4px 0 0 #F2A3C2}
+.testc .tl{font-size:12px;font-weight:700;color:#F2A3C2;text-transform:none}
+.testc .rname b{font-size:16px}
+.tpill{display:inline-block;font-size:11px;font-weight:700;background:#F2A3C2;color:#1C1E21;border-radius:999px;padding:1px 7px;margin-left:6px;vertical-align:2px}
+input[type=date].inp{color-scheme:dark}
 .empty2 b{font-size:18px} .empty2 p{color:var(--muted);margin:6px 0 4px}
 /* onboarding */
 .ob{position:fixed;inset:0;background:#000;z-index:8;display:none}
@@ -314,6 +327,8 @@ function renderHome(){
   } else h += `<div class="big muted">–</div><div class="break">Ajoute ta première note pour voir ton total.</div>`;
   h += `</section>`;
 
+  const up = sortTests(tests().filter(x => x.date >= todayIso())).slice(0, 4);
+  h += `<h2>Prochains tests<small>${up.length ? "" : "Aucun pour l'instant"}</small></h2>${up.map(x => testCard(x, "act")).join("")}<button class="secondary" data-act="addtest" style="margin-top:2px">+ Ajouter un test</button>`;
   const counted = state.subjects.filter(s => s.counts), extra = state.subjects.filter(s => !s.counts);
   h += `<h2>Branches<small>${state.settings.round ? "Arrondies au demi-point" : "Moyennes exactes"}</small></h2><div class="list">${counted.map(rowHTML).join("")}</div>`;
 
@@ -363,6 +378,8 @@ function renderSubject(){
     h += `<h2>Notes<small>Touche pour modifier</small></h2><div class="list">${[...s.grades].reverse().map(g => `
       <button class="grow" data-act="editg" data-id="${g.id}"><span class="gbadge ${col(g.g)}">${f2(g.g)}</span><div class="rname"><b>${esc(g.name || "Test")}</b><span>${s.parts && g.part ? esc((s.parts.find(p => p.key === g.part) || {}).name || "") + ", " : ""}${new Date(g.date).toLocaleDateString("fr-CH", {day:"numeric", month:"short"})}</span></div><span class="gw">×${f2(g.w)}</span></button>`).join("")}</div>`;
   } else h += `<div class="card muted" style="text-align:center;padding:26px">Pas encore de note. Touche « Ajouter une note » en bas.</div>`;
+  { const st = sortTests(tests().filter(x => x.sid === s.id && x.date >= todayIso()));
+    h += `<h2>Tests à venir</h2>${st.map(x => testCard(x, "act")).join("")}<button class="secondary" data-act="addtest" style="margin-top:2px">+ Ajouter un test</button>`; }
   h += `<h2>De combien ai-je besoin ?</h2><div class="card need">
     <div><span class="lab2" style="margin-top:0">Objectif ${state.settings.round ? "(après arrondi)" : "(moyenne)"}</span><div class="chips">${[4,4.5,5,5.5,6].map(t => `<button class="chip" data-act="needt" data-v="${t}" aria-pressed="${needT === t}">${t}</button>`).join("")}</div></div>
     ${s.parts ? `<div><span class="lab2" style="margin-top:0">Le prochain test est en</span><div class="chips">${s.parts.map(p => `<button class="chip" data-act="needp" data-v="${p.key}" aria-pressed="${needP === p.key}">${esc(p.name)}</button>`).join("")}</div></div>` : ""}
@@ -389,11 +406,12 @@ function closeSheet(){ $("sheet").classList.remove("on"); }
 $("sheet").addEventListener("click", e => { if(e.target.id === "sheet") closeSheet(); });
 
 let draft = null;
-function gradeSheet(g){
+function gradeSheet(g, preset){
   // g: existing grade object for edit, or null
   const editing = !!g;
   draft = editing ? {sid:g.sid, id:g.id, g:String(g.g), w:g.w, name:g.name || "", part:g.part || null, editing:true} :
     {sid: openId || state.settings.lastSub || state.subjects[0].id, g:"", w:state.settings.lastW || 1, name:"", part:state.settings.lastPart || "philo", editing:false};
+  if(!editing && preset) Object.assign(draft, preset);
   if(!sub(draft.sid)) draft.sid = state.subjects[0].id;
   drawGradeSheet(editing);
   if(!editing) setTimeout(() => { const i = $("gIn"); i && i.focus(); }, 320);
@@ -425,8 +443,9 @@ $("sheetBody").addEventListener("click", e => {
     const s = sub(d.sid), part = s.parts ? (s.parts.some(q => q.key === d.part) ? d.part : s.parts[0].key) : undefined;
     if(d.id){ const x = s.grades.find(x => x.id === d.id); x.g = g; x.w = d.w; x.name = d.name.trim(); if(part) x.part = part; toast("Enregistré"); }
     else { s.grades.push({id:uid(), g, w:d.w, name:d.name.trim(), date:new Date().toISOString(), ...(part ? {part} : {})}); state.settings.lastSub = d.sid; state.settings.lastW = d.w; if(part) state.settings.lastPart = part;
+      if(d.testId) state.tests = tests().filter(x => x.id !== d.testId);
       toast(f2(g) + " ajouté en " + (part ? s.parts.find(p => p.key === part).name : s.name)); }
-    save(); closeSheet(); draft = null; refresh();
+    save(); closeSheet(); draft = null; refresh(); if(typeof renderSched === "function" && tab === "sched") renderSched();
   }
   if(k === "del"){
     const s = sub(d.sid), i = s.grades.findIndex(x => x.id === d.id), [gone] = s.grades.splice(i, 1);
@@ -489,6 +508,8 @@ $("main").addEventListener("click", e => {
   const b = e.target.closest("[data-act]"); if(!b) return;
   const a = b.dataset.act;
   if(a === "open") openSubject(b.dataset.id);
+  if(a === "test") testSheet(b.dataset.id);
+  if(a === "addtest") testSheet(null, {date:todayIso()});
   if(a === "tm") valueSheet("Travail de maturité", "La note du TM compte comme une note entière dans ton total.", state.tm.g, v => state.tm.g = v, () => state.tm.g = null);
   if(a === "lockedpts") valueSheet("Notes bloquées de 2e année", "Additionne tes notes finales de chimie, de physique et d'arts visuels ou de musique. Exemple : 4,5 + 4 + 5 = 13,5.", state.lockedPoints, v => state.lockedPoints = v, () => state.lockedPoints = null, 3, 18);
 });
@@ -496,6 +517,8 @@ $("screenBody").addEventListener("click", e => {
   const b = e.target.closest("[data-act]"); if(!b) return;
   const a = b.dataset.act, s = sub(openId);
   if(a === "back") closeSubject();
+  if(a === "test") testSheet(b.dataset.id);
+  if(a === "addtest") testSheet(null, {sid:s.id, date:todayIso()});
   if(a === "editg"){ const g = s.grades.find(x => x.id === b.dataset.id); gradeSheet(Object.assign({sid:s.id}, g)); }
   if(a === "needt" || a === "needw" || a === "needp"){
     if(a === "needt") needT = +b.dataset.v; else if(a === "needw") needW = +b.dataset.v; else needP = b.dataset.v;
@@ -524,6 +547,17 @@ $("importFile").onchange = async e => {
     const x = defaults(); state = migrate(Object.assign(x, lockedMig(d), {settings:Object.assign(x.settings, d.settings || {})})); save(); closeSheet(); refresh(); renderSched(); toast("Sauvegarde importée");
   }catch(err){ toast("Ce fichier n'est pas une sauvegarde de l'app"); }
 };
+
+// keyboard "Enter"/"OK" submits the open form
+document.addEventListener("focusin", e => { if(e.target.tagName === "INPUT") e.target.enterKeyHint = "done"; });
+document.addEventListener("keydown", e => {
+  if(e.key !== "Enter" || e.target.tagName !== "INPUT") return;
+  const box = e.target.closest("#sheetBody, #obSlide"); if(!box) return;
+  e.preventDefault();
+  if(e.target.id === "newSub"){ $("addSub").click(); return; }
+  if(e.target.dataset.m){ e.target.blur(); return; }
+  const p = box.querySelector(".primary"); if(p) p.click(); else e.target.blur();
+});
 
 let tT;
 function toast(msg, action){
@@ -765,21 +799,79 @@ function showTab(next, animate){
 }
 document.querySelectorAll(".navbtn").forEach(b => b.onclick = () => showTab(b.dataset.tab, true));
 
-/* ============ schedule view ============ */
-let sDay = (() => { const d = new Date().getDay(); return d >= 1 && d <= 5 ? d - 1 : 0; })();
+/* ============ dates ============ */
+const pad = n => String(n).padStart(2, "0");
+const iso = d => d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+const fromIso = x => { const [y, m, d] = x.split("-").map(Number); return new Date(y, m - 1, d); };
+const MONTHS = ["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
+const fmtD = d => d.getDate() + " " + MONTHS[d.getMonth()];
+function mondayOf(d){ d = new Date(d.getFullYear(), d.getMonth(), d.getDate()); d.setDate(d.getDate() - (d.getDay() + 6) % 7); return d; }
 const isWeekend = () => { const d = new Date().getDay(); return d === 0 || d === 6; };
-const todayIdx = () => { const d = new Date().getDay(); return d >= 1 && d <= 5 ? d - 1 : -1; };
+const todayIso = () => iso(new Date());
+let sWeek = mondayOf(new Date()); if(isWeekend()) sWeek.setDate(sWeek.getDate() + 7);
+let sDay = (() => { const d = new Date().getDay(); return d >= 1 && d <= 5 ? d - 1 : 0; })();
+const dayDate = i => { const d = new Date(sWeek); d.setDate(d.getDate() + i); return d; };
+const sDate = () => dayDate(sDay);
+function daysUntil(x){ return Math.round((fromIso(x) - fromIso(todayIso())) / 86400000); }
+function whenTxt(x){ const n = daysUntil(x), d = fromIso(x);
+  if(n === 0) return "Aujourd'hui"; if(n === 1) return "Demain"; if(n === -1) return "Hier";
+  if(n < 0) return fmtD(d); if(n < 7) return DAYNAMES[(d.getDay() + 6) % 7] + " " + fmtD(d); return fmtD(d) + ", dans " + n + " jours"; }
+
+/* ============ tests ============ */
+function tests(){ if(!state.tests) state.tests = []; return state.tests; }
+const sortTests = a => a.sort((x, y) => x.date < y.date ? -1 : x.date > y.date ? 1 : 0);
+function lessonSubject(l){
+  const S = state.subjects, by = n => S.find(s => norm(s.name) === norm(n));
+  const osSub = () => S.find(s => Object.values(OSMAP).some(o => o.name === s.name)) || by("Option spécifique");
+  if(l.oc) return S.find(s => /^OC /.test(s.name)) || by("Option complémentaire");
+  if(l.gdim === "os" || /\(OS\)$/.test(l.name)) return osSub();
+  if(/^Maths/.test(l.name)) return by("Mathématiques");
+  if(/^Histoire( bilingue)?$/.test(l.name)) return by("Histoire");
+  if(/^(Allemand|Italien)$/.test(l.name)) return by(l.name) || by("Langue 2");
+  return by(l.name) || null;
+}
+function testCard(x, act, label){
+  const sb = sub(x.sid);
+  return `<button class="testc" data-${act}="test" data-id="${x.id}"><div class="rname"><span class="tl">${esc(label || whenTxt(x.date))}</span><b>${esc(x.name || "Test")}</b><span>${sb ? esc(sb.name) : "Branche supprimée"}${x.w !== 1 ? ", ×" + f2(x.w) : ""}</span></div></button>`;
+}
+function testSheet(id, preset){
+  const ex = id ? tests().find(x => x.id === id) : null;
+  const d = ex ? Object.assign({}, ex) : Object.assign({id:null, sid:(state.subjects[0] || {}).id, date:iso(sDate()), name:"", w:1}, preset || {});
+  const due = ex && ex.date <= todayIso();
+  openSheet(`<h3>${ex ? "Test" : "Nouveau test"}</h3>
+    <span class="lab2">Branche</span><div class="chips" id="tsSub">${state.subjects.map(s => `<button class="chip" data-v="${s.id}" aria-pressed="${d.sid === s.id}">${esc(s.name)}</button>`).join("")}</div>
+    <span class="lab2">Date</span><input class="inp" type="date" id="tsDate" value="${d.date}">
+    <span class="lab2">Nom (facultatif)</span><input class="inp" id="tsName" placeholder="p. ex. TS chapitre 3" value="${esc(d.name)}">
+    <span class="lab2">Pondération</span><div class="chips" id="tsW">${[0.5,1,2,3].map(w => `<button class="chip" data-v="${w}" aria-pressed="${d.w === w}">×${w}</button>`).join("")}</div>
+    ${due ? `<button class="primary" id="tsGrade">Entrer la note</button><button class="secondary" id="tsSave">Enregistrer</button>` : `<button class="primary" id="tsSave">${ex ? "Enregistrer" : "Ajouter le test"}</button>`}
+    ${ex ? `<button class="secondary danger" id="tsDel">Supprimer le test</button>` : ""}`);
+  const pick = (box, k, numeric) => $(box).onclick = e => { const c = e.target.closest(".chip"); if(!c) return; d[k] = numeric ? +c.dataset.v : c.dataset.v; $(box).querySelectorAll(".chip").forEach(x => x.setAttribute("aria-pressed", x === c)); };
+  pick("tsSub", "sid"); pick("tsW", "w", true);
+  const collect = () => { d.date = $("tsDate").value || d.date; d.name = $("tsName").value.trim(); };
+  $("tsSave").onclick = () => { collect(); if(!d.sid){ toast("Choisis une branche"); return; }
+    if(ex) Object.assign(ex, d); else tests().push(Object.assign(d, {id:uid()}));
+    save(); closeSheet(); refreshAll(); toast(ex ? "Enregistré" : "Test ajouté"); };
+  if($("tsGrade")) $("tsGrade").onclick = () => { collect(); Object.assign(ex, d); save(); closeSheet(); setTimeout(() => gradeSheet(null, {sid:ex.sid, name:ex.name, w:ex.w, testId:ex.id}), 260); };
+  if($("tsDel")) $("tsDel").onclick = () => { const i = tests().indexOf(ex); tests().splice(i, 1); save(); closeSheet(); refreshAll();
+    toast("Test supprimé", {label:"Annuler", fn:() => { tests().splice(i, 0, ex); save(); refreshAll(); }}); };
+}
+function refreshAll(){ renderHome(); if(openId) renderSubject(); if(tab === "sched") renderSched(); }
+
+/* ============ schedule view ============ */
 function renderSched(animDir){
   const t = tt(), el = $("sched");
-  if(!t.cls && !t.extra.length){
+  if(!t.cls && !t.extra.length && !tests().length){
     el.innerHTML = `<div class="card empty2"><b>Pas encore d'horaire</b><p>Choisis ta classe et tes options, et ta semaine se remplit toute seule.</p><button class="primary" data-s="setup">Configurer mon horaire</button></div>`;
     return;
   }
-  const all = weekLessons(), day = all.filter(l => l.day === sDay), ti = todayIdx(), isToday = ti === sDay;
-  const nowM = new Date().getHours() * 60 + new Date().getMinutes();
-  let h = `<div class="dseg" role="tablist"><span class="dind" style="transform:translateX(${sDay * 100}%)"></span>${DAYS.map((d, i) => `<button role="tab" data-s="day" data-d="${i}" aria-selected="${i === sDay}">${DAYS_FR[i]}${i === ti ? '<i></i>' : ""}</button>`).join("")}</div>`;
-  h += `<div class="dhead"><h2 class="dname">${DAYNAMES[sDay]}</h2><span class="muted">${t.cls ? esc(t.cls) : ""}${day.length ? ", " + day.length + " cours" : ""}</span></div>`;
-  if(isWeekend() && sDay === 0) h += `<p class="note" style="margin:-4px 2px 10px">C'est le week-end. Voici lundi.</p>`;
+  const all = weekLessons(), day = all.filter(l => l.day === sDay), dIso = iso(sDate()), isToday = dIso === todayIso();
+  const thisWeek = iso(sWeek) === iso(mondayOf(new Date())), nowM = new Date().getHours() * 60 + new Date().getMinutes();
+  const dayTests = sortTests(tests().filter(x => x.date === dIso));
+  const testSids = new Set(dayTests.map(x => x.sid));
+  let h = `<div class="dseg" role="tablist"><span class="dind" style="transform:translateX(${sDay * 100}%)"></span>${DAYS_FR.map((d, i) => { const di = iso(dayDate(i));
+    return `<button role="tab" data-s="day" data-d="${i}" aria-selected="${i === sDay}">${d}<small>${dayDate(i).getDate()}</small>${di === todayIso() ? "<i></i>" : ""}</button>`; }).join("")}</div>`;
+  h += `<div class="wk"><button class="icon" data-s="pw" aria-label="Semaine précédente"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button><span>Semaine du ${fmtD(sWeek)}</span>${thisWeek ? "" : `<button class="today" data-s="tw">Aujourd'hui</button>`}<button class="icon" data-s="nw" aria-label="Semaine suivante"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button></div>`;
+  h += `<div class="dhead"><h2 class="dname">${DAYNAMES[sDay]} ${fmtD(sDate())}</h2><span class="muted">${day.length ? day.length + " cours" : ""}</span></div>`;
   if(isToday && day.length){
     const cur = day.find(l => mins(PERIODS[l.p1][0]) <= nowM && nowM < mins(PERIODS[l.p2][1]));
     const nxt = day.find(l => mins(PERIODS[l.p1][0]) > nowM);
@@ -789,7 +881,9 @@ function renderSched(animDir){
       h += `<div class="nowc"><span class="lab">Prochain cours dans ${m >= 60 ? Math.floor(m / 60) + " h " + (m % 60) + " min" : m + " min"}</span><b>${esc(nxt.name)}</b><span>${PERIODS[nxt.p1][0]}${nxt.room ? " en " + esc(nxt.room) : ""}</span></div>`; }
     else h += `<div class="nowc done"><b>Fini pour aujourd'hui</b><span>Bonne soirée.</span></div>`;
   }
-  if(!day.length) h += `<div class="card empty2"><b>Pas de cours</b><p>Rien le ${DAYNAMES[sDay].toLowerCase()}.</p></div>`;
+  h += `<div id="dayBody">`;
+  if(dayTests.length) h += dayTests.map(x => testCard(x, "s", "Test")).join("");
+  if(!day.length) h += `<div class="card empty2"><b>Pas de cours</b><p>Rien ce ${DAYNAMES[sDay].toLowerCase()}.</p></div>`;
   else {
     h += `<div class="lessons">`; let lastEnd = null;
     day.forEach(l => {
@@ -803,40 +897,60 @@ function renderSched(animDir){
       if(l.tags.tp) tags.push("Groupe TP " + l.tags.tp);
       if(l.extra) tags.push("Ajouté par toi");
       if(l.estimated) tags.push("à vérifier");
+      const ls = lessonSubject(l), hasTest = ls && testSids.has(ls.id);
       h += `<button class="les${past ? " past" : ""}${live ? " live" : ""}" data-s="les" data-k="${esc(l.key)}">
         <span class="lt"><b>${st}</b><span>${en}</span></span><span class="lbar" style="background:${colorFor(l.name)}"></span>
-        <span class="lc"><b>${esc(l.name)}</b><span>${l.room ? esc(l.room) : "Salle ?"}${tags.length ? " · " + tags.map(esc).join(", ") : ""}</span></span></button>`;
+        <span class="lc"><b>${esc(l.name)}${hasTest ? '<span class="tpill">Test</span>' : ""}</b><span>${l.room ? esc(l.room) : "Salle ?"}${tags.length ? " · " + tags.map(esc).join(", ") : ""}</span></span></button>`;
     });
     h += `</div>`;
   }
-  h += `<button class="secondary" data-s="add" style="margin-top:12px">+ Ajouter un cours</button>`;
+  h += `</div><div class="row2" style="margin-top:12px"><button class="secondary" data-s="addtest" style="margin:0">+ Test</button><button class="secondary" data-s="add" style="margin:0">+ Cours</button></div>`;
   el.innerHTML = h;
   if(animDir && el.animate && !matchMedia("(prefers-reduced-motion: reduce)").matches){
-    const box = el.querySelector(".lessons") || el.querySelector(".empty2");
-    if(box) box.animate([{transform:`translateX(${animDir * 40}px)`, opacity:0}, {transform:"none", opacity:1}], {duration:220, easing:"cubic-bezier(.2,.8,.2,1)"});
+    const box = $("dayBody"), head = el.querySelector(".dhead");
+    [box, head].forEach(b => b && b.animate([{transform:`translateX(${animDir * 40}px)`, opacity:0}, {transform:"none", opacity:1}], {duration:220, easing:"cubic-bezier(.2,.8,.2,1)"}));
   }
 }
 setInterval(() => { if(tab === "sched" && !$("sheet").classList.contains("on")) renderSched(); }, 30000);
-function goDay(d){ if(d < 0 || d > 4 || d === sDay) return; const dir = d > sDay ? 1 : -1; sDay = d; renderSched(dir); }
+function goDay(d){
+  if(d === sDay) return;
+  const dir = d > sDay ? 1 : -1;
+  if(d > 4){ sWeek.setDate(sWeek.getDate() + 7); d = 0; }
+  else if(d < 0){ sWeek.setDate(sWeek.getDate() - 7); d = 4; }
+  sDay = d; renderSched(dir);
+}
+function goWeek(n){ sWeek.setDate(sWeek.getDate() + 7 * n); renderSched(n); }
 $("sched").addEventListener("click", e => {
   const b = e.target.closest("[data-s]"); if(!b) return;
   const a = b.dataset.s;
   if(a === "setup") openOnboarding("class");
   if(a === "day") goDay(+b.dataset.d);
+  if(a === "pw") goWeek(-1);
+  if(a === "nw") goWeek(1);
+  if(a === "tw"){ sWeek = mondayOf(new Date()); const d = new Date().getDay(); sDay = d >= 1 && d <= 5 ? d - 1 : 0; renderSched(-1); }
   if(a === "les") lessonSheet(b.dataset.k);
   if(a === "add") addLessonSheet();
+  if(a === "addtest") testSheet(null, {date:iso(sDate())});
+  if(a === "test") testSheet(b.dataset.id);
 });
+// swipe anywhere on the Horaire screen to change day
 let tx = null, ty = null;
-$("sched").addEventListener("touchstart", e => { tx = e.touches[0].clientX; ty = e.touches[0].clientY; }, {passive:true});
-$("sched").addEventListener("touchend", e => { if(tx === null) return; const dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty; tx = null;
-  if(Math.abs(dx) > 60 && Math.abs(dy) < Math.abs(dx) * 0.6) goDay(sDay + (dx < 0 ? 1 : -1)); }, {passive:true});
+const overlayOpen = () => $("sheet").classList.contains("on") || $("screen").classList.contains("on") || $("ob").classList.contains("on");
+document.addEventListener("touchstart", e => { tx = null; if(tab !== "sched" || overlayOpen() || e.touches.length !== 1 || (e.target.closest && e.target.closest("input,.dseg,nav"))) return; tx = e.touches[0].clientX; ty = e.touches[0].clientY; }, {passive:true});
+document.addEventListener("touchend", e => { if(tx === null) return; const dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty; tx = null;
+  if(Math.abs(dx) > 50 && Math.abs(dy) < Math.abs(dx) * 0.7) goDay(sDay + (dx < 0 ? 1 : -1)); }, {passive:true});
 
 function lessonSheet(key){
   const l = weekLessons().find(x => x.key === key); if(!l) return;
+  const ls = lessonSubject(l), up = ls ? sortTests(tests().filter(x => x.sid === ls.id && x.date >= todayIso())) : [];
   openSheet(`<h3>${esc(l.name)}</h3><p class="note" style="margin:0 0 6px">${DAYNAMES[l.day]}, de ${PERIODS[l.p1][0]} à ${PERIODS[l.p2][1]}${l.group ? ", groupe " + esc(l.group) : ""}</p>
+    ${ls ? `<span class="lab2">Tests en ${esc(ls.name)}</span>${up.length ? up.map(x => testCard(x, "ls")).join("") : `<p class="note" style="margin:0 0 8px">Aucun test prévu.</p>`}
+    <button class="secondary" id="lsAddTest" style="margin-top:2px">+ Ajouter un test</button>` : ""}
     <span class="lab2">Salle</span><input class="inp" id="roomIn" value="${esc(l.room)}" placeholder="p. ex. S2.14">
     <button class="primary" id="roomSave">Enregistrer</button>
     <button class="secondary ${l.extra ? "danger" : ""}" id="hideL">${l.extra ? "Supprimer ce cours" : "Masquer ce cours"}</button>`);
+  if($("lsAddTest")) $("lsAddTest").onclick = () => { closeSheet(); setTimeout(() => testSheet(null, {sid:ls.id, date:iso(dayDate(l.day))}), 260); };
+  $("sheetBody").querySelectorAll('[data-ls="test"]').forEach(b => b.onclick = () => { closeSheet(); setTimeout(() => testSheet(b.dataset.id), 260); });
   $("roomSave").onclick = () => { const t = tt(), v = $("roomIn").value.trim();
     if(l.extra){ const x = t.extra.find(x => "x|" + x.id === key); if(x) x.room = v; } else t.rooms[key] = v;
     save(); closeSheet(); renderSched(); toast("Enregistré"); };
