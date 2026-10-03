@@ -65,7 +65,7 @@ h2 small{font-weight:500;color:var(--faint)}
 .bonusline{display:flex;justify-content:space-between;padding:12px 16px;box-shadow:inset 0 1px 0 var(--line);font-size:14px;color:var(--muted)}
 .bonusline b{color:var(--green);font-family:var(--display);font-size:20px}
 
-.fab{position:fixed;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));max-width:508px;margin:0 auto;height:56px;border:0;border-radius:18px;background:var(--ink);color:#000;font-weight:700;font-size:17px;z-index:2;box-shadow:0 8px 30px rgba(0,0,0,.6)}
+.fab{position:fixed;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));max-width:508px;margin:0 auto;height:56px;border:0;border-radius:18px;background:var(--ink);color:#000;font-weight:700;font-size:17px;z-index:4;box-shadow:0 8px 30px rgba(0,0,0,.6)}
 
 /* fullscreen subject */
 .screen{position:fixed;inset:0;background:#000;z-index:3;overflow-y:auto;transform:translateX(100%);transition:transform .32s cubic-bezier(.2,.8,.2,1),visibility 0s .32s;visibility:hidden;overscroll-behavior:contain}
@@ -143,16 +143,29 @@ h2 small{font-weight:500;color:var(--faint)}
 /* ============ data ============ */
 const KEY = "grades-v1";
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-const SUBJECTS = ["Mathématiques","Français","Allemand","Anglais","Histoire","Géographie","Biologie","Philosophie","Psychologie","OC Sport","Sport"];
+const SUBJECTS = ["Mathématiques","Français","Allemand","Anglais","Histoire","Géographie","Biologie","Philo & Psycho","OC Sport","Sport"];
+const PP_PARTS = [{key:"philo", name:"Philosophie", share:3}, {key:"psycho", name:"Psychologie", share:2}];
 function defaults(){
   return {v:1,
-    subjects: SUBJECTS.map(n => ({id:uid(), name:n, counts:n !== "Sport", grades:[]})),
+    subjects: SUBJECTS.map(n => Object.assign({id:uid(), name:n, counts:n !== "Sport", grades:[]}, n === "Philo & Psycho" ? {parts:PP_PARTS.map(x => ({...x}))} : {})),
     tm:{g:null},
     locked:[{id:uid(), name:"Chimie", g:null}, {id:uid(), name:"Physique", g:null}, {id:uid(), name:"Musique", g:null}],
     settings:{bonus:0.5, round:true, lastSub:null, lastW:1}};
 }
+function migrate(st){
+  // merge separate Philosophie + Psychologie into one combined subject (3/5 + 2/5)
+  if(st.subjects.some(x => x.parts)) return st;
+  const ph = st.subjects.find(x => /^philo/i.test(x.name)), ps = st.subjects.find(x => /^psycho/i.test(x.name));
+  if(!ph && !ps) return st;
+  const combo = {id:uid(), name:"Philo & Psycho", counts:true, parts:PP_PARTS.map(x => ({...x})),
+    grades:[...(ph ? ph.grades.map(g => ({...g, part:"philo"})) : []), ...(ps ? ps.grades.map(g => ({...g, part:"psycho"})) : [])].sort((a,b) => a.date < b.date ? -1 : 1)};
+  const at = st.subjects.indexOf(ph || ps);
+  st.subjects = st.subjects.filter(x => x !== ph && x !== ps);
+  st.subjects.splice(at, 0, combo);
+  return st;
+}
 function load(){
-  try{ const s = JSON.parse(localStorage.getItem(KEY)); if(s && s.v === 1 && Array.isArray(s.subjects)){ const d = defaults(); return Object.assign(d, s, {settings:Object.assign(d.settings, s.settings || {})}); } }catch(e){}
+  try{ const s = JSON.parse(localStorage.getItem(KEY)); if(s && s.v === 1 && Array.isArray(s.subjects)){ const d = defaults(); return migrate(Object.assign(d, s, {settings:Object.assign(d.settings, s.settings || {})})); } }catch(e){}
   return defaults();
 }
 let state = load();
@@ -168,11 +181,15 @@ const col = g => g == null ? "" : g < 4 ? "c-red" : g < 4.5 ? "c-amber" : g >= 5
 const colVar = g => g < 4 ? "var(--red)" : g < 4.5 ? "var(--amber)" : g >= 5 ? "var(--green)" : "var(--ink)";
 const sub = id => state.subjects.find(s => s.id === id);
 
+function wavg(list){ const g = list.filter(x => x.w > 0); if(!g.length) return null; return g.reduce((a,x) => a + x.g * x.w, 0) / g.reduce((a,x) => a + x.w, 0); }
+const partAvg = (s, key) => wavg(s.grades.filter(x => x.part === key));
 function avg(s){
-  const g = s.grades.filter(x => x.w > 0); if(!g.length) return null;
-  const W = g.reduce((a,x) => a + x.w, 0);
-  return g.reduce((a,x) => a + x.g * x.w, 0) / W;
+  if(!s.parts) return wavg(s.grades);
+  let n = 0, d = 0;
+  for(const p of s.parts){ const a = partAvg(s, p.key); if(a != null){ n += a * p.share; d += p.share; } }
+  return d ? n / d : null;
 }
+const shareTxt = (s, p) => p.share + "/" + s.parts.reduce((a,x) => a + x.share, 0);
 function final(s){ const a = avg(s); return a == null ? null : state.settings.round ? half(a) : a; }
 function overall(){
   const parts = [];
@@ -183,11 +200,19 @@ function overall(){
   const bonus = state.settings.bonus || 0;
   return {base, n:parts.length, bonus, total:Math.min(6, base + bonus)};
 }
-function needed(s, target, w){
-  const g = s.grades.filter(x => x.w > 0);
-  const W = g.reduce((a,x) => a + x.w, 0), S = g.reduce((a,x) => a + x.g * x.w, 0);
+function needed(s, target, w, part){
   // with rounding on, a raw average of target - 0.25 rounds up to target
-  const t = state.settings.round ? target - 0.25 : target;
+  let t = state.settings.round ? target - 0.25 : target;
+  let pool = s.grades;
+  if(s.parts){
+    const p = s.parts.find(x => x.key === part) || s.parts[0];
+    let on = 0, od = 0;
+    for(const q of s.parts) if(q.key !== p.key){ const a = partAvg(s, q.key); if(a != null){ on += a * q.share; od += q.share; } }
+    t = (t * (od + p.share) - on) / p.share;   // average this part needs
+    pool = s.grades.filter(x => x.part === p.key);
+  }
+  const g = pool.filter(x => x.w > 0);
+  const W = g.reduce((a,x) => a + x.w, 0), S = g.reduce((a,x) => a + x.g * x.w, 0);
   return (t * (W + w) - S) / w;
 }
 
@@ -222,12 +247,12 @@ function renderHome(){
 function rowHTML(s){
   const a = avg(s), f = final(s), n = s.grades.length;
   const showExact = a != null && state.settings.round && Math.abs(a - f) > 0.001;
-  return `<button class="row" data-act="open" data-id="${s.id}"><div class="rname"><b>${esc(s.name)}</b><span>${n ? n + (n === 1 ? " grade" : " grades") : "No grades yet"}</span></div>
+  return `<button class="row" data-act="open" data-id="${s.id}"><div class="rname"><b>${esc(s.name)}</b><span>${s.parts ? s.parts.map(p => p.name.slice(0,5) + ". " + shareTxt(s, p)).join(", ") + (n ? ", " + n + (n === 1 ? " grade" : " grades") : "") : n ? n + (n === 1 ? " grade" : " grades") : "No grades yet"}</span></div>
     <div class="rval ${a == null ? "none" : col(f)}">${a == null ? "–" : f2(f)}${showExact ? `<small>${f2(Math.round(a*100)/100)}</small>` : ""}</div></button>`;
 }
 
 /* ============ subject screen ============ */
-let openId = null, needT = 4, needW = 1;
+let openId = null, needT = 4, needW = 1, needP = "philo";
 function openSubject(id){ openId = id; renderSubject(); $("screen").classList.add("on"); $("fab").textContent = "+ Add grade"; }
 function closeSubject(){ openId = null; $("screen").classList.remove("on"); renderHome(); }
 function spark(s){
@@ -247,13 +272,16 @@ function renderSubject(){
       <div class="stat"><b class="${col(f)}">${f2(f)}</b><span>${state.settings.round ? "Rounded" : "Average"}</span></div>
       <div class="stat"><b>${a == null ? "–" : f2(Math.round(a*100)/100)}</b><span>Exact</span></div>
       <div class="stat"><b>${s.grades.length}</b><span>${W ? "Total weight " + f2(W) : "Grades"}</span></div></div>`;
+  if(s.parts) h += `<div class="list" style="margin-bottom:10px">${s.parts.map(p => { const a = partAvg(s, p.key), n = s.grades.filter(x => x.part === p.key).length;
+    return `<div class="row" style="cursor:default"><div class="rname"><b>${esc(p.name)}</b><span>Counts ${shareTxt(s, p)}, ${n} ${n === 1 ? "grade" : "grades"}</span></div><div class="rval ${a == null ? "none" : col(a)}">${a == null ? "–" : f2(Math.round(a*100)/100)}</div></div>`; }).join("")}</div>`;
   h += spark(s);
   if(s.grades.length){
     h += `<h2>Grades<small>Tap to edit</small></h2><div class="list">${[...s.grades].reverse().map(g => `
-      <button class="grow" data-act="editg" data-id="${g.id}"><span class="gbadge ${col(g.g)}">${f2(g.g)}</span><div class="rname"><b>${esc(g.name || "Test")}</b><span>${new Date(g.date).toLocaleDateString(undefined, {day:"numeric", month:"short"})}</span></div><span class="gw">×${f2(g.w)}</span></button>`).join("")}</div>`;
+      <button class="grow" data-act="editg" data-id="${g.id}"><span class="gbadge ${col(g.g)}">${f2(g.g)}</span><div class="rname"><b>${esc(g.name || "Test")}</b><span>${s.parts && g.part ? esc((s.parts.find(p => p.key === g.part) || {}).name || "") + ", " : ""}${new Date(g.date).toLocaleDateString(undefined, {day:"numeric", month:"short"})}</span></div><span class="gw">×${f2(g.w)}</span></button>`).join("")}</div>`;
   } else h += `<div class="card muted" style="text-align:center;padding:26px">No grades yet. Tap Add grade below.</div>`;
   h += `<h2>What do I need?</h2><div class="card need">
     <div><span class="lab2" style="margin-top:0">Target ${state.settings.round ? "(after rounding)" : "average"}</span><div class="chips">${[4,4.5,5,5.5,6].map(t => `<button class="chip" data-act="needt" data-v="${t}" aria-pressed="${needT === t}">${t}</button>`).join("")}</div></div>
+    ${s.parts ? `<div><span class="lab2" style="margin-top:0">Next test is in</span><div class="chips">${s.parts.map(p => `<button class="chip" data-act="needp" data-v="${p.key}" aria-pressed="${needP === p.key}">${esc(p.name)}</button>`).join("")}</div></div>` : ""}
     <div><span class="lab2" style="margin-top:0">Next test weight</span><div class="chips">${[0.5,1,2].map(w => `<button class="chip" data-act="needw" data-v="${w}" aria-pressed="${needW === w}">×${w}</button>`).join("")}</div></div>
     <div class="needres" id="needres"></div></div>
     <h2>Subject</h2><div class="card">
@@ -265,10 +293,10 @@ function renderSubject(){
 function renderNeed(){
   const s = sub(openId), el = $("needres"); if(!s || !el) return;
   if(!s.grades.length){ el.innerHTML = `Any grade of <b>${needT}</b> or more gets you there.`; return; }
-  const n = needed(s, needT, needW);
+  const n = needed(s, needT, needW, needP);
   if(n <= 1) el.innerHTML = `You're already there. Even a 1 keeps you at ${needT} or above.`;
   else if(n > 6) el.innerHTML = `Not reachable with one test. You'd need <b class="c-red">${f2(Math.round(n*100)/100)}</b>.`;
-  else el.innerHTML = `You need at least <b class="${col(n)}">${(Math.ceil(n * 10) / 10).toFixed(1)}</b> on your next test.`;
+  else el.innerHTML = `You need at least <b class="${col(n)}">${(Math.ceil(n * 10) / 10).toFixed(1)}</b> on your next ${s.parts ? esc((s.parts.find(p => p.key === needP) || s.parts[0]).name.toLowerCase()) + " " : ""}test.`;
 }
 
 /* ============ sheets ============ */
@@ -280,8 +308,9 @@ let draft = null;
 function gradeSheet(g){
   // g: existing grade object for edit, or null
   const editing = !!g;
-  draft = editing ? {sid:g.sid, id:g.id, g:String(g.g), w:g.w, name:g.name || ""} :
-    {sid: openId || state.settings.lastSub || state.subjects[0].id, g:"", w:state.settings.lastW || 1, name:""};
+  draft = editing ? {sid:g.sid, id:g.id, g:String(g.g), w:g.w, name:g.name || "", part:g.part || null, editing:true} :
+    {sid: openId || state.settings.lastSub || state.subjects[0].id, g:"", w:state.settings.lastW || 1, name:"", part:state.settings.lastPart || "philo", editing:false};
+  if(!sub(draft.sid)) draft.sid = state.subjects[0].id;
   drawGradeSheet(editing);
   if(!editing) setTimeout(() => { const i = $("gIn"); i && i.focus(); }, 320);
 }
@@ -289,7 +318,8 @@ function drawGradeSheet(editing){
   const d = draft;
   openSheet(`<h3>${editing ? "Edit grade" : "Add grade"}</h3>
     ${editing ? "" : `<span class="lab2">Subject</span><div class="chips">${state.subjects.map(s => `<button class="chip" data-g="sub" data-v="${s.id}" aria-pressed="${d.sid === s.id}">${esc(s.name)}</button>`).join("")}</div>`}
-    <span class="lab2">Grade (1 to 6)</span><input class="gradein" id="gIn" inputmode="decimal" placeholder="5.5" value="${esc(d.g)}">
+    ${sub(d.sid).parts ? `<span class="lab2">Part</span><div class="chips">${sub(d.sid).parts.map(p => `<button class="chip" data-g="part" data-v="${p.key}" aria-pressed="${(d.part || sub(d.sid).parts[0].key) === p.key}">${esc(p.name)} (${shareTxt(sub(d.sid), p)})</button>`).join("")}</div>` : ""}
+    <span class="lab2">Grade (1 to 6, pass is 4)</span><input class="gradein" id="gIn" inputmode="decimal" placeholder="5.5" value="${esc(d.g)}">
     <span class="lab2">Weight</span><div class="chips">${[0.5,1,2,3].map(w => `<button class="chip" data-g="w" data-v="${w}" aria-pressed="${d.w === w}">×${w}</button>`).join("")}
       <input class="num" id="wIn" inputmode="decimal" placeholder="other" value="${[0.5,1,2,3].includes(d.w) ? "" : d.w}" style="height:38px;width:76px;font-size:17px"></div>
     <span class="lab2">Name (optional)</span><input class="inp" id="nIn" placeholder="e.g. TS chapitre 3" value="${esc(d.name)}">
@@ -302,14 +332,16 @@ function drawGradeSheet(editing){
 $("sheetBody").addEventListener("click", e => {
   const b = e.target.closest("[data-g]"); if(!b || !draft) return;
   const d = draft, k = b.dataset.g;
-  if(k === "sub"){ d.sid = b.dataset.v; document.querySelectorAll('[data-g="sub"]').forEach(c => c.setAttribute("aria-pressed", c === b)); }
+  if(k === "sub"){ const had = !!sub(d.sid).parts; d.sid = b.dataset.v; if(had !== !!sub(d.sid).parts){ const y = $("sheetBody").scrollTop; drawGradeSheet(d.editing); $("sheetBody").scrollTop = y; } else document.querySelectorAll('[data-g="sub"]').forEach(c => c.setAttribute("aria-pressed", c === b)); }
+  if(k === "part"){ d.part = b.dataset.v; document.querySelectorAll('[data-g="part"]').forEach(c => c.setAttribute("aria-pressed", c === b)); }
   if(k === "w"){ d.w = +b.dataset.v; $("wIn").value = ""; document.querySelectorAll('[data-g="w"]').forEach(c => c.setAttribute("aria-pressed", c === b)); }
   if(k === "save"){
     const g = num(d.g);
     if(g == null || g < 1 || g > 6){ toast("Enter a grade between 1 and 6"); $("gIn").focus(); return; }
-    const s = sub(d.sid);
-    if(d.id){ const x = s.grades.find(x => x.id === d.id); x.g = g; x.w = d.w; x.name = d.name.trim(); toast("Saved"); }
-    else { s.grades.push({id:uid(), g, w:d.w, name:d.name.trim(), date:new Date().toISOString()}); state.settings.lastSub = d.sid; state.settings.lastW = d.w; toast(f2(g) + " added to " + s.name); }
+    const s = sub(d.sid), part = s.parts ? (d.part || s.parts[0].key) : undefined;
+    if(d.id){ const x = s.grades.find(x => x.id === d.id); x.g = g; x.w = d.w; x.name = d.name.trim(); if(part) x.part = part; toast("Saved"); }
+    else { s.grades.push({id:uid(), g, w:d.w, name:d.name.trim(), date:new Date().toISOString(), ...(part ? {part} : {})}); state.settings.lastSub = d.sid; state.settings.lastW = d.w; if(part) state.settings.lastPart = part;
+      toast(f2(g) + " added to " + (part ? s.parts.find(p => p.key === part).name : s.name)); }
     save(); closeSheet(); draft = null; refresh();
   }
   if(k === "del"){
@@ -383,8 +415,8 @@ $("screenBody").addEventListener("click", e => {
   const a = b.dataset.act, s = sub(openId);
   if(a === "back") closeSubject();
   if(a === "editg"){ const g = s.grades.find(x => x.id === b.dataset.id); gradeSheet(Object.assign({sid:s.id}, g)); }
-  if(a === "needt" || a === "needw"){
-    if(a === "needt") needT = +b.dataset.v; else needW = +b.dataset.v;
+  if(a === "needt" || a === "needw" || a === "needp"){
+    if(a === "needt") needT = +b.dataset.v; else if(a === "needw") needW = +b.dataset.v; else needP = b.dataset.v;
     b.parentElement.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", c === b)); renderNeed();
   }
   if(a === "counts"){ s.counts = !s.counts; b.setAttribute("aria-checked", s.counts); save(); renderHome(); toast(s.counts ? "Counts toward your total" : "No longer counted"); }
@@ -407,7 +439,7 @@ $("importFile").onchange = async e => {
   const f = e.target.files[0]; e.target.value = ""; if(!f) return;
   try{ const d = JSON.parse(await f.text()); if(!d || !Array.isArray(d.subjects)) throw 0;
     if(!confirm("Replace your grades with this backup?")) return;
-    const x = defaults(); state = Object.assign(x, d, {settings:Object.assign(x.settings, d.settings || {})}); save(); closeSheet(); refresh(); toast("Backup imported");
+    const x = defaults(); state = migrate(Object.assign(x, d, {settings:Object.assign(x.settings, d.settings || {})})); save(); closeSheet(); refresh(); toast("Backup imported");
   }catch(err){ toast("That file isn't a Grades backup"); }
 };
 
