@@ -714,6 +714,12 @@ function osBlock(cls){
   const need = Math.min(2, gs.length);
   return Object.entries(count).filter(([, n]) => n >= need).map(([k]) => { const [d, a, b] = k.split("|"); return [d, +a, +b]; });
 }
+function ocWhen(oc){
+  const sl = (OC_SLOTS[oc] || []).map(x => parseL(x));
+  if(!sl.length) return "Jeudi après-midi";
+  if(sl.length > 1) return "Jeudi après-midi, " + sl.length + " blocs";
+  return `Jeudi, de ${PERIODS[sl[0].p1][0]} à ${PERIODS[sl[0].p2][1]}`;
+}
 const ocSlots = oc => OC_SLOTS[oc] || (oc ? ["Thu 6-8 " + oc + " (OC)"] : []);
 function weekLessons(){
   const t = tt(), C = CLASSES[t.cls]; let out = [];
@@ -794,7 +800,7 @@ function renderSched(animDir){
       if(l.tags.abl2 || l.tags.aben) tags.push("Groupe " + (l.tags.abl2 || l.tags.aben));
       if(l.tags.tp) tags.push("Groupe TP " + l.tags.tp);
       if(l.extra) tags.push("Ajouté par toi");
-      if(l.estimated) tags.push("horaire estimé");
+      if(l.estimated) tags.push("à vérifier");
       h += `<button class="les${past ? " past" : ""}${live ? " live" : ""}" data-s="les" data-k="${esc(l.key)}">
         <span class="lt"><b>${st}</b><span>${en}</span></span><span class="lbar" style="background:${colorFor(l.name)}"></span>
         <span class="lc"><b>${esc(l.name)}</b><span>${l.room ? esc(l.room) : "Salle ?"}${tags.length ? " · " + tags.map(esc).join(", ") : ""}</span></span></button>`;
@@ -899,7 +905,7 @@ function drawOb(dir){
       h = `<h2>Ton groupe en anglais : A ou B ?</h2><p>Pour les cours de langue en demi-classe. Une seule question : quand ta moitié de classe a anglais, l'autre a allemand ou italien, donc l'app règle ta langue 2 toute seule.</p>${opt("A", "Groupe A en anglais", "Langue 2 : groupe B", t.ans.ab === "A")}${opt("B", "Groupe B en anglais", "Langue 2 : groupe A", t.ans.ab === "B")}`; break;
     case "os": { const cg = groupsOf(t.cls, "os");
       const others = OS_ORDER.flatMap(k => { const gs = Object.keys(GROUPS).filter(g => GROUPS[g].dim === "os" && g.replace(/\d+$/, "") === k && !cg.includes(g));
-        return gs.length ? gs.map(g => opt(g, GROUPS[g].label, "Groupe " + g, t.ans.os === g)) : [opt(k, OSMAP[k].long, "Aux heures d'option de ta classe", t.ans.os === k)]; });
+        return gs.length ? gs.map(g => opt(g, GROUPS[g].label, "Groupe " + g, t.ans.os === g)) : [opt(k, OSMAP[k].long, "", t.ans.os === k)]; });
       h = `<h2>Ton option spécifique</h2><p>La branche choisie en 1re année.</p>${cg.length ? `<span class="lab2" style="margin-top:0">Dans ta classe</span>` : ""}${cg.map(g => opt(g, GROUPS[g].label, "Groupe " + g, t.ans.os === g)).join("")}<span class="lab2">${cg.length ? "Autres options" : "Toutes les options"}</span>${others.join("")}`; break; }
     case "tp": { const rooms = GROUPS[effOS()].L.map(x => parseL(x)).filter(x => x.tags.tp);
       h = `<h2>Groupe de TP biologie-chimie</h2><p>La classe se divise en deux pour les travaux pratiques.</p>${rooms.map(r => opt(r.tags.tp, "Groupe TP " + r.tags.tp, "Salle " + r.room, t.ans.tp === r.tags.tp)).join("")}`; break; }
@@ -908,7 +914,7 @@ function drawOb(dir){
         <input class="gradein" id="lpIn" inputmode="decimal" placeholder="13.5" value="${state.lockedPoints ?? ""}"><p class="note" style="margin-top:8px">Exemple : 4,5 + 4 + 5 = 13,5 points.</p>
         <button class="primary" data-o="lpok">Continuer</button>`; break;
     case "oc": { const os = osOf(effOS()), hide = os ? os.noOC : [];
-      h = `<h2>Ton option complémentaire</h2><p>Ton option de 3e année, le jeudi après-midi.</p>${OC_LIST.filter(o => !hide.includes(o)).map(o => opt(o, o, OC_SLOTS[o] ? "" : "Jeudi 12:35 à 15:00, comme la plupart des options", t.oc === o)).join("")}`; break; }
+      h = `<h2>Ton option complémentaire</h2><p>Ton option de 3e année, le jeudi après-midi.</p>${OC_LIST.filter(o => !hide.includes(o)).map(o => opt(o, o, ocWhen(o), t.oc === o)).join("")}`; break; }
     case "ocslots": { const sl = OC_SLOTS[t.oc], sel = t.ocSlots || [];
       h = `<h2>Quels cours de ${esc(t.oc.toLowerCase())} sont les tiens ?</h2><p>Cette option a plusieurs blocs. Coche les tiens.</p>${sl.map((x, k) => `<button class="opt multi" data-m="${k}" aria-pressed="${sel.includes(k)}"><b>${esc(slotText(x))}</b></button>`).join("")}<button class="primary" data-o="slotsok">Continuer</button>`; break; }
     case "done": { skip = false;
