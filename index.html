@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Grades">
+<meta name="theme-color" content="#000000">
+<title>Grades</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#000; --surface:#111; --sunk:#1C1C1E; --raise:#2C2C2E; --ink:#F2F2F2; --muted:#8A8A8E; --faint:#4A4A4E; --line:#222224;
+  --red:#FF453A; --amber:#FFD60A; --green:#32D74B;
+  --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"Barlow",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --r:16px; color-scheme:dark; box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent;overscroll-behavior-y:contain}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;-webkit-user-select:none;user-select:none}
+input{outline:none}
+input:focus{box-shadow:0 0 0 2px var(--ink)}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.wrap{max-width:540px;margin:0 auto;padding:10px 16px calc(100px + env(safe-area-inset-bottom,0px));overflow-x:clip}
+
+.top{display:flex;justify-content:space-between;align-items:center;margin:4px 0 14px}
+h1{font-family:var(--display);font-weight:700;font-size:44px;line-height:1;margin:0}
+.icon{width:42px;height:42px;border:0;border-radius:50%;background:var(--surface);display:flex;align-items:center;justify-content:center}
+.icon svg{width:21px;height:21px;stroke:var(--ink);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+.card{background:var(--surface);border-radius:var(--r);padding:16px}
+.hero{padding:20px 18px 18px}
+.hero .lab{font-size:14px;color:var(--muted)}
+.big{font-family:var(--display);font-weight:700;font-size:96px;line-height:.95;margin:6px 0 2px;font-variant-numeric:tabular-nums}
+.break{font-size:14px;color:var(--muted)}
+.scale{position:relative;height:6px;border-radius:3px;background:var(--sunk);margin:18px 0 6px}
+.scale .fill{position:absolute;left:0;top:0;bottom:0;border-radius:3px}
+.scale .pass{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--muted);left:60%}
+.scaleL{display:flex;justify-content:space-between;font-size:12px;color:var(--faint)}
+.scaleL span:nth-child(2){position:relative;left:10%}
+
+h2{font-size:15px;font-weight:600;color:var(--muted);margin:24px 2px 8px;display:flex;justify-content:space-between}
+h2 small{font-weight:500;color:var(--faint)}
+.list{background:var(--surface);border-radius:var(--r);overflow:hidden}
+.row{width:100%;border:0;background:none;display:flex;align-items:center;gap:12px;padding:13px 16px;text-align:left}
+.row+.row{box-shadow:inset 0 1px 0 var(--line)}
+.row:active{background:var(--sunk)}
+.rname{flex:1;min-width:0}
+.rname b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rname span{font-size:13px;color:var(--muted)}
+.rval{font-family:var(--display);font-weight:700;font-size:26px;font-variant-numeric:tabular-nums;text-align:right;min-width:52px}
+.rval small{display:block;font-family:var(--body);font-size:12px;font-weight:500;color:var(--muted);margin-top:-2px}
+.rval.none{color:var(--faint);font-size:20px}
+.lock{width:16px;height:16px;stroke:var(--muted);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.muted{color:var(--muted)}
+.bonusline{display:flex;justify-content:space-between;padding:12px 16px;box-shadow:inset 0 1px 0 var(--line);font-size:14px;color:var(--muted)}
+.bonusline b{color:var(--green);font-family:var(--display);font-size:20px}
+
+.fab{position:fixed;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));max-width:508px;margin:0 auto;height:56px;border:0;border-radius:18px;background:var(--ink);color:#000;font-weight:700;font-size:17px;z-index:2;box-shadow:0 8px 30px rgba(0,0,0,.6)}
+
+/* fullscreen subject */
+.screen{position:fixed;inset:0;background:#000;z-index:3;overflow-y:auto;transform:translateX(100%);transition:transform .32s cubic-bezier(.2,.8,.2,1),visibility 0s .32s;visibility:hidden;overscroll-behavior:contain}
+.screen.on{transform:none;visibility:visible;transition:transform .32s cubic-bezier(.2,.8,.2,1)}
+.sin{max-width:540px;margin:0 auto;padding:calc(10px + env(safe-area-inset-top,0px)) 16px calc(100px + env(safe-area-inset-bottom,0px))}
+.shead{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.shead h1{font-size:36px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
+.stat{background:var(--surface);border-radius:14px;padding:12px}
+.stat b{display:block;font-family:var(--display);font-weight:700;font-size:30px;line-height:1.05}
+.stat span{font-size:12px;color:var(--muted)}
+.spark{display:block;width:100%;height:90px}
+.grow{display:flex;align-items:center;gap:12px;padding:12px 16px;width:100%;border:0;background:none;text-align:left}
+.grow+.grow{box-shadow:inset 0 1px 0 var(--line)}
+.grow:active{background:var(--sunk)}
+.gbadge{font-family:var(--display);font-weight:700;font-size:24px;min-width:46px;font-variant-numeric:tabular-nums}
+.gw{font-size:13px;color:var(--muted);background:var(--sunk);border-radius:8px;padding:2px 8px}
+.need{display:flex;flex-direction:column;gap:12px}
+.needres{font-size:15px}
+.needres b{font-family:var(--display);font-size:28px}
+
+/* inputs + chips */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:0;background:var(--sunk);border-radius:999px;padding:8px 14px;font-size:14px;font-weight:500;color:var(--muted)}
+.chip[aria-pressed="true"]{background:var(--ink);color:#000}
+.lab2{display:block;font-size:13px;color:var(--muted);margin:14px 0 6px}
+.inp{width:100%;height:46px;border:0;background:var(--sunk);border-radius:12px;padding:0 14px}
+.gradein{width:100%;height:84px;border:0;background:var(--sunk);border-radius:18px;text-align:center;font-family:var(--display);font-weight:700;font-size:56px}
+.gradein::placeholder{color:var(--faint)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.primary{width:100%;height:54px;border:0;border-radius:var(--r);background:var(--ink);color:#000;font-weight:700;font-size:17px;margin-top:18px}
+.secondary{width:100%;height:48px;border:0;border-radius:14px;background:var(--sunk);font-weight:600;font-size:15px;margin-top:8px}
+.danger{color:var(--red)}
+.switch{width:50px;height:30px;border-radius:999px;border:0;background:var(--raise);position:relative;flex:none;transition:background .15s}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:transform .15s}
+.switch[aria-checked="true"]{background:var(--green)}
+.switch[aria-checked="true"]::after{transform:translateX(20px)}
+.setting{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:12px 0}
+.setting+.setting{box-shadow:inset 0 1px 0 var(--line)}
+.setting p{margin:0}
+.setting small{display:block;color:var(--muted);font-size:13px}
+.num{width:80px;height:40px;border:0;background:var(--sunk);border-radius:10px;text-align:center;font-family:var(--display);font-weight:700;font-size:20px}
+.mrow{display:grid;grid-template-columns:1fr 70px auto;gap:8px;align-items:center;margin-bottom:8px}
+.mrow .inp{height:42px}
+.mini{border:0;background:var(--sunk);border-radius:10px;height:42px;padding:0 12px;font-size:14px;font-weight:600}
+.note{font-size:13px;color:var(--muted);margin:8px 0 0}
+
+/* sheet */
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:5;display:flex;align-items:flex-end;justify-content:center;opacity:0;visibility:hidden;transition:opacity .2s,visibility 0s .25s}
+.sheet.on{opacity:1;visibility:visible;transition:opacity .2s}
+.sbox{background:var(--surface);width:100%;max-width:540px;max-height:90vh;overflow-y:auto;border-radius:22px 22px 0 0;padding:10px 18px calc(22px + env(safe-area-inset-bottom,0px));transform:translateY(100%);transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+.sheet.on .sbox{transform:none}
+.sbox::before{content:"";display:block;width:36px;height:4px;border-radius:2px;background:var(--raise);margin:0 auto 14px}
+.sbox h3{font-family:var(--display);font-weight:700;font-size:30px;margin:0 0 4px}
+
+.toast{position:fixed;left:50%;top:calc(12px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:var(--ink);color:#000;padding:10px 18px;border-radius:999px;font-size:15px;font-weight:500;display:none;z-index:9;max-width:90vw;text-align:center}
+.toast.on{display:block}
+.tact{background:none;border:0;font-weight:700;text-decoration:underline;color:inherit;margin-left:10px;padding:0}
+.c-red{color:var(--red)} .c-amber{color:var(--amber)} .c-green{color:var(--green)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><h1>Grades</h1><button class="icon" id="openSettings" aria-label="Settings"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button></div>
+  <main id="main"></main>
+</div>
+<button class="fab" id="fab">+ Add grade</button>
+<div class="screen" id="screen"><div class="sin" id="screenBody"></div></div>
+<div class="sheet" id="sheet"><div class="sbox" id="sheetBody"></div></div>
+<input type="file" id="importFile" accept="application/json,.json" hidden>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/* ============ data ============ */
+const KEY = "grades-v1";
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const SUBJECTS = ["Mathématiques","Français","Allemand","Anglais","Histoire","Géographie","Biologie","Philosophie","Psychologie","OC Sport","Sport"];
+function defaults(){
+  return {v:1,
+    subjects: SUBJECTS.map(n => ({id:uid(), name:n, counts:n !== "Sport", grades:[]})),
+    tm:{g:null},
+    locked:[{id:uid(), name:"Chimie", g:null}, {id:uid(), name:"Physique", g:null}, {id:uid(), name:"Musique", g:null}],
+    settings:{bonus:0.5, round:true, lastSub:null, lastW:1}};
+}
+function load(){
+  try{ const s = JSON.parse(localStorage.getItem(KEY)); if(s && s.v === 1 && Array.isArray(s.subjects)){ const d = defaults(); return Object.assign(d, s, {settings:Object.assign(d.settings, s.settings || {})}); } }catch(e){}
+  return defaults();
+}
+let state = load();
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){ toast("Couldn't save"); } }
+
+/* ============ helpers ============ */
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const num = v => { const n = parseFloat(String(v).replace(",", ".")); return isNaN(n) ? null : n; };
+const f2 = g => g == null ? "–" : String(Math.round(g * 100) / 100);
+const half = g => Math.round(g * 2) / 2;
+const col = g => g == null ? "" : g < 4 ? "c-red" : g < 4.5 ? "c-amber" : g >= 5 ? "c-green" : "";
+const colVar = g => g < 4 ? "var(--red)" : g < 4.5 ? "var(--amber)" : g >= 5 ? "var(--green)" : "var(--ink)";
+const sub = id => state.subjects.find(s => s.id === id);
+
+function avg(s){
+  const g = s.grades.filter(x => x.w > 0); if(!g.length) return null;
+  const W = g.reduce((a,x) => a + x.w, 0);
+  return g.reduce((a,x) => a + x.g * x.w, 0) / W;
+}
+function final(s){ const a = avg(s); return a == null ? null : state.settings.round ? half(a) : a; }
+function overall(){
+  const parts = [];
+  state.subjects.forEach(s => { if(s.counts){ const f = final(s); if(f != null) parts.push(f); } });
+  if(state.tm.g != null) parts.push(state.tm.g);
+  if(!parts.length) return null;
+  const base = parts.reduce((a,b) => a + b, 0) / parts.length;
+  const bonus = state.settings.bonus || 0;
+  return {base, n:parts.length, bonus, total:Math.min(6, base + bonus)};
+}
+function needed(s, target, w){
+  const g = s.grades.filter(x => x.w > 0);
+  const W = g.reduce((a,x) => a + x.w, 0), S = g.reduce((a,x) => a + x.g * x.w, 0);
+  // with rounding on, a raw average of target - 0.25 rounds up to target
+  const t = state.settings.round ? target - 0.25 : target;
+  return (t * (W + w) - S) / w;
+}
+
+/* ============ home ============ */
+const lockSvg = '<svg class="lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
+function renderHome(){
+  const o = overall();
+  let h = `<section class="card hero"><div class="lab">Overall</div>`;
+  if(o){
+    const pct = (o.total - 1) / 5 * 100;
+    h += `<div class="big ${col(o.total)}">${f2(Math.round(o.total*100)/100)}</div>
+      <div class="break">${o.n - (state.tm.g != null ? 1 : 0)} subjects${state.tm.g != null ? " and TM" : ""} average ${f2(Math.round(o.base*100)/100)}${o.bonus ? `, plus ${o.bonus} locked bonus` : ""}</div>
+      <div class="scale"><div class="fill" style="width:${pct}%;background:${colVar(o.total)}"></div><div class="pass"></div></div>
+      <div class="scaleL"><span>1</span><span>4 pass</span><span>6</span></div>`;
+  } else h += `<div class="big muted">–</div><div class="break">Add your first grade to see your total.</div>`;
+  h += `</section>`;
+
+  const counted = state.subjects.filter(s => s.counts), extra = state.subjects.filter(s => !s.counts);
+  h += `<h2>Subjects<small>${state.settings.round ? "Rounded to 0.5" : "Exact averages"}</small></h2><div class="list">${counted.map(rowHTML).join("")}</div>`;
+
+  h += `<h2>Travail de maturité<small>Counts as one grade</small></h2><div class="list">
+    <button class="row" data-act="tm"><div class="rname"><b>TM</b><span>${state.tm.g != null ? "Final grade" : "Not graded yet"}</span></div>
+    <div class="rval ${state.tm.g != null ? col(state.tm.g) : "none"}">${state.tm.g != null ? f2(state.tm.g) : "Add"}</div></button></div>`;
+
+  h += `<h2>Locked<small>Finished subjects</small></h2><div class="list">${state.locked.map(l => `
+    <button class="row" data-act="locked" data-id="${l.id}">${lockSvg}<div class="rname"><b>${esc(l.name)}</b></div><div class="rval ${l.g != null ? col(l.g) : "none"}">${l.g != null ? f2(l.g) : "–"}</div></button>`).join("")}
+    <div class="bonusline"><span>Added to your total</span><b>+${state.settings.bonus || 0}</b></div></div>`;
+
+  if(extra.length) h += `<h2>Not counted<small>Doesn't affect your total</small></h2><div class="list">${extra.map(rowHTML).join("")}</div>`;
+  $("main").innerHTML = h;
+}
+function rowHTML(s){
+  const a = avg(s), f = final(s), n = s.grades.length;
+  const showExact = a != null && state.settings.round && Math.abs(a - f) > 0.001;
+  return `<button class="row" data-act="open" data-id="${s.id}"><div class="rname"><b>${esc(s.name)}</b><span>${n ? n + (n === 1 ? " grade" : " grades") : "No grades yet"}</span></div>
+    <div class="rval ${a == null ? "none" : col(f)}">${a == null ? "–" : f2(f)}${showExact ? `<small>${f2(Math.round(a*100)/100)}</small>` : ""}</div></button>`;
+}
+
+/* ============ subject screen ============ */
+let openId = null, needT = 4, needW = 1;
+function openSubject(id){ openId = id; renderSubject(); $("screen").classList.add("on"); $("fab").textContent = "+ Add grade"; }
+function closeSubject(){ openId = null; $("screen").classList.remove("on"); renderHome(); }
+function spark(s){
+  const g = s.grades; if(g.length < 2) return "";
+  const W = 320, H = 90, p = 8, x = i => p + i * (W - 2*p) / (g.length - 1), y = v => H - p - (v - 1) / 5 * (H - 2*p);
+  const pts = g.map((v, i) => `${x(i).toFixed(1)},${y(v.g).toFixed(1)}`).join(" ");
+  return `<div class="card" style="padding:12px 12px 6px;margin-bottom:10px"><svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+    <line x1="0" x2="${W}" y1="${y(4)}" y2="${y(4)}" stroke="#4A4A4E" stroke-dasharray="4 4" stroke-width="1"/>
+    <polyline points="${pts}" fill="none" stroke="#F2F2F2" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+    ${g.map((v, i) => `<circle cx="${x(i)}" cy="${y(v.g)}" r="3.5" fill="${colVar(v.g)}" vector-effect="non-scaling-stroke"/>`).join("")}</svg></div>`;
+}
+function renderSubject(){
+  const s = sub(openId); if(!s){ closeSubject(); return; }
+  const a = avg(s), f = final(s), W = s.grades.reduce((x,g) => x + g.w, 0);
+  let h = `<div class="shead"><button class="icon" data-act="back" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button><h1>${esc(s.name)}</h1></div>
+    <div class="stats">
+      <div class="stat"><b class="${col(f)}">${f2(f)}</b><span>${state.settings.round ? "Rounded" : "Average"}</span></div>
+      <div class="stat"><b>${a == null ? "–" : f2(Math.round(a*100)/100)}</b><span>Exact</span></div>
+      <div class="stat"><b>${s.grades.length}</b><span>${W ? "Total weight " + f2(W) : "Grades"}</span></div></div>`;
+  h += spark(s);
+  if(s.grades.length){
+    h += `<h2>Grades<small>Tap to edit</small></h2><div class="list">${[...s.grades].reverse().map(g => `
+      <button class="grow" data-act="editg" data-id="${g.id}"><span class="gbadge ${col(g.g)}">${f2(g.g)}</span><div class="rname"><b>${esc(g.name || "Test")}</b><span>${new Date(g.date).toLocaleDateString(undefined, {day:"numeric", month:"short"})}</span></div><span class="gw">×${f2(g.w)}</span></button>`).join("")}</div>`;
+  } else h += `<div class="card muted" style="text-align:center;padding:26px">No grades yet. Tap Add grade below.</div>`;
+  h += `<h2>What do I need?</h2><div class="card need">
+    <div><span class="lab2" style="margin-top:0">Target ${state.settings.round ? "(after rounding)" : "average"}</span><div class="chips">${[4,4.5,5,5.5,6].map(t => `<button class="chip" data-act="needt" data-v="${t}" aria-pressed="${needT === t}">${t}</button>`).join("")}</div></div>
+    <div><span class="lab2" style="margin-top:0">Next test weight</span><div class="chips">${[0.5,1,2].map(w => `<button class="chip" data-act="needw" data-v="${w}" aria-pressed="${needW === w}">×${w}</button>`).join("")}</div></div>
+    <div class="needres" id="needres"></div></div>
+    <h2>Subject</h2><div class="card">
+      <div class="setting" style="padding-top:0"><p>Counts toward my total</p><button class="switch" role="switch" data-act="counts" aria-checked="${s.counts}"></button></div>
+    </div>`;
+  $("screenBody").innerHTML = h;
+  renderNeed();
+}
+function renderNeed(){
+  const s = sub(openId), el = $("needres"); if(!s || !el) return;
+  if(!s.grades.length){ el.innerHTML = `Any grade of <b>${needT}</b> or more gets you there.`; return; }
+  const n = needed(s, needT, needW);
+  if(n <= 1) el.innerHTML = `You're already there. Even a 1 keeps you at ${needT} or above.`;
+  else if(n > 6) el.innerHTML = `Not reachable with one test. You'd need <b class="c-red">${f2(Math.round(n*100)/100)}</b>.`;
+  else el.innerHTML = `You need at least <b class="${col(n)}">${(Math.ceil(n * 10) / 10).toFixed(1)}</b> on your next test.`;
+}
+
+/* ============ sheets ============ */
+function openSheet(html){ $("sheetBody").innerHTML = html; $("sheet").classList.add("on"); }
+function closeSheet(){ $("sheet").classList.remove("on"); }
+$("sheet").addEventListener("click", e => { if(e.target.id === "sheet") closeSheet(); });
+
+let draft = null;
+function gradeSheet(g){
+  // g: existing grade object for edit, or null
+  const editing = !!g;
+  draft = editing ? {sid:g.sid, id:g.id, g:String(g.g), w:g.w, name:g.name || ""} :
+    {sid: openId || state.settings.lastSub || state.subjects[0].id, g:"", w:state.settings.lastW || 1, name:""};
+  drawGradeSheet(editing);
+  if(!editing) setTimeout(() => { const i = $("gIn"); i && i.focus(); }, 320);
+}
+function drawGradeSheet(editing){
+  const d = draft;
+  openSheet(`<h3>${editing ? "Edit grade" : "Add grade"}</h3>
+    ${editing ? "" : `<span class="lab2">Subject</span><div class="chips">${state.subjects.map(s => `<button class="chip" data-g="sub" data-v="${s.id}" aria-pressed="${d.sid === s.id}">${esc(s.name)}</button>`).join("")}</div>`}
+    <span class="lab2">Grade (1 to 6)</span><input class="gradein" id="gIn" inputmode="decimal" placeholder="5.5" value="${esc(d.g)}">
+    <span class="lab2">Weight</span><div class="chips">${[0.5,1,2,3].map(w => `<button class="chip" data-g="w" data-v="${w}" aria-pressed="${d.w === w}">×${w}</button>`).join("")}
+      <input class="num" id="wIn" inputmode="decimal" placeholder="other" value="${[0.5,1,2,3].includes(d.w) ? "" : d.w}" style="height:38px;width:76px;font-size:17px"></div>
+    <span class="lab2">Name (optional)</span><input class="inp" id="nIn" placeholder="e.g. TS chapitre 3" value="${esc(d.name)}">
+    <button class="primary" data-g="save">${editing ? "Save changes" : "Add grade"}</button>
+    ${editing ? `<button class="secondary danger" data-g="del">Delete grade</button>` : ""}`);
+  $("gIn").oninput = e => d.g = e.target.value;
+  $("nIn").oninput = e => d.name = e.target.value;
+  $("wIn").oninput = e => { const v = num(e.target.value); if(v && v > 0){ d.w = v; document.querySelectorAll('[data-g="w"]').forEach(c => c.setAttribute("aria-pressed", "false")); } };
+}
+$("sheetBody").addEventListener("click", e => {
+  const b = e.target.closest("[data-g]"); if(!b || !draft) return;
+  const d = draft, k = b.dataset.g;
+  if(k === "sub"){ d.sid = b.dataset.v; document.querySelectorAll('[data-g="sub"]').forEach(c => c.setAttribute("aria-pressed", c === b)); }
+  if(k === "w"){ d.w = +b.dataset.v; $("wIn").value = ""; document.querySelectorAll('[data-g="w"]').forEach(c => c.setAttribute("aria-pressed", c === b)); }
+  if(k === "save"){
+    const g = num(d.g);
+    if(g == null || g < 1 || g > 6){ toast("Enter a grade between 1 and 6"); $("gIn").focus(); return; }
+    const s = sub(d.sid);
+    if(d.id){ const x = s.grades.find(x => x.id === d.id); x.g = g; x.w = d.w; x.name = d.name.trim(); toast("Saved"); }
+    else { s.grades.push({id:uid(), g, w:d.w, name:d.name.trim(), date:new Date().toISOString()}); state.settings.lastSub = d.sid; state.settings.lastW = d.w; toast(f2(g) + " added to " + s.name); }
+    save(); closeSheet(); draft = null; refresh();
+  }
+  if(k === "del"){
+    const s = sub(d.sid), i = s.grades.findIndex(x => x.id === d.id), [gone] = s.grades.splice(i, 1);
+    save(); closeSheet(); draft = null; refresh();
+    toast("Grade deleted", {label:"Undo", fn:() => { s.grades.splice(i, 0, gone); save(); refresh(); }});
+  }
+});
+
+function valueSheet(title, sub, val, onSave, onClear){
+  openSheet(`<h3>${esc(title)}</h3><p class="note" style="margin:0 0 4px">${esc(sub)}</p>
+    <input class="gradein" id="vIn" inputmode="decimal" placeholder="–" value="${val ?? ""}" style="margin-top:12px">
+    <button class="primary" id="vSave">Save</button>${val != null ? `<button class="secondary danger" id="vClear">Clear grade</button>` : ""}`);
+  $("vSave").onclick = () => { const v = num($("vIn").value); if(v == null || v < 1 || v > 6){ toast("Enter a grade between 1 and 6"); return; } onSave(v); save(); closeSheet(); refresh(); };
+  if($("vClear")) $("vClear").onclick = () => { onClear(); save(); closeSheet(); refresh(); };
+  setTimeout(() => $("vIn").focus(), 320);
+}
+
+function settingsSheet(){
+  const st = state.settings;
+  openSheet(`<h3>Settings</h3>
+    <div class="setting"><p>Locked bonus<small>Added at the very end of your total</small></p><input class="num" id="bonusIn" inputmode="decimal" value="${st.bonus}"></div>
+    <div class="setting"><p>Round subject averages to 0.5<small>How subject grades are usually set on the report</small></p><button class="switch" role="switch" id="roundSw" aria-checked="${st.round}"></button></div>
+    <span class="lab2">Subjects</span><div id="subList"></div>
+    <div class="mrow"><input class="inp" id="newSub" placeholder="New subject"><span></span><button class="mini" id="addSub">Add</button></div>
+    <span class="lab2">Locked subjects</span><div id="lockList"></div>
+    <div class="mrow"><input class="inp" id="newLock" placeholder="New locked subject"><span></span><button class="mini" id="addLock">Add</button></div>
+    <span class="lab2">Data</span>
+    <div class="row2"><button class="secondary" id="exp" style="margin:0">Export backup</button><button class="secondary" id="imp" style="margin:0">Import</button></div>
+    <button class="secondary danger" id="wipe">Delete everything</button>
+    <p class="note">Everything stays on this phone.</p>`);
+  drawManage();
+  $("bonusIn").oninput = e => { const v = num(e.target.value); if(v != null){ st.bonus = v; save(); renderHome(); } };
+  $("roundSw").onclick = e => { st.round = !st.round; e.target.setAttribute("aria-checked", st.round); save(); refresh(); };
+  $("addSub").onclick = () => { const n = $("newSub").value.trim(); if(!n) return; state.subjects.push({id:uid(), name:n, counts:true, grades:[]}); $("newSub").value = ""; save(); drawManage(); renderHome(); };
+  $("addLock").onclick = () => { const n = $("newLock").value.trim(); if(!n) return; state.locked.push({id:uid(), name:n, g:null}); $("newLock").value = ""; save(); drawManage(); renderHome(); };
+  $("exp").onclick = exportData; $("imp").onclick = () => $("importFile").click();
+  $("wipe").onclick = () => { if(confirm("Delete all grades and subjects?") && confirm("This can't be undone. Delete everything?")){ state = defaults(); save(); closeSheet(); refresh(); toast("Everything deleted"); } };
+}
+function drawManage(){
+  $("subList").innerHTML = state.subjects.map((s, i) => `<div class="mrow" data-i="${i}"><input class="inp" data-m="sname" value="${esc(s.name)}"><button class="mini" data-m="sup" ${i ? "" : "disabled"}>↑</button><button class="mini danger" data-m="sdel">✕</button></div>`).join("");
+  $("lockList").innerHTML = state.locked.map((l, i) => `<div class="mrow" data-i="${i}"><input class="inp" data-m="lname" value="${esc(l.name)}"><span></span><button class="mini danger" data-m="ldel">✕</button></div>`).join("");
+  $("subList").querySelectorAll(".mrow").forEach(r => r.style.gridTemplateColumns = "1fr 46px 46px");
+}
+$("sheetBody").addEventListener("input", e => {
+  const m = e.target.dataset.m; if(!m) return;
+  const i = +e.target.closest(".mrow").dataset.i;
+  if(m === "sname"){ state.subjects[i].name = e.target.value; save(); renderHome(); }
+  if(m === "lname"){ state.locked[i].name = e.target.value; save(); renderHome(); }
+});
+$("sheetBody").addEventListener("click", e => {
+  const b = e.target.closest("[data-m]"); if(!b || b.tagName === "INPUT") return;
+  const i = +b.closest(".mrow").dataset.i, m = b.dataset.m;
+  if(m === "sup" && i > 0){ [state.subjects[i-1], state.subjects[i]] = [state.subjects[i], state.subjects[i-1]]; }
+  if(m === "sdel"){ const s = state.subjects[i]; if(!confirm(`Delete ${s.name}${s.grades.length ? " and its " + s.grades.length + " grades" : ""}?`)) return; state.subjects.splice(i, 1); }
+  if(m === "ldel"){ if(!confirm("Delete " + state.locked[i].name + "?")) return; state.locked.splice(i, 1); }
+  save(); drawManage(); renderHome();
+});
+
+/* ============ events ============ */
+function refresh(){ renderHome(); if(openId) renderSubject(); }
+$("main").addEventListener("click", e => {
+  const b = e.target.closest("[data-act]"); if(!b) return;
+  const a = b.dataset.act;
+  if(a === "open") openSubject(b.dataset.id);
+  if(a === "tm") valueSheet("Travail de maturité", "Your TM grade counts as one full subject in your average.", state.tm.g, v => state.tm.g = v, () => state.tm.g = null);
+  if(a === "locked"){ const l = state.locked.find(x => x.id === b.dataset.id); valueSheet(l.name, "Locked grade, kept for your records. It doesn't change your average; the locked bonus does.", l.g, v => l.g = v, () => l.g = null); }
+});
+$("screenBody").addEventListener("click", e => {
+  const b = e.target.closest("[data-act]"); if(!b) return;
+  const a = b.dataset.act, s = sub(openId);
+  if(a === "back") closeSubject();
+  if(a === "editg"){ const g = s.grades.find(x => x.id === b.dataset.id); gradeSheet(Object.assign({sid:s.id}, g)); }
+  if(a === "needt" || a === "needw"){
+    if(a === "needt") needT = +b.dataset.v; else needW = +b.dataset.v;
+    b.parentElement.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", c === b)); renderNeed();
+  }
+  if(a === "counts"){ s.counts = !s.counts; b.setAttribute("aria-checked", s.counts); save(); renderHome(); toast(s.counts ? "Counts toward your total" : "No longer counted"); }
+});
+$("fab").onclick = () => gradeSheet(null);
+$("openSettings").onclick = settingsSheet;
+// swipe right to go back from a subject
+let sx = null, sy = null;
+$("screen").addEventListener("touchstart", e => { if(e.target.closest("input")) { sx = null; return; } sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, {passive:true});
+$("screen").addEventListener("touchend", e => { if(sx === null) return; const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy; if(dx > 80 && Math.abs(dy) < dx * 0.6) closeSubject(); sx = null; }, {passive:true});
+window.addEventListener("popstate", () => { if($("sheet").classList.contains("on")) closeSheet(); else if(openId) closeSubject(); });
+
+function exportData(){
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(state, null, 2)], {type:"application/json"}));
+  a.download = "grades-backup-" + new Date().toISOString().slice(0,10) + ".json";
+  document.body.appendChild(a); a.click(); a.remove(); toast("Backup exported");
+}
+$("importFile").onchange = async e => {
+  const f = e.target.files[0]; e.target.value = ""; if(!f) return;
+  try{ const d = JSON.parse(await f.text()); if(!d || !Array.isArray(d.subjects)) throw 0;
+    if(!confirm("Replace your grades with this backup?")) return;
+    const x = defaults(); state = Object.assign(x, d, {settings:Object.assign(x.settings, d.settings || {})}); save(); closeSheet(); refresh(); toast("Backup imported");
+  }catch(err){ toast("That file isn't a Grades backup"); }
+};
+
+let tT;
+function toast(msg, action){
+  const t = $("toast"); t.textContent = msg;
+  if(action){ const b = document.createElement("button"); b.className = "tact"; b.textContent = action.label; b.onclick = () => { t.classList.remove("on"); action.fn(); }; t.appendChild(b); }
+  t.classList.add("on"); clearTimeout(tT); tT = setTimeout(() => t.classList.remove("on"), action ? 6000 : 2400);
+}
+
+renderHome();
+if("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+</script>
+</body>
+</html>
