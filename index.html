@@ -30,7 +30,7 @@ button{cursor:pointer;-webkit-user-select:none;user-select:none}
 input{outline:none}
 input:focus{box-shadow:0 0 0 2px var(--ink)}
 :focus-visible{outline:2px solid var(--ink);outline-offset:2px}
-.wrap{max-width:540px;margin:0 auto;padding:10px 16px calc(100px + env(safe-area-inset-bottom,0px));overflow-x:clip}
+.wrap{max-width:540px;margin:0 auto;padding:10px 16px calc(150px + env(safe-area-inset-bottom,0px));overflow-x:clip}
 
 .top{display:flex;justify-content:space-between;align-items:center;margin:4px 0 14px}
 h1{font-family:var(--display);font-weight:700;font-size:44px;line-height:1;margin:0}
@@ -66,12 +66,67 @@ h2 small{font-weight:500;color:var(--faint)}
 .bonusline{display:flex;justify-content:space-between;padding:12px 16px;box-shadow:inset 0 1px 0 var(--line);font-size:14px;color:var(--muted)}
 .bonusline b{color:var(--green);font-family:var(--display);font-size:20px}
 
-.fab{position:fixed;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));max-width:508px;margin:0 auto;height:56px;border:0;border-radius:18px;background:var(--ink);color:#000;font-weight:700;font-size:17px;z-index:4;box-shadow:0 8px 30px rgba(0,0,0,.6)}
+.fab{position:fixed;left:16px;right:16px;bottom:calc(72px + env(safe-area-inset-bottom,0px));max-width:508px;margin:0 auto;height:56px;border:0;border-radius:18px;background:var(--ink);color:#000;font-weight:700;font-size:17px;z-index:4;box-shadow:0 8px 30px rgba(0,0,0,.6)}
 
+/* nav */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;background:#000;box-shadow:0 -1px 0 var(--line);padding-bottom:env(safe-area-inset-bottom,0px);z-index:2;transform:translateZ(0)}
+.tabsin{max-width:540px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;height:60px;position:relative}
+.navind{position:absolute;top:0;left:0;width:50%;height:3px;display:flex;justify-content:center;transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+.navind::after{content:"";width:28px;height:3px;border-radius:0 0 3px 3px;background:var(--ink)}
+.navbtn{background:none;border:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:11px;font-weight:500;color:var(--faint)}
+.navbtn svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.navbtn[aria-current="page"]{color:var(--ink)}
+/* schedule */
+.dseg{position:relative;display:grid;grid-template-columns:repeat(5,1fr);background:var(--surface);border-radius:14px;padding:4px;margin-bottom:16px}
+.dseg button{position:relative;z-index:1;border:0;background:none;height:38px;border-radius:10px;font-weight:500;color:var(--muted)}
+.dseg button[aria-selected="true"]{color:var(--ink);font-weight:600}
+.dseg button i{position:absolute;left:50%;bottom:4px;width:4px;height:4px;margin-left:-2px;border-radius:50%;background:var(--green)}
+.dind{position:absolute;top:4px;bottom:4px;left:4px;width:calc((100% - 8px) / 5);border-radius:10px;background:var(--sunk);transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+.dhead{display:flex;justify-content:space-between;align-items:baseline;margin:0 2px 10px}
+.dname{font-family:var(--display);font-weight:700;font-size:34px;margin:0;color:var(--ink)}
+.nowc{background:var(--surface);border-radius:var(--r);padding:14px 16px;margin-bottom:12px;display:flex;flex-direction:column;gap:2px;box-shadow:inset 3px 0 0 var(--green)}
+.nowc .lab{font-size:13px;color:var(--green);font-weight:600}
+.nowc b{font-size:20px}
+.nowc span{font-size:14px;color:var(--muted)}
+.nowc.done{box-shadow:none}
+.nbar{height:4px;border-radius:2px;background:var(--sunk);margin-top:10px;overflow:hidden}
+.nbar i{display:block;height:100%;background:var(--green)}
+.lessons{display:flex;flex-direction:column;gap:6px}
+.les{display:grid;grid-template-columns:48px 4px 1fr;gap:12px;align-items:center;width:100%;border:0;background:var(--surface);border-radius:14px;padding:12px 14px;text-align:left}
+.les:active{background:var(--sunk)}
+.les.past{opacity:.45}
+.les.live{box-shadow:0 0 0 1.5px var(--green)}
+.lt{display:flex;flex-direction:column;font-family:var(--display);line-height:1.15}
+.lt b{font-size:18px} .lt span{font-size:14px;color:var(--muted)}
+.lbar{width:4px;align-self:stretch;border-radius:2px}
+.lc{min-width:0;display:flex;flex-direction:column}
+.lc b{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lc span{font-size:13px;color:var(--muted)}
+.free{font-size:13px;color:var(--faint);text-align:center;padding:6px 0}
+.empty2{text-align:center;padding:28px 20px}
+.empty2 b{font-size:18px} .empty2 p{color:var(--muted);margin:6px 0 4px}
+/* onboarding */
+.ob{position:fixed;inset:0;background:#000;z-index:8;display:none}
+.ob.on{display:block}
+.obin{max-width:540px;margin:0 auto;height:100%;display:flex;flex-direction:column;padding:calc(10px + env(safe-area-inset-top,0px)) 20px calc(16px + env(safe-area-inset-bottom,0px))}
+.obtop{display:flex;align-items:center;gap:12px;height:48px;flex:none}
+.obprog{flex:1;height:4px;border-radius:2px;background:var(--surface);overflow:hidden}
+.obprog i{display:block;height:100%;width:0;background:var(--ink);transition:width .3s}
+.obslide{flex:1;overflow-y:auto;padding:18px 0 10px}
+.obslide h2{font-family:var(--display);font-weight:700;font-size:36px;line-height:1.05;color:var(--ink);margin:0 0 8px;display:block}
+.obslide p{color:var(--muted);margin:0 0 18px}
+.obhero{font-size:56px;margin:30px 0 10px}
+.opt{display:flex;flex-direction:column;align-items:flex-start;width:100%;border:0;background:var(--surface);border-radius:16px;padding:16px 18px;margin-bottom:8px;text-align:left;box-shadow:inset 0 0 0 1.5px transparent;transition:box-shadow .15s,background .15s}
+.opt b{font-size:17px;font-weight:600}
+.opt span{font-size:13px;color:var(--muted)}
+.opt[aria-pressed="true"]{box-shadow:inset 0 0 0 2px var(--ink);background:var(--sunk)}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.opt.sm{align-items:center;padding:16px 8px;margin:0}
+.textlink{display:block;margin:14px auto 0;background:none;border:0;color:var(--muted);font-size:15px;text-decoration:underline;text-underline-offset:3px;padding:8px}
 /* fullscreen subject */
-.screen{position:fixed;inset:0;background:#000;z-index:3;overflow-y:auto;transform:translateX(100%);transition:transform .32s cubic-bezier(.2,.8,.2,1),visibility 0s .32s;visibility:hidden;overscroll-behavior:contain}
+.screen{position:fixed;inset:0;background:#000;z-index:3;padding-bottom:0;overflow-y:auto;transform:translateX(100%);transition:transform .32s cubic-bezier(.2,.8,.2,1),visibility 0s .32s;visibility:hidden;overscroll-behavior:contain}
 .screen.on{transform:none;visibility:visible;transition:transform .32s cubic-bezier(.2,.8,.2,1)}
-.sin{max-width:540px;margin:0 auto;padding:calc(10px + env(safe-area-inset-top,0px)) 16px calc(100px + env(safe-area-inset-bottom,0px))}
+.sin{max-width:540px;margin:0 auto;padding:calc(10px + env(safe-area-inset-top,0px)) 16px calc(160px + env(safe-area-inset-bottom,0px))}
 .shead{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .shead h1{font-size:36px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
@@ -131,9 +186,18 @@ h2 small{font-weight:500;color:var(--faint)}
 </head>
 <body>
 <div class="wrap">
-  <div class="top"><h1>Grades</h1><button class="icon" id="openSettings" aria-label="Settings"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button></div>
+  <div class="top"><h1 id="title">Grades</h1><button class="icon" id="openSettings" aria-label="Settings"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button></div>
+  <section id="sched" hidden></section>
   <main id="main"></main>
 </div>
+<nav class="tabs" aria-label="Main"><div class="tabsin"><span class="navind" id="navind"></span>
+  <button class="navbtn" data-tab="sched"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>Schedule</button>
+  <button class="navbtn" data-tab="grades"><svg viewBox="0 0 24 24"><path d="M5 19V9M12 19V5M19 19v-7"/></svg>Grades</button>
+</div></nav>
+<div class="ob" id="ob" role="dialog" aria-modal="true" aria-label="Setup"><div class="obin">
+  <div class="obtop"><button class="icon" id="obBack" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button><div class="obprog"><i id="obProg"></i></div></div>
+  <div class="obslide" id="obSlide"></div>
+</div></div>
 <button class="fab" id="fab">+ Add grade</button>
 <div class="screen" id="screen"><div class="sin" id="screenBody"></div></div>
 <div class="sheet" id="sheet"><div class="sbox" id="sheetBody"></div></div>
@@ -266,7 +330,7 @@ function rowHTML(s){
 
 /* ============ subject screen ============ */
 let openId = null, needT = 4, needW = 1, needP = "philo";
-function openSubject(id){ openId = id; renderSubject(); $("screen").classList.add("on"); $("fab").textContent = "+ Add grade"; }
+function openSubject(id){ openId = id; const s0 = sub(id); if(s0 && s0.parts && !s0.parts.some(p => p.key === needP)) needP = s0.parts[0].key; renderSubject(); $("screen").classList.add("on"); $("fab").textContent = "+ Add grade"; }
 function closeSubject(){ openId = null; $("screen").classList.remove("on"); renderHome(); }
 function spark(s){
   const g = s.grades; if(g.length < 2) return "";
@@ -331,7 +395,7 @@ function drawGradeSheet(editing){
   const d = draft;
   openSheet(`<h3>${editing ? "Edit grade" : "Add grade"}</h3>
     ${editing ? "" : `<span class="lab2">Subject</span><div class="chips">${state.subjects.map(s => `<button class="chip" data-g="sub" data-v="${s.id}" aria-pressed="${d.sid === s.id}">${esc(s.name)}</button>`).join("")}</div>`}
-    ${sub(d.sid).parts ? `<span class="lab2">Part</span><div class="chips">${sub(d.sid).parts.map(p => `<button class="chip" data-g="part" data-v="${p.key}" aria-pressed="${(d.part || sub(d.sid).parts[0].key) === p.key}">${esc(p.name)} (${shareTxt(sub(d.sid), p)})</button>`).join("")}</div>` : ""}
+    ${sub(d.sid).parts ? `<span class="lab2">Part</span><div class="chips">${sub(d.sid).parts.map(p => `<button class="chip" data-g="part" data-v="${p.key}" aria-pressed="${(sub(d.sid).parts.some(q => q.key === d.part) ? d.part : sub(d.sid).parts[0].key) === p.key}">${esc(p.name)} (${shareTxt(sub(d.sid), p)})</button>`).join("")}</div>` : ""}
     <span class="lab2">Grade (1 to 6, pass is 4)</span><input class="gradein" id="gIn" inputmode="decimal" placeholder="5.5" value="${esc(d.g)}">
     <span class="lab2">Weight</span><div class="chips">${[0.5,1,2,3].map(w => `<button class="chip" data-g="w" data-v="${w}" aria-pressed="${d.w === w}">×${w}</button>`).join("")}
       <input class="num" id="wIn" inputmode="decimal" placeholder="other" value="${[0.5,1,2,3].includes(d.w) ? "" : d.w}" style="height:38px;width:76px;font-size:17px"></div>
@@ -351,7 +415,7 @@ $("sheetBody").addEventListener("click", e => {
   if(k === "save"){
     const g = num(d.g);
     if(g == null || g < 1 || g > 6){ toast("Enter a grade between 1 and 6"); $("gIn").focus(); return; }
-    const s = sub(d.sid), part = s.parts ? (d.part || s.parts[0].key) : undefined;
+    const s = sub(d.sid), part = s.parts ? (s.parts.some(q => q.key === d.part) ? d.part : s.parts[0].key) : undefined;
     if(d.id){ const x = s.grades.find(x => x.id === d.id); x.g = g; x.w = d.w; x.name = d.name.trim(); if(part) x.part = part; toast("Saved"); }
     else { s.grades.push({id:uid(), g, w:d.w, name:d.name.trim(), date:new Date().toISOString(), ...(part ? {part} : {})}); state.settings.lastSub = d.sid; state.settings.lastW = d.w; if(part) state.settings.lastPart = part;
       toast(f2(g) + " added to " + (part ? s.parts.find(p => p.key === part).name : s.name)); }
@@ -377,6 +441,8 @@ function settingsSheet(){
   const st = state.settings;
   openSheet(`<h3>Settings</h3>
     <div class="setting"><p>Round subject averages to 0.5<small>How subject grades are usually set on the report</small></p><button class="switch" role="switch" id="roundSw" aria-checked="${st.round}"></button></div>
+    <span class="lab2">Timetable and options</span>
+    <div class="row2"><button class="secondary" id="redo" style="margin:0">Redo setup</button><button class="secondary" id="unhide" style="margin:0">Show hidden lessons${tt().hidden.length ? " (" + tt().hidden.length + ")" : ""}</button></div>
     <span class="lab2">Subjects</span><div id="subList"></div>
     <div class="mrow"><input class="inp" id="newSub" placeholder="New subject"><span></span><button class="mini" id="addSub">Add</button></div>
     <span class="lab2">Locked subjects</span><div id="lockList"></div>
@@ -389,6 +455,8 @@ function settingsSheet(){
   $("roundSw").onclick = e => { st.round = !st.round; e.target.setAttribute("aria-checked", st.round); save(); refresh(); };
   $("addSub").onclick = () => { const n = $("newSub").value.trim(); if(!n) return; state.subjects.push({id:uid(), name:n, counts:true, grades:[]}); $("newSub").value = ""; save(); drawManage(); renderHome(); };
   $("addLock").onclick = () => { const n = $("newLock").value.trim(); if(!n) return; state.locked.push({id:uid(), name:n, g:null}); $("newLock").value = ""; save(); drawManage(); renderHome(); };
+  $("redo").onclick = () => { closeSheet(); openOnboarding("class"); };
+  $("unhide").onclick = () => { const n = tt().hidden.length; tt().hidden = []; tt().rooms = {}; save(); closeSheet(); renderSched(); toast(n ? "Hidden lessons are back" : "No hidden lessons"); };
   $("exp").onclick = exportData; $("imp").onclick = () => $("importFile").click();
   $("wipe").onclick = () => { if(confirm("Delete all grades and subjects?") && confirm("This can't be undone. Delete everything?")){ state = defaults(); save(); closeSheet(); refresh(); toast("Everything deleted"); } };
 }
@@ -461,7 +529,435 @@ function toast(msg, action){
   t.classList.add("on"); clearTimeout(tT); tT = setTimeout(() => t.classList.remove("on"), action ? 6000 : 2400);
 }
 
-renderHome();
+/* ============ timetable data: Gymnase, 3M classes, 2026-27 ============
+   Line format:  Day start-end Name @Room #tag=value
+   Groups (maths, histoire, langue 2, option spécifique) are shared between classes.
+   Teacher codes are deliberately left out. */
+const GROUPS = {
+  /* maths */
+  "3MRe1":{dim:"math", label:"Renforcé", L:["Mon 1-2 Maths renforcé @S2.14","Tue 3-4 Maths renforcé @S2.08","Thu 3-4 Maths renforcé @S2.09"]},
+  "3MRe2":{dim:"math", label:"Renforcé", L:["Tue 3-4 Maths renforcé @S2.09","Thu 3-4 Maths renforcé @S2.14","Fri 3-4 Maths renforcé @S2.09"]},
+  "3MRe3":{dim:"math", label:"Renforcé", L:["Wed 1-2 Maths renforcé @S2.16","Thu 1-2 Maths renforcé @S2.16","Fri 3-4 Maths renforcé @S2.16"]},
+  "3MRe4":{dim:"math", label:"Renforcé", L:["Mon 1-2 Maths renforcé @S2.07","Tue 3-4 Maths renforcé @S2.07","Thu 3-4 Maths renforcé @S2.07"]},
+  "3MRB1":{dim:"math", label:"Renforcé bilingue", L:["Tue 3-4 Maths renforcé @S2.15","Thu 3-4 Maths renforcé @S2.11","Fri 3-4 Maths renforcé @S2.11"]},
+  "3MSt1":{dim:"math", label:"Standard", L:["Tue 3-4 Maths standard @S2.11","Thu 3-4 Maths standard @S2.10"]},
+  "3MSt3":{dim:"math", label:"Standard", L:["Wed 1-2 Maths standard @S2.14","Fri 3-4 Maths standard @S2.08"]},
+  "3MSt4":{dim:"math", label:"Standard", L:["Tue 3-4 Maths standard @S2.12","Thu 3-4 Maths standard @S2.12"]},
+  "3MSt5":{dim:"math", label:"Standard", L:["Tue 3-4 Maths standard @S2.16","Thu 3-4 Maths standard @S2.16"]},
+  "3MSB1":{dim:"math", label:"Standard bilingue", L:["Tue 3-4 Maths standard @S1.04","Thu 3-4 Maths standard @S2.15"]},
+  /* histoire */
+  "3MHi3":{dim:"hist", label:"Histoire", L:["Tue 1-2 Histoire @S1.04"]},
+  "3MHi5":{dim:"hist", label:"Histoire", L:["Tue 1-2 Histoire @S-1.14"]},
+  "3MHi14":{dim:"hist", label:"Histoire", L:["Tue 1-2 Histoire @S1.14"]},
+  "3MHiB1":{dim:"hist", label:"Histoire bilingue", L:["Tue 1-2 Histoire bilingue @S1.20"]},
+  /* langue 2 */
+  "3MAl1":{dim:"l2", label:"Allemand", L:["Wed 3-4 Allemand @S1.16","Tue 9 Allemand #abl2=A","Tue 10 Allemand @S2.15 #abl2=B"]},
+  "3MAl2":{dim:"l2", label:"Allemand", L:["Wed 3-4 Allemand @S1.14","Tue 9 Allemand #abl2=A","Tue 10 Allemand #abl2=B"]},
+  "3MAl4":{dim:"l2", label:"Allemand", L:["Wed 3-4 Allemand @S1.13","Tue 9 Allemand @S1.13 #abl2=A","Tue 10 Allemand #abl2=B"]},
+  "3MIt1":{dim:"l2", label:"Italien", L:["Wed 3-4 Italien @S2.18","Tue 9 Italien #abl2=A","Tue 10 Italien #abl2=B"]},
+  "3MIt2":{dim:"l2", label:"Italien", L:["Wed 3-4 Italien @S2.20","Tue 9 Italien #abl2=A","Tue 10 Italien #abl2=B"]},
+  "3MIt3":{dim:"l2", label:"Italien", L:["Wed 3-4 Italien @S1.19","Tue 9 Italien #abl2=A","Tue 10 Italien #abl2=B"]},
+  /* options spécifiques */
+  "3MSBC1":{dim:"os", label:"Biologie et chimie", L:["Wed 6-7 Chimie (OS) @S3.13","Fri 6-7 Biologie-Chimie TP @S3.10 #tp=1","Fri 6-7 Biologie-Chimie TP @S3.09 #tp=2"]},
+  "3MSBC2":{dim:"os", label:"Biologie et chimie", L:["Mon 9-10 Chimie (OS) @S3.16","Thu 1-2 Biologie-Chimie TP @S3.07 #tp=1","Thu 1-2 Biologie-Chimie TP @S3.12 #tp=2"]},
+  "3MSBC3":{dim:"os", label:"Biologie et chimie", L:["Mon 7-8 Chimie (OS) @S3.13","Tue 7-8 Biologie-Chimie TP @S3.10 #tp=1","Tue 7-8 Biologie-Chimie TP @S3.07 #tp=2"]},
+  "3MSPM1":{dim:"os", label:"Physique et applications des maths", L:["Tue 7-8 Applications des maths @S2.08","Thu 1-2 Physique (OS) @S3.06","Fri 7 Physique TP @S3.03"]},
+  "3MSPM2":{dim:"os", label:"Physique et applications des maths", L:["Mon 9-10 Applications des maths @S2.12","Tue 7-8 Physique (OS) @S3.06","Fri 1-2 Physique TP @S3.01"]},
+  "3MSPP1":{dim:"os", label:"Philosophie et psychologie", L:["Mon 9 Philosophie (OS) @S2.01","Tue 7-8 Psychologie @S1.19","Fri 1-2 Philosophie (OS) @S1.09"]},
+  "3MSPP2":{dim:"os", label:"Philosophie et psychologie", L:["Mon 9 Philosophie (OS)","Tue 7-8 Philosophie (OS) @S1.07","Fri 1-2 Psychologie @S1.07"]},
+  "3MSED1":{dim:"os", label:"Économie et droit", L:["Mon 9 Économie et droit","Tue 7-8 Économie et droit @S2.03","Fri 1-2 Économie et droit @S2.03"]},
+  "3MSED2":{dim:"os", label:"Économie et droit", L:["Tue 9-10 Économie et droit @S2.17","Wed 1-2 Économie et droit @S2.17","Fri 3 Économie et droit @S2.17"]},
+  "3MSED3":{dim:"os", label:"Économie et droit", L:["Tue 7-8 Économie et droit @S2.20","Wed 5 Économie et droit @S2.02","Fri 1-2 Économie et droit @S2.07"]},
+  "3MSEs1":{dim:"os", label:"Espagnol", L:["Mon 9-10 Espagnol @S1.18","Tue 7-8 Espagnol @S1.18","Fri 2 Espagnol"]},
+  "3MSEs2":{dim:"os", label:"Espagnol", L:["Mon 9 Espagnol @S1.20","Tue 7-8 Espagnol @S1.06","Fri 1-2 Espagnol @S2.12"]},
+  "3MSLa1":{dim:"os", label:"Latin", L:["Mon 9 Latin","Tue 7-8 Latin @S1.14","Fri 1-2 Latin @S1.14"]},
+  "3MSAV1":{dim:"os", label:"Arts visuels", L:["Mon 9-10 Arts visuels (OS) @S-1.05","Tue 7-8 Histoire de l'art @S1.03","Fri 1-2 Arts visuels (OS) @S-1.05"]}
+};
+
+const CLASSES = {
+  "3M01":{g:["3MRe1","3MSt1","3MSt4","3MSBC1"], L:[
+    "Mon 3 Allemand @P02.32 #abl2=A","Mon 3 Anglais @P02.33 #aben=A","Mon 4 Allemand @P02.32 #abl2=B","Mon 4 Anglais @P02.33 #aben=B",
+    "Mon 6-7 Français @S1.04","Mon 8 Biologie @S3.18","Mon 9 Philosophie @S1.06",
+    "Tue 1-2 Biologie @S3.18","Tue 7-8 Sport @VD6",
+    "Wed 1-2 Allemand @S1.16","Wed 3-4 Histoire @S-1.14","Wed 8-9 Philosophie @S1.06",
+    "Thu 1-2 Géographie @S-1.09",
+    "Fri 1-2 Français @S1.20","Fri 3-4 Anglais @S1.06"]},
+  "3M02":{g:["3MRe1","3MSt1","3MSBC2"], L:[
+    "Mon 3-4 Allemand @S1.04","Mon 7-8 Philosophie @S1.06",
+    "Tue 1-2 Anglais @P02.20","Tue 7-8 Biologie @S3.18",
+    "Wed 1 Philosophie @S1.06","Wed 2 Français @S1.01","Wed 3 Français @S1.01","Wed 5-6 Sport @VD6",
+    "Wed 7 Allemand @S1.07 #abl2=A","Wed 7 Anglais @S1.12 #aben=A","Wed 8 Allemand @S1.07 #abl2=B","Wed 8 Anglais @S1.12 #aben=B",
+    "Fri 1-2 Français @S2.13","Fri 3-4 Géographie @S-1.09","Fri 5 Biologie @S2.06","Fri 7-8 Histoire @S-1.12"]},
+  "3M03":{g:["3MRe4","3MSB1","3MSt1","3MSt4","3MHi3","3MHiB1","3MAl1","3MIt1","3MIt2","3MIt3","3MSBC3"], L:[
+    "Mon 3-4 Géographie @S-1.11","Mon 5 Biologie @S2.06","Mon 9 Philosophie @S1.07",
+    "Tue 9 Anglais #aben=A","Tue 10 Anglais #aben=B",
+    "Wed 1-2 Français @S1.09","Wed 6-7 Anglais @S1.08","Wed 8-9 Biologie @S2.06",
+    "Fri 1-2 Sport @VD6","Fri 3-4 Français @S1.10"]},
+  "3M05":{g:["3MRB1","3MRe2","3MHi5","3MHiB1","3MAl4","3MIt1","3MIt2","3MIt3","3MSPM1"], L:[
+    "Mon 1-2 Sport @VD6","Mon 3-4 Français @S2.18","Mon 6-7 Anglais @S1.10","Mon 8 Biologie @S2.09","Mon 9 Anglais @S1.10",
+    "Wed 1-2 Géographie @S-1.11","Wed 6-7 Français @S2.10","Wed 8-9 Philosophie @S2.10",
+    "Fri 1-2 Biologie @S2.06, S3.07","Fri 5 Philosophie @S1.09"]},
+  "3M06":{g:["3MSPM2"], L:[
+    "Mon 2 Philosophie @S1.06","Mon 3 Philosophie @S1.06","Mon 4-5 Biologie @S3.07, S3.18","Mon 7-8 Français @S1.14",
+    "Tue 1-2 Anglais @P02.15","Tue 3-4 Maths renforcé @S2.10","Tue 9-10 Allemand @S2.16",
+    "Wed 1-2 Géographie @S-1.09","Wed 3 Philosophie @S1.06","Wed 5-6 Sport @VD6","Wed 7-8 Maths renforcé @S2.07",
+    "Thu 1 Allemand @S1.13 #abl2=A","Thu 1 Anglais @S1.20 #aben=A","Thu 2 Allemand @S1.13 #abl2=B","Thu 2 Anglais @S1.20 #aben=B","Thu 3-4 Français @P02.31",
+    "Fri 3 Biologie @S2.06","Fri 4-5 Maths renforcé @S2.10","Fri 7-8 Histoire @S1.01"]},
+  "3M07":{g:["3MRe3","3MSt3","3MAl1","3MAl2","3MIt2","3MIt3","3MSED1","3MSLa1","3MSPP1","3MSEs1"], L:[
+    "Mon 1-2 Sport @VD6","Mon 3-4 Philosophie @S1.14","Mon 7-8 Anglais @P02.32",
+    "Tue 1-2 Français @S1.08","Tue 3-4 Histoire @S-1.14","Tue 9 Anglais #aben=A","Tue 10 Anglais #aben=B",
+    "Wed 6-7 Français @S1.01","Wed 8 Philosophie @S1.01",
+    "Thu 3-4 Biologie @S2.06, S3.07",
+    "Fri 5 Biologie @S3.16","Fri 7-8 Géographie @S-1.11"]},
+  "3M08":{g:["3MRe3","3MSt3","3MAl2","3MIt2","3MIt3","3MSAV1","3MSED1","3MSPP1"], L:[
+    "Mon 1-2 Biologie @S2.06, S3.07","Mon 3-4 Français @S1.18","Mon 7-8 Philosophie @S1.07",
+    "Tue 4 Philosophie @S1.11","Tue 9 Anglais #aben=A","Tue 10 Anglais #aben=B",
+    "Wed 6 Biologie @S3.18","Wed 7-8 Sport @VD6",
+    "Thu 3-4 Anglais @S1.04",
+    "Fri 6-7 Histoire @S1.10","Fri 8-9 Géographie @S-1.09"]},
+  "3M09":{g:["3MRe1","3MSt4","3MAl1","3MIt1","3MIt2","3MIt3","3MSED3","3MSEs2","3MSPP1"], L:[
+    "Mon 3-4 Français @S1.07","Mon 7-8 Anglais @P02.36",
+    "Tue 1-2 Géographie @S-1.09","Tue 9 Anglais @S1.03 #aben=A","Tue 10 Anglais #aben=B",
+    "Wed 1-2 Biologie @S2.06, S3.16","Wed 7-8 Histoire @S-1.14","Wed 9 Philosophie @S1.01",
+    "Thu 1-2 Philosophie @S1.07",
+    "Fri 3-4 Sport @VD6","Fri 5 Biologie @S3.18","Fri 7-8 Français @S2.13"]},
+  "3M10":{g:["3MAl1","3MIt2","3MIt3","3MSAV1","3MSED1","3MSEs1","3MSPP1"], L:[
+    "Mon 4-5 Anglais @S2.20","Mon 7-8 Géographie @S-1.11",
+    "Tue 1-2 Philosophie @S1.01","Tue 3-4 Français @S1.07","Tue 9 Anglais #aben=A","Tue 10 Anglais #aben=B",
+    "Wed 1-2 Histoire @S1.17","Wed 5 Philosophie @S1.03","Wed 7-8 Maths standard @S2.16","Wed 9 Biologie @S3.18",
+    "Thu 1-2 Biologie @S3.09, S3.18","Thu 3-4 Français @P02.32",
+    "Fri 3-4 Sport @VD6","Fri 6-7 Maths standard @S2.16"]},
+  "3M11":{g:["3MSED1","3MSED3","3MSEs2","3MSPP1","3MSPP2"], L:[
+    "Mon 2 Philosophie @S1.14","Mon 3-4 Histoire @S2.01",
+    "Mon 7 Allemand @S2.15 #abl2=A","Mon 7 Anglais @S1.12 #aben=A","Mon 8 Allemand @S2.15 #abl2=B","Mon 8 Anglais @S1.12 #aben=B",
+    "Tue 1-2 Maths standard @S2.07","Tue 3-4 Allemand @S2.20","Tue 9-10 Sport @VD6",
+    "Wed 1-2 Anglais @S1.02","Wed 3-4 Philosophie @S1.03","Wed 7-8 Français @P02.20","Wed 9 Biologie @S3.16",
+    "Thu 1-2 Maths standard @S2.07","Thu 3-4 Géographie @S-1.14",
+    "Fri 3-4 Français @S2.13","Fri 6-7 Biologie @S2.06, S3.07"]},
+  "3M12":{g:["3MSAV1","3MSED1","3MSEs2","3MSLa1","3MSPP1","3MSPP2"], L:[
+    "Mon 1-2 Histoire @S-1.12","Mon 3-4 Géographie @S-1.09","Mon 7-8 Français @S2.13",
+    "Tue 1-2 Maths standard @S2.13","Tue 3-4 Biologie @S3.09, S3.18","Tue 9-10 Sport @VD6",
+    "Wed 1-2 Allemand @S1.14","Wed 3-4 Anglais @S1.11","Wed 6 Philosophie @S1.06","Wed 7-8 Maths standard @S2.09",
+    "Thu 1-2 Philosophie @S1.06",
+    "Fri 3 Allemand @S1.11 #abl2=A","Fri 3 Anglais @S1.01 #aben=A","Fri 4 Allemand @S1.11 #abl2=B","Fri 4 Anglais @S1.01 #aben=B","Fri 5 Biologie @S2.04"]},
+  "3M13":{g:["3MSED2"], L:[
+    "Mon 1-2 Géographie @S-1.09","Mon 3-4 Histoire @S-1.12","Mon 6 Philosophie @S1.07","Mon 7 Biologie @S3.18",
+    "Tue 1-2 Philosophie @P02.36","Tue 3-4 Biologie @S2.06, S3.16","Tue 7-8 Maths standard @S2.11",
+    "Wed 3-4 Anglais @P02.31","Wed 6-7 Allemand @S2.17",
+    "Thu 1-2 Français @P02.36","Thu 3-4 Maths standard @S2.08",
+    "Fri 1-2 Français @P02.36","Fri 5-6 Sport @VD6",
+    "Fri 7 Allemand @S1.17 #abl2=A","Fri 7 Anglais @S1.02 #aben=A","Fri 8 Allemand @S1.17 #abl2=B","Fri 8 Anglais @S1.02 #aben=B"]},
+  "3M14":{g:["3MSB1","3MSt5","3MHi14","3MHiB1","3MSAV1","3MSED3","3MSEs1","3MSEs2","3MSPP2"], L:[
+    "Mon 1-2 Sport @VD6","Mon 3 Biologie @S2.06","Mon 6-7 Anglais @S1.08","Mon 8 Philosophie @S2.08",
+    "Tue 9-10 Philosophie @S1.07",
+    "Wed 1 Allemand @S1.18 #abl2=A","Wed 1 Anglais @S1.08 #aben=A","Wed 2 Allemand @S1.18 #abl2=B","Wed 2 Anglais @S1.08 #aben=B",
+    "Wed 3-4 Géographie @S-1.11","Wed 7-8 Français @S1.18",
+    "Thu 1-2 Biologie @S3.09, S3.18",
+    "Fri 3-4 Français @S1.12","Fri 6-7 Allemand @S1.12"]}
+};
+
+/* Options complémentaires: all on Thursday afternoon. Some options run in more than one block. */
+const OC_LIST = ["Applications des maths","Arts visuels","Biologie","Chimie","Économie et droit","Géographie","Histoire","Histoire et sciences des religions","Informatique","Musique","Physique","Sport"];
+const OC_SLOTS = {
+  "Applications des maths":["Thu 6-8 Applications des maths (OC)"],
+  "Arts visuels":["Thu 7-8 Arts visuels (OC)"],
+  "Biologie":["Thu 6-7 Biologie (OC)","Thu 8-9 Biologie (OC)"],
+  "Chimie":["Thu 7-8 Chimie (OC)","Thu 9-10 Chimie (OC) @S3.12"],
+  "Économie et droit":["Thu 6-8 Économie et droit (OC)"],
+  "Géographie":["Thu 7 Géographie (OC)","Thu 7-9 Géographie (OC)","Thu 9 Géographie (OC)"],
+  "Histoire":["Thu 6 Histoire (OC)","Thu 6-8 Histoire (OC)","Thu 7-9 Histoire (OC)"],
+  "Informatique":["Thu 6-8 Informatique (OC)"],
+  "Sport":["Thu 7-10 Sport (OC) @P02.31, VD6"]
+};
+
+/* ============ timetable engine ============ */
+const PERIODS = {1:["08:10","08:55"],2:["09:00","09:45"],3:["10:05","10:50"],4:["10:55","11:40"],5:["11:45","12:30"],6:["12:35","13:20"],7:["13:25","14:10"],8:["14:15","15:00"],9:["15:10","15:55"],10:["16:00","16:45"]};
+const DAYS = ["Mon","Tue","Wed","Thu","Fri"], DAYNAMES = ["Monday","Tuesday","Wednesday","Thursday","Friday"];
+const RX = /^(Mon|Tue|Wed|Thu|Fri) (\d+)(?:-(\d+))? ([^@#]+?)\s*(?:@([^#]+?))?\s*((?:#\S+\s*)*)$/;
+const mins = t => { const [h, m] = t.split(":").map(Number); return h * 60 + m; };
+const PALETTE = ["#F2A3C2","#93C3F2","#9FDDBE","#C7B5F4","#EBCB7A","#F5B38A","#8FD3D9","#E8A0A0","#B7D58A","#D9DCE0"];
+function colorFor(name){ const base = name.replace(/\s*\(.*\)|\s*TP$/g, "").replace(/ (renforcé|standard|bilingue)$/, ""); let h = 0; for(const c of base) h = (h * 31 + c.charCodeAt(0)) >>> 0; return PALETTE[h % PALETTE.length]; }
+function parseL(s, extra){
+  const m = s.match(RX); if(!m) return null;
+  const tags = {}; (m[6] || "").trim().split(/\s+/).filter(Boolean).forEach(t => { const [k, v] = t.slice(1).split("="); tags[k] = v; });
+  return Object.assign({day:DAYS.indexOf(m[1]), p1:+m[2], p2:+(m[3] || m[2]), name:m[4].trim(), room:(m[5] || "").trim(), tags}, extra || {});
+}
+const OSMAP = {
+  "3MSBC":{long:"Biologie et chimie", name:"Bio & Chimie (OS)", parts:[{key:"bio",name:"Biologie",share:1},{key:"chim",name:"Chimie",share:1}], noOC:["Biologie","Chimie"]},
+  "3MSPM":{long:"Physique et applications des maths", name:"Physique & Applic. maths (OS)", parts:[{key:"phys",name:"Physique",share:1},{key:"am",name:"Applications des maths",share:1}], noOC:["Physique","Applications des maths"]},
+  "3MSPP":{long:"Philosophie et psychologie", name:"Philo & Psycho", parts:PP_PARTS, noOC:[]},
+  "3MSED":{long:"Économie et droit", name:"Économie et droit (OS)", noOC:["Économie et droit"]},
+  "3MSEs":{long:"Espagnol", name:"Espagnol (OS)", noOC:[]},
+  "3MSLa":{long:"Latin", name:"Latin (OS)", noOC:[]},
+  "3MSAV":{long:"Arts visuels", name:"Arts visuels (OS)", noOC:["Arts visuels"]}
+};
+const osOf = code => code ? OSMAP[code.replace(/\d+$/, "")] : null;
+
+function tt(){ if(!state.tt) state.tt = {cls:null, ans:{}, art:null, oc:null, ocSlots:null, hidden:[], extra:[], rooms:{}}; return state.tt; }
+const groupsOf = (cls, dim) => (CLASSES[cls] ? CLASSES[cls].g : []).filter(g => GROUPS[g].dim === dim);
+function effOS(){ const t = tt(); if(t.ans.os) return t.ans.os; const g = groupsOf(t.cls, "os"); return g.length === 1 ? g[0] : null; }
+
+function weekLessons(){
+  const t = tt(), C = CLASSES[t.cls]; let out = [];
+  if(C){
+    C.L.forEach(s => { const l = parseL(s); if(l) out.push(l); });
+    C.g.forEach(code => { const G = GROUPS[code], dimGroups = groupsOf(t.cls, G.dim), chosen = t.ans[G.dim];
+      if(chosen && chosen !== code) return;
+      G.L.forEach(s => { const l = parseL(s, {group:code, gdim:G.dim, gshow:!chosen && dimGroups.length > 1}); if(l) out.push(l); }); });
+    out = out.filter(l => Object.entries(l.tags).every(([k, v]) => !t.ans[k] || t.ans[k] === v));
+  }
+  if(t.oc && OC_SLOTS[t.oc]) OC_SLOTS[t.oc].forEach((s, i) => { if(t.ocSlots && !t.ocSlots.includes(i)) return; const l = parseL(s, {oc:true}); if(l) out.push(l); });
+  out.forEach(l => { l.key = [l.day, l.p1, l.name, l.group || "", l.tags.abl2 || l.tags.aben || l.tags.tp || ""].join("|"); if(t.rooms[l.key] != null) l.room = t.rooms[l.key]; });
+  out = out.filter(l => !t.hidden.includes(l.key));
+  t.extra.forEach(x => out.push(Object.assign({}, x, {tags:{}, key:"x|" + x.id, extra:true})));
+  return out.sort((a, b) => a.day - b.day || a.p1 - b.p1 || a.name.localeCompare(b.name));
+}
+
+/* ============ tabs ============ */
+let tab = tt().cls ? "sched" : "grades";
+const TABS = ["sched", "grades"];
+function showTab(next, animate){
+  const prev = tab; tab = next;
+  document.querySelectorAll(".navbtn").forEach(b => b.setAttribute("aria-current", b.dataset.tab === tab ? "page" : "false"));
+  $("navind").style.transform = `translateX(${TABS.indexOf(tab) * 100}%)`;
+  $("title").textContent = tab === "sched" ? "Schedule" : "Grades";
+  $("fab").style.display = tab === "grades" ? "" : "none";
+  $("sched").hidden = tab !== "sched"; $("main").hidden = tab !== "grades";
+  if(tab === "sched") renderSched(); else renderHome();
+  const el = tab === "sched" ? $("sched") : $("main"), dir = TABS.indexOf(tab) > TABS.indexOf(prev) ? 1 : -1;
+  if(animate && prev !== tab && el.animate && !matchMedia("(prefers-reduced-motion: reduce)").matches)
+    el.animate([{transform:`translateX(${dir * 30}px)`, opacity:0}, {transform:"none", opacity:1}], {duration:220, easing:"cubic-bezier(.2,.8,.2,1)"});
+  window.scrollTo(0, 0);
+}
+document.querySelectorAll(".navbtn").forEach(b => b.onclick = () => showTab(b.dataset.tab, true));
+
+/* ============ schedule view ============ */
+let sDay = (() => { const d = new Date().getDay(); return d >= 1 && d <= 5 ? d - 1 : 0; })();
+const isWeekend = () => { const d = new Date().getDay(); return d === 0 || d === 6; };
+const todayIdx = () => { const d = new Date().getDay(); return d >= 1 && d <= 5 ? d - 1 : -1; };
+function renderSched(animDir){
+  const t = tt(), el = $("sched");
+  if(!t.cls && !t.extra.length){
+    el.innerHTML = `<div class="card empty2"><b>No timetable yet</b><p>Pick your class and options and your week fills in by itself.</p><button class="primary" data-s="setup">Set up my timetable</button></div>`;
+    return;
+  }
+  const all = weekLessons(), day = all.filter(l => l.day === sDay), ti = todayIdx(), isToday = ti === sDay;
+  const nowM = new Date().getHours() * 60 + new Date().getMinutes();
+  let h = `<div class="dseg" role="tablist"><span class="dind" style="transform:translateX(${sDay * 100}%)"></span>${DAYS.map((d, i) => `<button role="tab" data-s="day" data-d="${i}" aria-selected="${i === sDay}">${d}${i === ti ? '<i></i>' : ""}</button>`).join("")}</div>`;
+  h += `<div class="dhead"><h2 class="dname">${DAYNAMES[sDay]}</h2><span class="muted">${t.cls ? esc(t.cls) : ""}${day.length ? ", " + day.length + " lessons" : ""}</span></div>`;
+  if(isWeekend() && sDay === 0) h += `<p class="note" style="margin:-4px 2px 10px">It's the weekend. Here's Monday.</p>`;
+  if(isToday && day.length){
+    const cur = day.find(l => mins(PERIODS[l.p1][0]) <= nowM && nowM < mins(PERIODS[l.p2][1]));
+    const nxt = day.find(l => mins(PERIODS[l.p1][0]) > nowM);
+    if(cur){ const s = mins(PERIODS[cur.p1][0]), e = mins(PERIODS[cur.p2][1]);
+      h += `<div class="nowc"><span class="lab">Now, until ${PERIODS[cur.p2][1]}</span><b>${esc(cur.name)}</b><span>${cur.room ? esc(cur.room) : "No room set"}${nxt ? `. Next: ${esc(nxt.name)} at ${PERIODS[nxt.p1][0]}${nxt.room ? " in " + esc(nxt.room) : ""}` : ". Last lesson today"}</span><div class="nbar"><i style="width:${(nowM - s) / (e - s) * 100}%"></i></div></div>`; }
+    else if(nxt){ const m = mins(PERIODS[nxt.p1][0]) - nowM;
+      h += `<div class="nowc"><span class="lab">Next, in ${m >= 60 ? Math.floor(m / 60) + " h " + (m % 60) + " min" : m + " min"}</span><b>${esc(nxt.name)}</b><span>${PERIODS[nxt.p1][0]}${nxt.room ? " in " + esc(nxt.room) : ""}</span></div>`; }
+    else h += `<div class="nowc done"><b>Done for today</b><span>Enjoy your evening.</span></div>`;
+  }
+  if(!day.length) h += `<div class="card empty2"><b>No lessons</b><p>Nothing on ${DAYNAMES[sDay]}.</p></div>`;
+  else {
+    h += `<div class="lessons">`; let lastEnd = null;
+    day.forEach(l => {
+      const st = PERIODS[l.p1][0], en = PERIODS[l.p2][1];
+      if(lastEnd !== null && l.p1 > lastEnd + 1){ h += `<div class="free">Free ${PERIODS[lastEnd + 1][0]} to ${PERIODS[l.p1 - 1][1]}</div>`; }
+      lastEnd = Math.max(lastEnd ?? 0, l.p2);
+      const past = isToday && mins(en) <= nowM, live = isToday && mins(st) <= nowM && nowM < mins(en);
+      const tags = [];
+      if(l.gshow) tags.push(GROUPS[l.group].label + " " + l.group);
+      if(l.tags.abl2 || l.tags.aben) tags.push("Group " + (l.tags.abl2 || l.tags.aben));
+      if(l.tags.tp) tags.push("TP group " + l.tags.tp);
+      if(l.extra) tags.push("Added by you");
+      h += `<button class="les${past ? " past" : ""}${live ? " live" : ""}" data-s="les" data-k="${esc(l.key)}">
+        <span class="lt"><b>${st}</b><span>${en}</span></span><span class="lbar" style="background:${colorFor(l.name)}"></span>
+        <span class="lc"><b>${esc(l.name)}</b><span>${l.room ? esc(l.room) : "No room"}${tags.length ? " · " + tags.map(esc).join(", ") : ""}</span></span></button>`;
+    });
+    h += `</div>`;
+  }
+  h += `<button class="secondary" data-s="add" style="margin-top:12px">+ Add a lesson</button>`;
+  el.innerHTML = h;
+  if(animDir && el.animate && !matchMedia("(prefers-reduced-motion: reduce)").matches){
+    const box = el.querySelector(".lessons") || el.querySelector(".empty2");
+    if(box) box.animate([{transform:`translateX(${animDir * 40}px)`, opacity:0}, {transform:"none", opacity:1}], {duration:220, easing:"cubic-bezier(.2,.8,.2,1)"});
+  }
+}
+setInterval(() => { if(tab === "sched" && !$("sheet").classList.contains("on")) renderSched(); }, 30000);
+function goDay(d){ if(d < 0 || d > 4 || d === sDay) return; const dir = d > sDay ? 1 : -1; sDay = d; renderSched(dir); }
+$("sched").addEventListener("click", e => {
+  const b = e.target.closest("[data-s]"); if(!b) return;
+  const a = b.dataset.s;
+  if(a === "setup") openOnboarding("class");
+  if(a === "day") goDay(+b.dataset.d);
+  if(a === "les") lessonSheet(b.dataset.k);
+  if(a === "add") addLessonSheet();
+});
+let tx = null, ty = null;
+$("sched").addEventListener("touchstart", e => { tx = e.touches[0].clientX; ty = e.touches[0].clientY; }, {passive:true});
+$("sched").addEventListener("touchend", e => { if(tx === null) return; const dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty; tx = null;
+  if(Math.abs(dx) > 60 && Math.abs(dy) < Math.abs(dx) * 0.6) goDay(sDay + (dx < 0 ? 1 : -1)); }, {passive:true});
+
+function lessonSheet(key){
+  const l = weekLessons().find(x => x.key === key); if(!l) return;
+  openSheet(`<h3>${esc(l.name)}</h3><p class="note" style="margin:0 0 6px">${DAYNAMES[l.day]}, ${PERIODS[l.p1][0]} to ${PERIODS[l.p2][1]}${l.group ? ", group " + esc(l.group) : ""}</p>
+    <span class="lab2">Room</span><input class="inp" id="roomIn" value="${esc(l.room)}" placeholder="e.g. S2.14">
+    <button class="primary" id="roomSave">Save</button>
+    <button class="secondary ${l.extra ? "danger" : ""}" id="hideL">${l.extra ? "Delete lesson" : "Hide this lesson"}</button>`);
+  $("roomSave").onclick = () => { const t = tt(), v = $("roomIn").value.trim();
+    if(l.extra){ const x = t.extra.find(x => "x|" + x.id === key); if(x) x.room = v; } else t.rooms[key] = v;
+    save(); closeSheet(); renderSched(); toast("Saved"); };
+  $("hideL").onclick = () => { const t = tt();
+    if(l.extra){ t.extra = t.extra.filter(x => "x|" + x.id !== key); save(); closeSheet(); renderSched(); toast("Lesson deleted"); return; }
+    t.hidden.push(key); save(); closeSheet(); renderSched();
+    toast("Lesson hidden", {label:"Undo", fn:() => { t.hidden = t.hidden.filter(k => k !== key); save(); renderSched(); }}); };
+}
+function addLessonSheet(){
+  const d = {day:sDay, p1:1, len:1};
+  openSheet(`<h3>Add a lesson</h3>
+    <span class="lab2">Name</span><input class="inp" id="alName" placeholder="e.g. Musique (OC)">
+    <span class="lab2">Day</span><div class="chips" id="alDay">${DAYS.map((x, i) => `<button class="chip" data-v="${i}" aria-pressed="${i === d.day}">${x}</button>`).join("")}</div>
+    <span class="lab2">Starts</span><div class="chips" id="alP">${Object.keys(PERIODS).map(p => `<button class="chip" data-v="${p}" aria-pressed="${+p === d.p1}">${PERIODS[p][0]}</button>`).join("")}</div>
+    <span class="lab2">Length</span><div class="chips" id="alLen">${[1,2,3,4].map(n => `<button class="chip" data-v="${n}" aria-pressed="${n === d.len}">${n} ${n === 1 ? "period" : "periods"}</button>`).join("")}</div>
+    <span class="lab2">Room (optional)</span><input class="inp" id="alRoom" placeholder="e.g. S1.06">
+    <button class="primary" id="alSave">Add lesson</button>`);
+  const pick = (id, k) => $(id).onclick = e => { const c = e.target.closest(".chip"); if(!c) return; d[k] = +c.dataset.v; $(id).querySelectorAll(".chip").forEach(x => x.setAttribute("aria-pressed", x === c)); };
+  pick("alDay", "day"); pick("alP", "p1"); pick("alLen", "len");
+  $("alSave").onclick = () => { const n = $("alName").value.trim(); if(!n){ toast("Give the lesson a name"); return; }
+    tt().extra.push({id:uid(), day:d.day, p1:d.p1, p2:Math.min(10, d.p1 + d.len - 1), name:n, room:$("alRoom").value.trim()});
+    save(); closeSheet(); sDay = d.day; renderSched(); toast("Lesson added"); };
+}
+
+/* ============ onboarding ============ */
+let obStep = null, obHist = [];
+function obSteps(){
+  const t = tt(), s = ["welcome", "class"];
+  if(t.cls){
+    if(groupsOf(t.cls, "math").length > 1) s.push("math");
+    if(groupsOf(t.cls, "hist").length > 1) s.push("hist");
+    if(groupsOf(t.cls, "l2").length > 1) s.push("l2");
+    const C = CLASSES[t.cls];
+    const hasAB = k => C.L.some(x => x.includes("#" + k + "=")) || (k === "abl2" && groupsOf(t.cls, "l2").length > 0);
+    if(hasAB("abl2")) s.push("abl2");
+    if(hasAB("aben")) s.push("aben");
+    if(groupsOf(t.cls, "os").length > 1) s.push("os");
+    const os = effOS();
+    if((os ? [os] : groupsOf(t.cls, "os")).some(g => GROUPS[g].L.some(x => x.includes("#tp="))) && (!os || os.startsWith("3MSBC"))) s.push("tp");
+  }
+  s.push("art", "oc");
+  if(t.oc && OC_SLOTS[t.oc] && OC_SLOTS[t.oc].length > 1) s.push("ocslots");
+  s.push("done");
+  return s;
+}
+function openOnboarding(start){ obHist = []; obStep = start || "welcome"; $("ob").classList.add("on"); drawOb(0); }
+function closeOb(){ $("ob").classList.remove("on"); state.onboarded = true; save(); showTab(tab, false); }
+function obNext(){ const s = obSteps(), i = s.indexOf(obStep); obHist.push(obStep); obStep = s[Math.min(s.length - 1, i + 1)]; drawOb(1); }
+function obBack(){ if(!obHist.length){ closeOb(); return; } obStep = obHist.pop(); drawOb(-1); }
+const opt = (v, label, hint, on) => `<button class="opt" data-o="${esc(v)}" aria-pressed="${!!on}"><b>${esc(label)}</b>${hint ? `<span>${esc(hint)}</span>` : ""}</button>`;
+function slotText(s){ const l = parseL(s); return `${DAYNAMES[l.day]}, ${PERIODS[l.p1][0]} to ${PERIODS[l.p2][1]}${l.room ? ", " + l.room : ""}`; }
+function drawOb(dir){
+  const t = tt(), s = obSteps(), i = Math.max(0, s.indexOf(obStep));
+  $("obProg").style.width = (i / (s.length - 1) * 100) + "%";
+  $("obBack").style.visibility = obStep === "welcome" ? "hidden" : "visible";
+  let h = "", skip = true;
+  const l2name = t.ans.l2 ? GROUPS[t.ans.l2].label : "Allemand or Italien";
+  switch(obStep){
+    case "welcome": skip = false;
+      h = `<div class="obhero">📅</div><h2>Set up your year</h2><p>Pick your class and your options once. Your timetable and your 14 grades fill in by themselves.</p><p class="muted">You can skip any question. Skipped questions show every group, and you can change everything later in Settings.</p>
+        <button class="primary" data-o="start">Start</button><button class="textlink" data-o="skipall">Skip setup</button>`; break;
+    case "class":
+      h = `<h2>Which class are you in?</h2><p>Your class code from Hermes, like 3M09.</p><div class="grid3">${Object.keys(CLASSES).map(c => `<button class="opt sm" data-o="${c}" aria-pressed="${t.cls === c}"><b>${c}</b></button>`).join("")}</div>`; break;
+    case "math":
+      h = `<h2>Your maths group</h2><p>Check Hermes if you're not sure.</p>${groupsOf(t.cls, "math").map(g => opt(g, GROUPS[g].label, g, t.ans.math === g)).join("")}`; break;
+    case "hist":
+      h = `<h2>Your history group</h2><p>Some classes split history into two groups.</p>${groupsOf(t.cls, "hist").map(g => opt(g, GROUPS[g].label, g, t.ans.hist === g)).join("")}`; break;
+    case "l2":
+      h = `<h2>Your language 2</h2><p>Allemand or Italien, and your group.</p>${groupsOf(t.cls, "l2").map(g => opt(g, GROUPS[g].label, g, t.ans.l2 === g)).join("")}`; break;
+    case "abl2":
+      h = `<h2>${esc(l2name)}: group A or B?</h2><p>Half of the class has some ${esc(l2name)} lessons at a different time.</p>${opt("A", "Group A", "", t.ans.abl2 === "A")}${opt("B", "Group B", "", t.ans.abl2 === "B")}`; break;
+    case "aben":
+      h = `<h2>Anglais: group A or B?</h2><p>Your half-group for split English lessons.</p>${opt("A", "Group A", "", t.ans.aben === "A")}${opt("B", "Group B", "", t.ans.aben === "B")}`; break;
+    case "os":
+      h = `<h2>Your option spécifique</h2><p>The subject you chose in 1st year.</p>${groupsOf(t.cls, "os").map(g => opt(g, GROUPS[g].label, g, t.ans.os === g)).join("")}`; break;
+    case "tp": { const os = effOS(), g = os || groupsOf(t.cls, "os").find(x => x.startsWith("3MSBC"));
+      const rooms = GROUPS[g].L.map(x => parseL(x)).filter(x => x.tags.tp);
+      h = `<h2>Biologie-Chimie TP group</h2><p>The class splits in two for lab work.</p>${rooms.map(r => opt(r.tags.tp, "TP group " + r.tags.tp, "Room " + r.room, t.ans.tp === r.tags.tp)).join("")}`; break; }
+    case "art":
+      h = `<h2>Arts visuels or Musique?</h2><p>Your 2nd-year art subject. It's a locked grade in your total.</p>${opt("Arts visuels", "Arts visuels", "", t.art === "Arts visuels")}${opt("Musique", "Musique", "", t.art === "Musique")}`; break;
+    case "oc": { const os = osOf(effOS()), hide = os ? os.noOC : [];
+      h = `<h2>Your option complémentaire</h2><p>Your 3rd-year option, on Thursday afternoon.</p>${OC_LIST.filter(o => !hide.includes(o)).map(o => opt(o, o, OC_SLOTS[o] ? "" : "Add its lessons yourself later", t.oc === o)).join("")}`; break; }
+    case "ocslots": { const sl = OC_SLOTS[t.oc], sel = t.ocSlots || [];
+      h = `<h2>Which ${esc(t.oc)} lessons are yours?</h2><p>This option runs in more than one block. Tick yours.</p>${sl.map((x, k) => `<button class="opt multi" data-m="${k}" aria-pressed="${sel.includes(k)}"><b>${esc(slotText(x))}</b></button>`).join("")}<button class="primary" data-o="slotsok">Continue</button>`; break; }
+    case "done": { skip = false;
+      const hasGrades = state.subjects.some(x => x.grades.length) || state.tm.g != null || state.locked.some(l => l.g != null);
+      const rows = [["Class", t.cls], ["Maths", t.ans.math], ["History", t.ans.hist], ["Language 2", t.ans.l2 ? GROUPS[t.ans.l2].label + " " + t.ans.l2 : null], ["Language 2 half-group", t.ans.abl2], ["Anglais half-group", t.ans.aben], ["Option spécifique", effOS() ? GROUPS[effOS()].label : null], ["TP group", t.ans.tp], ["Art", t.art], ["Option complémentaire", t.oc]];
+      h = `<h2>All set</h2><div class="list" style="margin:6px 0 16px">${rows.map(([k, v]) => `<div class="row" style="cursor:default"><div class="rname"><b>${k}</b></div><span class="${v ? "" : "muted"}">${v ? esc(v) : "All / later"}</span></div>`).join("")}</div>
+        ${hasGrades ? `<p>You already have grades. Update your 14 grade subjects to match these answers? Your grades stay.</p><button class="primary" data-o="apply">Update subjects and finish</button><button class="secondary" data-o="finish">Keep my subjects as they are</button>`
+                    : `<button class="primary" data-o="apply">Finish</button>`}`; break; }
+  }
+  if(skip) h += `<button class="textlink" data-o="skip">Skip, I'll set it later</button>`;
+  const el = $("obSlide"); el.innerHTML = h; el.scrollTop = 0;
+  if(dir && el.animate && !matchMedia("(prefers-reduced-motion: reduce)").matches)
+    el.animate([{transform:`translateX(${dir * 50}px)`, opacity:0}, {transform:"none", opacity:1}], {duration:260, easing:"cubic-bezier(.2,.8,.2,1)"});
+}
+$("obBack").onclick = obBack;
+$("obSlide").addEventListener("click", e => {
+  const t = tt(), m = e.target.closest("[data-m]");
+  if(m){ const k = +m.dataset.m, sel = new Set(t.ocSlots || []); sel.has(k) ? sel.delete(k) : sel.add(k); t.ocSlots = [...sel].sort(); m.setAttribute("aria-pressed", sel.has(k)); return; }
+  const b = e.target.closest("[data-o]"); if(!b) return;
+  const v = b.dataset.o;
+  if(v === "start") return obNext();
+  if(v === "skipall") return closeOb();
+  if(v === "apply"){ applyGrades(); closeOb(); showTab(t.cls ? "sched" : "grades", true); toast("Your year is set up"); return; }
+  if(v === "finish"){ closeOb(); showTab(t.cls ? "sched" : "grades", true); return; }
+  if(v === "slotsok"){ if(t.ocSlots && !t.ocSlots.length) t.ocSlots = null; save(); return obNext(); }
+  if(v === "skip"){
+    if(obStep === "class"){ t.cls = null; t.ans = {}; }
+    else if(obStep === "art") t.art = null;
+    else if(obStep === "oc"){ t.oc = null; t.ocSlots = null; }
+    else if(obStep === "ocslots") t.ocSlots = null;
+    else delete t.ans[obStep];
+    save(); return obNext();
+  }
+  b.parentElement.querySelectorAll(".opt").forEach(x => x.setAttribute("aria-pressed", x === b));
+  if(obStep === "class"){ if(t.cls !== v){ t.ans = {}; t.hidden = []; t.rooms = {}; } t.cls = v; }
+  else if(obStep === "art") t.art = v;
+  else if(obStep === "oc"){ if(t.oc !== v) t.ocSlots = null; t.oc = v; }
+  else { t.ans[obStep] = v; if(obStep === "os" && !v.startsWith("3MSBC")) delete t.ans.tp; }
+  save(); setTimeout(obNext, 160);
+});
+
+/* ============ answers -> grade subjects ============ */
+const norm = s => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z]/g, "");
+function applyGrades(){
+  const t = tt(), C = CLASSES[t.cls];
+  let l2 = t.ans.l2 ? GROUPS[t.ans.l2].label : null;
+  if(!l2 && C && !groupsOf(t.cls, "l2").length) l2 = "Allemand";
+  const osG = effOS(), os = osOf(osG);
+  const want = [
+    {name:"Français"}, {name:l2 || "Langue 2"}, {name:"Anglais"}, {name:"Mathématiques"}, {name:"Biologie"}, {name:"Histoire"}, {name:"Géographie"}, {name:"Philosophie"},
+    os ? {name:os.name, parts:os.parts} : {name:"Option spécifique"},
+    {name:t.oc ? "OC " + t.oc : "Option complémentaire"}
+  ];
+  const old = [...state.subjects], used = new Set();
+  const subjects = want.map(w => {
+    const m = old.find(o => !used.has(o) && norm(o.name) === norm(w.name)); 
+    if(m){ used.add(m); m.counts = true; if(w.parts && !m.parts) m.parts = w.parts.map(p => ({...p})); return m; }
+    return Object.assign({id:uid(), name:w.name, counts:true, grades:[]}, w.parts ? {parts:w.parts.map(p => ({...p}))} : {});
+  });
+  old.forEach(o => { if(!used.has(o) && o.grades.length){ o.counts = false; subjects.push(o); } });
+  const usedL = new Set();
+  const take = f => { const m = state.locked.find(l => !usedL.has(l) && f(l)); if(m) usedL.add(m); return m; };
+  const ch = take(l => norm(l.name) === "chimie"), ph = take(l => norm(l.name) === "physique");
+  const art = take(l => t.art ? norm(l.name) === norm(t.art) : false) || take(l => /musique|arts/i.test(l.name));
+  const locked = [
+    {id:ch ? ch.id : uid(), name:"Chimie", g:ch ? ch.g : null},
+    {id:ph ? ph.id : uid(), name:"Physique", g:ph ? ph.g : null},
+    {id:art ? art.id : uid(), name:t.art || (art ? art.name : "Arts visuels ou Musique"), g:art ? art.g : null}];
+  state.locked.forEach(l => { if(!usedL.has(l) && l.g != null) locked.push(l); });
+  state.subjects = subjects; state.locked = locked; save();
+}
+
+showTab(tab, false);
+if(!state.onboarded) openOnboarding();
 if("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
 </script>
 </body>
