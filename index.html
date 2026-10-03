@@ -44,9 +44,10 @@ h1{font-family:var(--display);font-weight:700;font-size:44px;line-height:1;margi
 .break{font-size:14px;color:var(--muted)}
 .scale{position:relative;height:6px;border-radius:3px;background:var(--sunk);margin:18px 0 6px}
 .scale .fill{position:absolute;left:0;top:0;bottom:0;border-radius:3px}
-.scale .pass{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--muted);left:60%}
-.scaleL{display:flex;justify-content:space-between;font-size:12px;color:var(--faint)}
-.scaleL span:nth-child(2){position:relative;left:10%}
+.scale .pass{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink)}
+.hero{position:relative}
+.scaleL{display:flex;justify-content:space-between;font-size:12px;color:var(--faint);height:16px}
+.checks{display:flex;flex-direction:column;gap:4px;font-size:14px;margin-top:14px}
 
 h2{font-size:15px;font-weight:600;color:var(--muted);margin:24px 2px 8px;display:flex;justify-content:space-between}
 h2 small{font-weight:500;color:var(--faint)}
@@ -192,13 +193,18 @@ function avg(s){
 const shareTxt = (s, p) => p.share + "/" + s.parts.reduce((a,x) => a + x.share, 0);
 function final(s){ const a = avg(s); return a == null ? null : state.settings.round ? half(a) : a; }
 function overall(){
-  const parts = [];
-  state.subjects.forEach(s => { if(s.counts){ const f = final(s); if(f != null) parts.push(f); } });
-  if(state.tm.g != null) parts.push(state.tm.g);
-  if(!parts.length) return null;
-  const base = parts.reduce((a,b) => a + b, 0) / parts.length;
-  const bonus = state.settings.bonus || 0;
-  return {base, n:parts.length, bonus, total:Math.min(6, base + bonus)};
+  // Vaud maturité: total of all maturity grades, minus how far each grade under 4 falls below 4
+  // (double compensation), must reach 4 points per grade. At most 4 grades under 4.
+  const items = [], missing = [];
+  state.subjects.forEach(s => { if(!s.counts) return; const f = final(s); if(f != null) items.push({name:s.name, g:f}); else missing.push(s.name); });
+  if(state.tm.g != null) items.push({name:"TM", g:state.tm.g}); else missing.push("TM");
+  state.locked.forEach(l => { if(l.g != null) items.push({name:l.name, g:l.g}); else missing.push(l.name); });
+  if(!items.length) return null;
+  const raw = items.reduce((a,x) => a + x.g, 0);
+  const comp = items.reduce((a,x) => a + Math.max(0, 4 - x.g), 0);
+  const total = raw - comp, need = 4 * items.length;
+  const under = items.filter(x => x.g < 4);
+  return {raw, comp, total, need, n:items.length, expected:items.length + missing.length, missing, under, avg:raw / items.length};
 }
 function needed(s, target, w, part){
   // with rounding on, a raw average of target - 0.25 rounds up to target
@@ -220,13 +226,21 @@ function needed(s, target, w, part){
 const lockSvg = '<svg class="lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
 function renderHome(){
   const o = overall();
-  let h = `<section class="card hero"><div class="lab">Overall</div>`;
+  let h = `<section class="card hero"><div class="lab">Total points</div>`;
   if(o){
-    const pct = (o.total - 1) / 5 * 100;
-    h += `<div class="big ${col(o.total)}">${f2(Math.round(o.total*100)/100)}</div>
-      <div class="break">${o.n - (state.tm.g != null ? 1 : 0)} subjects${state.tm.g != null ? " and TM" : ""} average ${f2(Math.round(o.base*100)/100)}${o.bonus ? `, plus ${o.bonus} locked bonus` : ""}</div>
-      <div class="scale"><div class="fill" style="width:${pct}%;background:${colVar(o.total)}"></div><div class="pass"></div></div>
-      <div class="scaleL"><span>1</span><span>4 pass</span><span>6</span></div>`;
+    const r = x => Math.round(x * 100) / 100;
+    const diff = r(o.total - o.need), ok = diff >= 0 && o.under.length <= 4;
+    const max = 6 * o.n, pct = Math.max(0, o.total) / max * 100, minPct = o.need / max * 100;
+    h += `<div class="big ${ok ? (diff >= o.n * 0.5 ? "c-green" : "") : "c-red"}">${f2(r(o.total))}</div>
+      <div class="break">${diff >= 0 ? `<b class="c-green">+${f2(diff)}</b> above the minimum of ${o.need}` : `<b class="c-red">${f2(-diff)} short</b> of the minimum of ${o.need}`} (${o.n} grades × 4)</div>
+      <div class="scale"><div class="fill" style="width:${pct}%;background:${ok ? "var(--green)" : "var(--red)"}"></div><div class="pass" style="left:${minPct}%"></div></div>
+      <div class="scaleL"><span>0</span><span>White line = minimum</span><span>${max}</span></div>
+      <div class="checks">
+        <div class="${diff >= 0 ? "c-green" : "c-red"}">${diff >= 0 ? "✓" : "✗"} At least ${o.need} points after double compensation</div>
+        <div class="${o.under.length <= 4 ? "c-green" : "c-red"}">${o.under.length <= 4 ? "✓" : "✗"} ${o.under.length} ${o.under.length === 1 ? "grade" : "grades"} under 4 (max 4)${o.under.length ? ": " + o.under.map(x => esc(x.name)).join(", ") : ""}</div>
+      </div>
+      <div class="break" style="margin-top:10px">Average ${f2(r(o.avg))}.${o.comp ? ` Raw total ${f2(r(o.raw))}, minus ${f2(r(o.comp))} for grades under 4.` : ""}</div>
+      ${o.n < o.expected ? `<div class="break" style="margin-top:6px">Based on ${o.n} of ${o.expected} grades. Still missing: ${o.missing.map(esc).join(", ")}.</div>` : ""}`;
   } else h += `<div class="big muted">–</div><div class="break">Add your first grade to see your total.</div>`;
   h += `</section>`;
 
@@ -237,9 +251,8 @@ function renderHome(){
     <button class="row" data-act="tm"><div class="rname"><b>TM</b><span>${state.tm.g != null ? "Final grade" : "Not graded yet"}</span></div>
     <div class="rval ${state.tm.g != null ? col(state.tm.g) : "none"}">${state.tm.g != null ? f2(state.tm.g) : "Add"}</div></button></div>`;
 
-  h += `<h2>Locked<small>Finished subjects</small></h2><div class="list">${state.locked.map(l => `
-    <button class="row" data-act="locked" data-id="${l.id}">${lockSvg}<div class="rname"><b>${esc(l.name)}</b></div><div class="rval ${l.g != null ? col(l.g) : "none"}">${l.g != null ? f2(l.g) : "–"}</div></button>`).join("")}
-    <div class="bonusline"><span>Added to your total</span><b>+${state.settings.bonus || 0}</b></div></div>`;
+  h += `<h2>Locked<small>Finished, count in your total</small></h2><div class="list">${state.locked.map(l => `
+    <button class="row" data-act="locked" data-id="${l.id}">${lockSvg}<div class="rname"><b>${esc(l.name)}</b></div><div class="rval ${l.g != null ? col(l.g) : "none"}">${l.g != null ? f2(l.g) : "–"}</div></button>`).join("")}</div>`;
 
   if(extra.length) h += `<h2>Not counted<small>Doesn't affect your total</small></h2><div class="list">${extra.map(rowHTML).join("")}</div>`;
   $("main").innerHTML = h;
@@ -363,7 +376,6 @@ function valueSheet(title, sub, val, onSave, onClear){
 function settingsSheet(){
   const st = state.settings;
   openSheet(`<h3>Settings</h3>
-    <div class="setting"><p>Locked bonus<small>Added at the very end of your total</small></p><input class="num" id="bonusIn" inputmode="decimal" value="${st.bonus}"></div>
     <div class="setting"><p>Round subject averages to 0.5<small>How subject grades are usually set on the report</small></p><button class="switch" role="switch" id="roundSw" aria-checked="${st.round}"></button></div>
     <span class="lab2">Subjects</span><div id="subList"></div>
     <div class="mrow"><input class="inp" id="newSub" placeholder="New subject"><span></span><button class="mini" id="addSub">Add</button></div>
@@ -374,7 +386,6 @@ function settingsSheet(){
     <button class="secondary danger" id="wipe">Delete everything</button>
     <p class="note">Everything stays on this phone.</p>`);
   drawManage();
-  $("bonusIn").oninput = e => { const v = num(e.target.value); if(v != null){ st.bonus = v; save(); renderHome(); } };
   $("roundSw").onclick = e => { st.round = !st.round; e.target.setAttribute("aria-checked", st.round); save(); refresh(); };
   $("addSub").onclick = () => { const n = $("newSub").value.trim(); if(!n) return; state.subjects.push({id:uid(), name:n, counts:true, grades:[]}); $("newSub").value = ""; save(); drawManage(); renderHome(); };
   $("addLock").onclick = () => { const n = $("newLock").value.trim(); if(!n) return; state.locked.push({id:uid(), name:n, g:null}); $("newLock").value = ""; save(); drawManage(); renderHome(); };
@@ -407,8 +418,8 @@ $("main").addEventListener("click", e => {
   const b = e.target.closest("[data-act]"); if(!b) return;
   const a = b.dataset.act;
   if(a === "open") openSubject(b.dataset.id);
-  if(a === "tm") valueSheet("Travail de maturité", "Your TM grade counts as one full subject in your average.", state.tm.g, v => state.tm.g = v, () => state.tm.g = null);
-  if(a === "locked"){ const l = state.locked.find(x => x.id === b.dataset.id); valueSheet(l.name, "Locked grade, kept for your records. It doesn't change your average; the locked bonus does.", l.g, v => l.g = v, () => l.g = null); }
+  if(a === "tm") valueSheet("Travail de maturité", "Your TM grade counts as one full grade in your total.", state.tm.g, v => state.tm.g = v, () => state.tm.g = null);
+  if(a === "locked"){ const l = state.locked.find(x => x.id === b.dataset.id); valueSheet(l.name, "Your final grade. It counts in your total like any other subject.", l.g, v => l.g = v, () => l.g = null); }
 });
 $("screenBody").addEventListener("click", e => {
   const b = e.target.closest("[data-act]"); if(!b) return;
