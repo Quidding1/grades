@@ -115,7 +115,17 @@ nav.tabs{position:fixed;left:0;right:0;bottom:0;background:#000;box-shadow:0 -1p
 .testc{display:flex;align-items:center;gap:12px;width:100%;border:0;background:var(--surface);border-radius:14px;padding:12px 14px;margin-bottom:6px;text-align:left;box-shadow:inset 4px 0 0 #F2A3C2}
 .testc .tl{font-size:12px;font-weight:700;color:#F2A3C2;text-transform:none}
 .testc .rname b{font-size:16px}
-.tpill{display:inline-block;font-size:11px;font-weight:700;background:#F2A3C2;color:#1C1E21;border-radius:999px;padding:1px 7px;margin-left:6px;vertical-align:2px}
+.tpill{display:inline-block;font-size:11px;font-weight:800;background:var(--red);color:#fff;border-radius:6px;padding:1px 6px;margin-left:8px;vertical-align:2px;letter-spacing:.03em}
+.lesbox{position:relative}
+.lesbox .les{padding-right:54px}
+.lchev{position:absolute;right:4px;top:0;width:48px;height:64px;border:0;background:none;display:flex;align-items:center;justify-content:center}
+.lchev svg{width:20px;height:20px;stroke:var(--muted);fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;transition:transform .25s}
+.lesbox.open .lchev svg{transform:rotate(180deg)}
+.ldrop{display:grid;grid-template-rows:0fr;transition:grid-template-rows .26s cubic-bezier(.2,.8,.2,1)}
+.lesbox.open .ldrop{grid-template-rows:1fr}
+.ldrop>div{overflow:hidden;min-height:0}
+.ldrop .testc{margin:6px 0 0 22px;width:calc(100% - 22px);box-shadow:inset 4px 0 0 var(--red)}
+.ldrop .testc .tl{color:var(--red)}
 input[type=date].inp{color-scheme:dark}
 .empty2 b{font-size:18px} .empty2 p{color:var(--muted);margin:6px 0 4px}
 /* onboarding */
@@ -279,14 +289,14 @@ function overall(){
   const items = [], missing = [];
   state.subjects.forEach(s => { if(!s.counts) return; const f = final(s); if(f != null) items.push({name:s.name, g:f}); else missing.push(s.name); });
   if(state.tm.g != null) items.push({name:"TM", g:state.tm.g}); else missing.push("TM");
-  const lp = state.lockedPoints;
+  const lp = state.lockedPoints, lu = lp != null ? (state.lockedUnder || []) : [];
   if(!items.length && lp == null) return null;
   if(lp == null) missing.push("notes de 2e année");
   const n = items.length + (lp != null ? 3 : 0);
   const raw = items.reduce((a,x) => a + x.g, 0) + (lp || 0);
-  const comp = items.reduce((a,x) => a + Math.max(0, 4 - x.g), 0);
+  const comp = items.reduce((a,x) => a + Math.max(0, 4 - x.g), 0) + lu.reduce((a,v) => a + (4 - v), 0);
   const total = raw - comp, need = 4 * n;
-  const under = items.filter(x => x.g < 4);
+  const under = items.filter(x => x.g < 4).concat(lu.map(v => ({name:"note de 2e année (" + f2(v) + ")", g:v})));
   return {raw, comp, total, need, n, expected:n + missing.length + (lp == null ? 2 : 0), missing, under, avg:raw / n};
 }
 function needed(s, target, w, part){
@@ -511,7 +521,7 @@ $("main").addEventListener("click", e => {
   if(a === "test") testSheet(b.dataset.id);
   if(a === "addtest") testSheet(null, {date:todayIso()});
   if(a === "tm") valueSheet("Travail de maturité", "La note du TM compte comme une note entière dans ton total.", state.tm.g, v => state.tm.g = v, () => state.tm.g = null);
-  if(a === "lockedpts") valueSheet("Notes bloquées de 2e année", "Additionne tes notes finales de chimie, de physique et d'arts visuels ou de musique. Exemple : 4,5 + 4 + 5 = 13,5.", state.lockedPoints, v => state.lockedPoints = v, () => state.lockedPoints = null, 3, 18);
+  if(a === "lockedpts") lockedSheet();
 });
 $("screenBody").addEventListener("click", e => {
   const b = e.target.closest("[data-act]"); if(!b) return;
@@ -808,7 +818,8 @@ const fmtD = d => d.getDate() + " " + MONTHS[d.getMonth()];
 function mondayOf(d){ d = new Date(d.getFullYear(), d.getMonth(), d.getDate()); d.setDate(d.getDate() - (d.getDay() + 6) % 7); return d; }
 const isWeekend = () => { const d = new Date().getDay(); return d === 0 || d === 6; };
 const todayIso = () => iso(new Date());
-let sWeek = mondayOf(new Date()); if(isWeekend()) sWeek.setDate(sWeek.getDate() + 7);
+function homeWeek(){ const w = mondayOf(new Date()); if(isWeekend()) w.setDate(w.getDate() + 7); return w; }
+let sWeek = homeWeek();
 let sDay = (() => { const d = new Date().getDay(); return d >= 1 && d <= 5 ? d - 1 : 0; })();
 const dayDate = i => { const d = new Date(sWeek); d.setDate(d.getDate() + i); return d; };
 const sDate = () => dayDate(sDay);
@@ -855,6 +866,32 @@ function testSheet(id, preset){
   if($("tsDel")) $("tsDel").onclick = () => { const i = tests().indexOf(ex); tests().splice(i, 1); save(); closeSheet(); refreshAll();
     toast("Test supprimé", {label:"Annuler", fn:() => { tests().splice(i, 0, ex); save(); refreshAll(); }}); };
 }
+const UNDER = [3.5, 3, 2.5, 2, 1.5, 1];
+function lockedFields(){
+  const lu = state.lockedUnder || [];
+  return `<input class="gradein" id="lpIn" inputmode="decimal" placeholder="13.5" value="${state.lockedPoints ?? ""}">
+    <p class="note" style="margin-top:8px">Exemple : 4,5 + 4 + 5 = 13,5 points.</p>
+    <span class="lab2">Une de ces notes est sous 4 ?</span>
+    <div class="chips" id="luChips"><button class="chip" data-u="none" aria-pressed="${!lu.length}">Non</button>${UNDER.map(v => `<button class="chip" data-u="${v}" aria-pressed="${lu.includes(v)}">${f2(v)}</button>`).join("")}</div>
+    <p class="note">Touche chaque note sous 4. Elle compte double dans le calcul, comme sur le bulletin.</p>`;
+}
+function bindLocked(){
+  let lu = [...(state.lockedUnder || [])];
+  $("luChips").onclick = e => { const c = e.target.closest(".chip"); if(!c) return;
+    if(c.dataset.u === "none") lu = []; else { const v = +c.dataset.u; lu = lu.includes(v) ? lu.filter(x => x !== v) : (lu.length < 3 ? [...lu, v] : lu); }
+    $("luChips").querySelectorAll(".chip").forEach(x => x.setAttribute("aria-pressed", x.dataset.u === "none" ? !lu.length : lu.includes(+x.dataset.u))); };
+  return () => { const raw = $("lpIn").value.trim(), x = num(raw);
+    if(raw && (x == null || x < 3 || x > 18)){ toast("Entre un total entre 3 et 18"); return false; }
+    if(raw && lu.length && lu.reduce((a,v) => a + v, 0) > x){ toast("Le total est plus petit que tes notes sous 4"); return false; }
+    state.lockedPoints = raw ? x : null; state.lockedUnder = raw ? lu : []; save(); return true; };
+}
+function lockedSheet(){
+  openSheet(`<h3>Notes bloquées de 2e année</h3><p class="note" style="margin:0 0 10px">Additionne tes notes finales de chimie, de physique et d'arts visuels ou de musique.</p>${lockedFields()}
+    <button class="primary" id="lpSave">Enregistrer</button>${state.lockedPoints != null ? `<button class="secondary danger" id="lpClear">Effacer</button>` : ""}`);
+  const commit = bindLocked();
+  $("lpSave").onclick = () => { if(commit()){ closeSheet(); refreshAll(); toast("Enregistré"); } };
+  if($("lpClear")) $("lpClear").onclick = () => { state.lockedPoints = null; state.lockedUnder = []; save(); closeSheet(); refreshAll(); };
+}
 function refreshAll(){ renderHome(); if(openId) renderSubject(); if(tab === "sched") renderSched(); }
 
 /* ============ schedule view ============ */
@@ -865,9 +902,9 @@ function renderSched(animDir){
     return;
   }
   const all = weekLessons(), day = all.filter(l => l.day === sDay), dIso = iso(sDate()), isToday = dIso === todayIso();
-  const thisWeek = iso(sWeek) === iso(mondayOf(new Date())), nowM = new Date().getHours() * 60 + new Date().getMinutes();
+  const thisWeek = iso(sWeek) === iso(homeWeek()), nowM = new Date().getHours() * 60 + new Date().getMinutes();
   const dayTests = sortTests(tests().filter(x => x.date === dIso));
-  const testSids = new Set(dayTests.map(x => x.sid));
+  const lessonSids = new Set(day.map(l => (lessonSubject(l) || {}).id).filter(Boolean));
   let h = `<div class="dseg" role="tablist"><span class="dind" style="transform:translateX(${sDay * 100}%)"></span>${DAYS_FR.map((d, i) => { const di = iso(dayDate(i));
     return `<button role="tab" data-s="day" data-d="${i}" aria-selected="${i === sDay}">${d}<small>${dayDate(i).getDate()}</small>${di === todayIso() ? "<i></i>" : ""}</button>`; }).join("")}</div>`;
   h += `<div class="wk"><button class="icon" data-s="pw" aria-label="Semaine précédente"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button><span>Semaine du ${fmtD(sWeek)}</span>${thisWeek ? "" : `<button class="today" data-s="tw">Aujourd'hui</button>`}<button class="icon" data-s="nw" aria-label="Semaine suivante"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button></div>`;
@@ -882,7 +919,8 @@ function renderSched(animDir){
     else h += `<div class="nowc done"><b>Fini pour aujourd'hui</b><span>Bonne soirée.</span></div>`;
   }
   h += `<div id="dayBody">`;
-  if(dayTests.length) h += dayTests.map(x => testCard(x, "s", "Test")).join("");
+  const loose = dayTests.filter(x => !lessonSids.has(x.sid));
+  if(loose.length) h += loose.map(x => testCard(x, "s", "Test")).join("");
   if(!day.length) h += `<div class="card empty2"><b>Pas de cours</b><p>Rien ce ${DAYNAMES[sDay].toLowerCase()}.</p></div>`;
   else {
     h += `<div class="lessons">`; let lastEnd = null;
@@ -897,10 +935,11 @@ function renderSched(animDir){
       if(l.tags.tp) tags.push("Groupe TP " + l.tags.tp);
       if(l.extra) tags.push("Ajouté par toi");
       if(l.estimated) tags.push("à vérifier");
-      const ls = lessonSubject(l), hasTest = ls && testSids.has(ls.id);
-      h += `<button class="les${past ? " past" : ""}${live ? " live" : ""}" data-s="les" data-k="${esc(l.key)}">
+      const ls = lessonSubject(l), lt = ls ? dayTests.filter(x => x.sid === ls.id) : [];
+      const card = `<button class="les${past ? " past" : ""}${live ? " live" : ""}" data-s="les" data-k="${esc(l.key)}">
         <span class="lt"><b>${st}</b><span>${en}</span></span><span class="lbar" style="background:${colorFor(l.name)}"></span>
-        <span class="lc"><b>${esc(l.name)}${hasTest ? '<span class="tpill">Test</span>' : ""}</b><span>${l.room ? esc(l.room) : "Salle ?"}${tags.length ? " · " + tags.map(esc).join(", ") : ""}</span></span></button>`;
+        <span class="lc"><b>${esc(l.name)}${lt.length ? '<span class="tpill">TE</span>' : ""}</b><span>${l.room ? esc(l.room) : "Salle ?"}${tags.length ? " · " + tags.map(esc).join(", ") : ""}</span></span></button>`;
+      h += lt.length ? `<div class="lesbox${openLes.has(dIso + l.key) ? " open" : ""}" data-ok="${esc(dIso + l.key)}">${card}<button class="lchev" data-s="exp" aria-label="Voir les tests"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button><div class="ldrop"><div>${lt.map(x => testCard(x, "s", "Test")).join("")}</div></div></div>` : card;
     });
     h += `</div>`;
   }
@@ -919,6 +958,7 @@ function goDay(d){
   else if(d < 0){ sWeek.setDate(sWeek.getDate() - 7); d = 4; }
   sDay = d; renderSched(dir);
 }
+const openLes = new Set();
 function goWeek(n){ sWeek.setDate(sWeek.getDate() + 7 * n); renderSched(n); }
 $("sched").addEventListener("click", e => {
   const b = e.target.closest("[data-s]"); if(!b) return;
@@ -927,8 +967,9 @@ $("sched").addEventListener("click", e => {
   if(a === "day") goDay(+b.dataset.d);
   if(a === "pw") goWeek(-1);
   if(a === "nw") goWeek(1);
-  if(a === "tw"){ sWeek = mondayOf(new Date()); const d = new Date().getDay(); sDay = d >= 1 && d <= 5 ? d - 1 : 0; renderSched(-1); }
+  if(a === "tw"){ const was = sWeek.getTime(); sWeek = homeWeek(); const d = new Date().getDay(); sDay = d >= 1 && d <= 5 ? d - 1 : 0; renderSched(sWeek.getTime() > was ? 1 : -1); }
   if(a === "les") lessonSheet(b.dataset.k);
+  if(a === "exp"){ const box = b.closest(".lesbox"), k = box.dataset.ok, on = !box.classList.contains("open"); box.classList.toggle("open", on); on ? openLes.add(k) : openLes.delete(k); }
   if(a === "add") addLessonSheet();
   if(a === "addtest") testSheet(null, {date:iso(sDate())});
   if(a === "test") testSheet(b.dataset.id);
@@ -976,7 +1017,7 @@ function addLessonSheet(){
 }
 
 /* ============ onboarding ============ */
-let obStep = null, obHist = [];
+let obStep = null, obHist = [], lockCommit = null;
 function obSteps(){
   const t = tt(), s = ["welcome", "class"];
   if(t.cls){
@@ -1027,8 +1068,7 @@ function drawOb(dir){
       h = `<h2>Groupe de TP biologie-chimie</h2><p>La classe se divise en deux pour les travaux pratiques.</p>${rooms.map(r => opt(r.tags.tp, "Groupe TP " + r.tags.tp, "Salle " + r.room, t.ans.tp === r.tags.tp)).join("")}`; break; }
     case "locked":
       h = `<h2>Tes notes bloquées de 2e année</h2><p>Additionne tes notes finales de chimie, de physique et d'arts visuels ou de musique. Elles comptent pour 3 notes dans ton total.</p>
-        <input class="gradein" id="lpIn" inputmode="decimal" placeholder="13.5" value="${state.lockedPoints ?? ""}"><p class="note" style="margin-top:8px">Exemple : 4,5 + 4 + 5 = 13,5 points.</p>
-        <button class="primary" data-o="lpok">Continuer</button>`; break;
+        ${lockedFields()}<button class="primary" data-o="lpok">Continuer</button>`; break;
     case "oc": { const os = osOf(effOS()), hide = os ? os.noOC : [];
       h = `<h2>Ton option complémentaire</h2><p>Ton option de 3e année, le jeudi après-midi.</p>${OC_LIST.filter(o => !hide.includes(o)).map(o => opt(o, o, ocWhen(o), t.oc === o)).join("")}`; break; }
     case "ocslots": { const sl = OC_SLOTS[t.oc], sel = t.ocSlots || [];
@@ -1042,6 +1082,7 @@ function drawOb(dir){
   }
   if(skip) h += `<button class="textlink" data-o="skip">Passer, je le ferai plus tard</button>`;
   const el = $("obSlide"); el.innerHTML = h; el.scrollTop = 0;
+  lockCommit = obStep === "locked" ? bindLocked() : null;
   if(dir && el.animate && !matchMedia("(prefers-reduced-motion: reduce)").matches)
     el.animate([{transform:`translateX(${dir * 50}px)`, opacity:0}, {transform:"none", opacity:1}], {duration:260, easing:"cubic-bezier(.2,.8,.2,1)"});
 }
@@ -1055,11 +1096,11 @@ $("obSlide").addEventListener("click", e => {
   if(v === "skipall") return closeOb();
   if(v === "apply"){ applyGrades(); closeOb(); showTab(t.cls ? "sched" : "grades", true); toast("Ton année est configurée"); return; }
   if(v === "finish"){ closeOb(); showTab(t.cls ? "sched" : "grades", true); return; }
-  if(v === "lpok"){ const x = num($("lpIn").value); if($("lpIn").value.trim() && (x == null || x < 3 || x > 18)){ toast("Entre un total entre 3 et 18"); return; } state.lockedPoints = x; save(); return obNext(); }
+  if(v === "lpok"){ if(lockCommit && lockCommit()) obNext(); return; }
   if(v === "slotsok"){ if(t.ocSlots && !t.ocSlots.length) t.ocSlots = null; save(); return obNext(); }
   if(v === "skip"){
     if(obStep === "class"){ t.cls = null; t.ans = {}; }
-    else if(obStep === "locked") state.lockedPoints = null;
+    else if(obStep === "locked"){ state.lockedPoints = null; state.lockedUnder = []; }
     else if(obStep === "oc"){ t.oc = null; t.ocSlots = null; }
     else if(obStep === "ocslots") t.ocSlots = null;
     else delete t.ans[obStep];
