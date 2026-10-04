@@ -299,6 +299,12 @@ label.check input{width:20px;height:20px;accent-color:#32D74B}
 .toast.on{display:block}
 .tact{background:none;border:0;font-weight:700;text-decoration:underline;color:inherit;margin-left:10px;padding:0}
 .c-red{color:var(--red)} .c-amber{color:var(--amber)} .c-green{color:var(--green)}
+.scat{box-shadow:inset 0 0 0 1.5px var(--raise);border-radius:16px;margin-bottom:8px}
+.scat summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:15px 18px;font-weight:600;font-size:16px}
+.scat summary::-webkit-details-marker{display:none}
+.scat summary::after{content:"";width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);transition:transform .2s;margin-top:-3px}
+.scat[open] summary::after{transform:rotate(-135deg);margin-top:3px}
+.scbody{padding:0 18px 16px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -591,19 +597,27 @@ function valueSheet(title, sub, val, onSave, onClear, min = 1, max = 6){
 function settingsSheet(){
   const st = state.settings;
   openSheet(`<h3>Réglages</h3>
-    <div class="setting"><p>Arrondir les moyennes au demi-point<small>Comme sur le bulletin</small></p><button class="switch" role="switch" id="roundSw" aria-checked="${st.round}"></button></div>
-    <span class="lab2">Apparence</span><div class="chips" id="themeChips">${[["system","Comme le téléphone"],["light","Clair"],["dark","Sombre"]].map(([v, l]) => `<button class="chip" data-v="${v}" aria-pressed="${(st.theme || "system") === v}">${l}</button>`).join("")}</div>
-    <button class="secondary" id="fbOpen" style="margin:14px 0 4px">Envoyer un feedback</button>
-    <button class="secondary" id="icsOut" style="margin:4px 0">Exporter tests et devoirs vers un agenda</button>
-    <button class="secondary" id="tutAgain" style="margin:4px 0">Revoir le tutoriel</button>
-    <span class="lab2">Horaire et options</span>
-    <div class="row2"><button class="secondary" id="redo" style="margin:0">Refaire la configuration</button><button class="secondary" id="unhide" style="margin:0">Cours masqués${tt().hidden.length ? " (" + tt().hidden.length + ")" : ""}</button></div>
-    <span class="lab2">Branches</span><div id="subList"></div>
-    <div class="mrow"><input class="inp" id="newSub" placeholder="Nouvelle branche"><span></span><button class="mini" id="addSub">Ajouter</button></div>
-    <span class="lab2">Données</span>
-    <div class="row2"><button class="secondary" id="exp" style="margin:0">Exporter une sauvegarde</button><button class="secondary" id="imp" style="margin:0">Importer</button></div>
-    <button class="secondary danger" id="wipe">Tout effacer</button>
-    <p class="note">Tout reste sur ce téléphone.</p>`);
+    <details class="scat" open><summary>Affichage</summary><div class="scbody">
+      <span class="lab2" style="margin-top:0">Apparence</span><div class="chips" id="themeChips">${[["system","Comme le téléphone"],["light","Clair"],["dark","Sombre"]].map(([v, l]) => `<button class="chip" data-v="${v}" aria-pressed="${(st.theme || "system") === v}">${l}</button>`).join("")}</div>
+      <div class="setting" style="margin-top:12px"><p>Arrondir les moyennes au demi-point<small>Comme sur le bulletin</small></p><button class="switch" role="switch" id="roundSw" aria-checked="${st.round}"></button></div>
+    </div></details>
+    <details class="scat"><summary>Horaire</summary><div class="scbody">
+      <div class="row2"><button class="secondary" id="redo" style="margin:0">Refaire la configuration</button><button class="secondary" id="unhide" style="margin:0">Cours masqués${tt().hidden.length ? " (" + tt().hidden.length + ")" : ""}</button></div>
+      <button class="secondary" id="icsOut" style="margin:8px 0 0">Exporter tests et devoirs vers un agenda</button>
+    </div></details>
+    <details class="scat"><summary>Branches</summary><div class="scbody">
+      <div id="subList"></div>
+      <div class="mrow"><input class="inp" id="newSub" placeholder="Nouvelle branche"><span></span><button class="mini" id="addSub">Ajouter</button></div>
+    </div></details>
+    <details class="scat"><summary>Aide et feedback</summary><div class="scbody">
+      <button class="secondary" id="tutAgain" style="margin:0 0 8px">Revoir le tutoriel</button>
+      <button class="secondary" id="fbOpen" style="margin:0">Envoyer un feedback</button>
+    </div></details>
+    <details class="scat"><summary>Données</summary><div class="scbody">
+      <div class="row2"><button class="secondary" id="exp" style="margin:0">Exporter une sauvegarde</button><button class="secondary" id="imp" style="margin:0">Importer</button></div>
+      <button class="secondary danger" id="wipe" style="margin:8px 0 0">Tout effacer</button>
+      <p class="note">Tout reste sur ce téléphone.</p>
+    </div></details>`);
   drawManage();
   $("roundSw").onclick = e => { st.round = !st.round; e.target.setAttribute("aria-checked", st.round); save(); refresh(); };
   $("addSub").onclick = () => { const n = $("newSub").value.trim(); if(!n) return; state.subjects.push({id:uid(), name:n, counts:true, grades:[]}); $("newSub").value = ""; save(); drawManage(); renderHome(); };
