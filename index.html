@@ -115,6 +115,10 @@ nav.tabs{position:fixed;left:0;right:0;bottom:0;background:#000;box-shadow:0 -1p
 .testc{display:flex;align-items:center;gap:12px;width:100%;border:0;background:var(--surface);border-radius:14px;padding:12px 14px;margin-bottom:6px;text-align:left;box-shadow:inset 4px 0 0 #F2A3C2}
 .testc .tl{font-size:12px;font-weight:700;color:#F2A3C2;text-transform:none}
 .testc .rname b{font-size:16px}
+.stepper{display:flex;align-items:center;justify-content:center;gap:22px;margin:14px 0 6px}
+.stepper b{font-family:var(--display);font-weight:700;font-size:60px;min-width:130px;text-align:center;font-variant-numeric:tabular-nums}
+.stp{width:60px;height:60px;border-radius:50%;border:0;background:var(--sunk);font-size:30px;font-weight:600;line-height:1}
+.stp:disabled{opacity:.3}
 .tpill{display:inline-block;font-size:11px;font-weight:800;background:var(--red);color:#fff;border-radius:6px;padding:1px 6px;margin-left:8px;vertical-align:2px;letter-spacing:.03em}
 .lesbox{position:relative}
 .lesbox .les{padding-right:54px}
@@ -372,7 +376,7 @@ function renderHome(){
 
   { const lp = state.lockedPoints;
   h += `<h2>Notes bloquées<small>2e année, comptent dans le total</small></h2><div class="list">
-    <button class="row" data-act="lockedpts">${lockSvg}<div class="rname"><b>Chimie, physique, arts</b><span>Points en plus pour cette année</span></div><div class="rval ${lp == null ? "none" : lp - 12 > 0 ? "c-green" : lp - 12 < 0 ? "c-red" : ""}">${lp != null ? bonusTxt(lp - 12) : "Ajouter"}</div></button></div>`; }
+    <button class="row" data-act="lockedpts">${lockSvg}<div class="rname"><b>Chimie, physique, arts</b><span>Points par rapport à 3 × 4</span></div><div class="rval ${lp == null ? "none" : lp - 12 > 0 ? "c-green" : lp - 12 < 0 ? "c-red" : ""}">${lp != null ? bonusTxt(lp - 12) : "Ajouter"}</div></button></div>`; }
 
   if(extra.length) h += `<h2>Hors total<small>Ne compte pas dans le total</small></h2><div class="list">${extra.map(rowHTML).join("")}</div>`;
   $("main").innerHTML = h;
@@ -891,20 +895,23 @@ function testSheet(id, preset){
     toast("Test supprimé", {label:"Annuler", fn:() => { tests().splice(i, 0, ex); save(); refreshAll(); }}); };
 }
 const bonusTxt = b => (b > 0 ? "+" : b < 0 ? "−" : "") + f2(Math.abs(Math.round(b * 100) / 100));
-const BONUS = [-1, -0.5, 0, 0.5, 1, 1.5, 2, 2.5, 3];
+// Three grades from 1 to 6: the difference to 3 × 4 runs from −9 (three 1s) to +6 (three 6s), in half points.
+const BMIN = -9, BMAX = 6;
 function lockedFields(){
-  const cur = state.lockedPoints != null ? Math.round((state.lockedPoints - 12) * 100) / 100 : null;
-  return `<div class="chips" id="bnChips">${BONUS.map(v => `<button class="chip" data-b="${v}" aria-pressed="${cur === v}">${bonusTxt(v)}</button>`).join("")}</div>
-    <p class="note">Exemple : 4,5 en chimie, 4 en physique et 4 en musique, ça fait +0,5.</p>`;
+  const cur = state.lockedPoints != null ? Math.round((state.lockedPoints - 12) * 2) / 2 : 0;
+  return `<div class="stepper"><button class="stp" data-st="-1" aria-label="Moins 0,5">−</button><b id="bnVal" class="${cur > 0 ? "c-green" : cur < 0 ? "c-red" : ""}">${bonusTxt(cur)}</b><button class="stp" data-st="1" aria-label="Plus 0,5">+</button></div>
+    <p class="note" style="text-align:center">Exemple : 4,5 + 4 + 4 = +0,5. Une note sous 4 compte double : 3,5 + 4 + 4 = −1.</p>`;
 }
 function bindLocked(){
-  let pick = state.lockedPoints != null ? Math.round((state.lockedPoints - 12) * 100) / 100 : null;
-  $("bnChips").onclick = e => { const c = e.target.closest(".chip"); if(!c) return; pick = +c.dataset.b;
-    $("bnChips").querySelectorAll(".chip").forEach(x => x.setAttribute("aria-pressed", x === c)); };
-  return () => { if(pick == null){ toast("Choisis combien de points tu as en plus"); return false; } state.lockedPoints = 12 + pick; save(); return true; };
+  let v = state.lockedPoints != null ? Math.round((state.lockedPoints - 12) * 2) / 2 : 0;
+  const show = () => { const el = $("bnVal"); el.textContent = bonusTxt(v); el.className = v > 0 ? "c-green" : v < 0 ? "c-red" : "";
+    document.querySelectorAll(".stp").forEach(b => b.disabled = (+b.dataset.st < 0 && v <= BMIN) || (+b.dataset.st > 0 && v >= BMAX)); };
+  document.querySelectorAll(".stp").forEach(b => b.onclick = () => { v = Math.min(BMAX, Math.max(BMIN, v + 0.5 * +b.dataset.st)); show(); });
+  show();
+  return () => { state.lockedPoints = 12 + v; save(); return true; };
 }
 function lockedSheet(){
-  openSheet(`<h3>Notes bloquées de 2e année</h3><p class="note" style="margin:0 0 10px">Combien de points en plus tes notes de chimie, physique et arts te donnent cette année ?</p>${lockedFields()}
+  openSheet(`<h3>Notes bloquées de 2e année</h3><p class="note" style="margin:0 0 10px">Combien de points en plus ou en moins tes notes de chimie, physique et arts te donnent ? Chaque note compte par rapport à 4.</p>${lockedFields()}
     <button class="primary" id="lpSave">Enregistrer</button>${state.lockedPoints != null ? `<button class="secondary danger" id="lpClear">Effacer</button>` : ""}`);
   const commit = bindLocked();
   $("lpSave").onclick = () => { if(commit()){ closeSheet(); refreshAll(); toast("Enregistré"); } };
@@ -1085,7 +1092,7 @@ function drawOb(dir){
     case "tp": { const rooms = GROUPS[effOS()].L.map(x => parseL(x)).filter(x => x.tags.tp);
       h = `<h2>Groupe de TP biologie-chimie</h2><p>La classe se divise en deux pour les travaux pratiques.</p>${rooms.map(r => opt(r.tags.tp, "Groupe TP " + r.tags.tp, "Salle " + r.room, t.ans.tp === r.tags.tp)).join("")}`; break; }
     case "locked":
-      h = `<h2>Tes notes bloquées de 2e année</h2><p>Combien de points en plus tes notes de chimie, physique et arts te donnent cette année ?</p>
+      h = `<h2>Tes notes bloquées de 2e année</h2><p>Combien de points en plus ou en moins tes notes de chimie, physique et arts te donnent ? Chaque note compte par rapport à 4.</p>
         ${lockedFields()}<button class="primary" data-o="lpok">Continuer</button>`; break;
     case "oc": { const os = osOf(effOS()), hide = os ? os.noOC : [];
       h = `<h2>Ton option complémentaire</h2><p>Ton option de 3e année, le jeudi après-midi.</p>${OC_LIST.filter(o => !hide.includes(o)).map(o => opt(o, o, ocWhen(o), t.oc === o)).join("")}`; break; }
