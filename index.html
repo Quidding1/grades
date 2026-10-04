@@ -69,7 +69,7 @@ h2 small{font-weight:500;color:var(--faint)}
 .bonusline{display:flex;justify-content:space-between;padding:12px 16px;box-shadow:inset 0 1px 0 var(--line);font-size:14px;color:var(--muted)}
 .bonusline b{color:var(--green);font-family:var(--display);font-size:20px}
 
-.fab{position:fixed;left:16px;right:16px;bottom:calc(72px + env(safe-area-inset-bottom,0px));max-width:508px;margin:0 auto;height:56px;border:0;border-radius:18px;background:var(--ink);color:var(--onink);font-weight:700;font-size:17px;z-index:4;box-shadow:0 8px 30px rgba(0,0,0,.35)}
+.fab{position:fixed;right:max(16px, calc((100vw - 540px) / 2 + 16px));bottom:calc(76px + env(safe-area-inset-bottom,0px));width:58px;height:58px;border:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:32px;line-height:1;padding-bottom:3px;background:var(--ink);color:var(--onink);font-weight:700;font-size:17px;z-index:4;box-shadow:0 8px 30px rgba(0,0,0,.35)}
 
 /* nav */
 nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--bg);box-shadow:0 -1px 0 var(--line);padding-bottom:env(safe-area-inset-bottom,0px);z-index:2;transform:translateZ(0)}
@@ -131,7 +131,13 @@ nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--bg);box-shadow:
 .ldrop{display:grid;grid-template-rows:0fr;transition:grid-template-rows .26s cubic-bezier(.2,.8,.2,1)}
 .lesbox.open .ldrop{grid-template-rows:1fr}
 .ldrop>div{overflow:hidden;min-height:0}
-.ldrop .tcard{margin:6px 0 0 22px;width:calc(100% - 22px)}
+.lesbox{background:var(--surface);border-radius:14px}
+.lesbox .les{background:transparent}
+.lesbox.open .les{border-radius:14px 14px 0 0}
+.ldrop>div{padding:0 8px}
+.lesbox.open .ldrop>div{padding:0 8px 8px}
+.ldrop .tcard{margin:0 0 6px;width:100%;background:var(--sunk);min-height:56px}
+.ldrop .tcard:last-child{margin-bottom:0}
 .ldrop .testc .tl{color:var(--red)}
 input[type=date].inp{color-scheme:inherit}
 /* test and homework cards */
@@ -167,7 +173,36 @@ button.tcx{border:0;background:none;padding:6px 0;text-align:left;align-self:str
 .agh{font-size:14px;font-weight:600;color:var(--muted);margin:18px 2px 8px}
 .agh.late{color:var(--red)}
 /* trend */
-.trend{margin-top:10px}
+.trend{margin-top:4px}
+.tut{position:fixed;inset:0;z-index:7;display:none}
+.tut.on{display:block}
+.tuthole{position:fixed;border-radius:16px;box-shadow:0 0 0 9999px rgba(0,0,0,.72);transition:all .32s cubic-bezier(.2,.8,.2,1);pointer-events:none}
+.tutbox{position:fixed;left:16px;right:16px;max-width:420px;margin:0 auto;background:var(--surface);color:var(--ink);border-radius:18px;padding:16px 18px 14px;box-shadow:0 12px 40px rgba(0,0,0,.45);transition:top .32s cubic-bezier(.2,.8,.2,1)}
+.tutbox b{display:block;font-family:var(--display);font-weight:700;font-size:24px;margin-bottom:4px}
+.tutbox p{margin:0 0 12px;color:var(--muted);font-size:15px}
+.tutfoot{display:flex;align-items:center;gap:10px}
+.tutdots{flex:1;display:flex;gap:5px}
+.tutdots i{width:6px;height:6px;border-radius:50%;background:var(--raise)}
+.tutdots i.on{background:var(--ink)}
+.tutbox .mini{height:40px;padding:0 18px;border-radius:12px;background:var(--ink);color:var(--onink)}
+.tutskip{border:0;background:none;color:var(--muted);font-size:14px;padding:8px}
+.sbox .opt{background:var(--sunk)}
+.addopt{flex-direction:row !important;align-items:center !important;gap:14px}
+.opt .atx{display:flex;flex-direction:column;color:var(--ink);font-size:inherit}
+.opt .atx span{font-size:13px;color:var(--muted)}
+.aico{flex:none;width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px}
+.aico.nt{background:var(--green);color:#000;font-family:var(--display);font-size:17px}
+.aico.te{background:var(--te);color:#fff}
+.aico.dv{background:#FFCC00;color:#000}
+.aico.cs{background:var(--raise)}
+.aico.cs svg{width:22px;height:22px;stroke:var(--ink);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.hwline{display:flex;align-items:center;gap:10px;width:100%;border:0;background:var(--surface);border-radius:14px;padding:12px 14px;margin-bottom:12px;text-align:left;font-size:15px;font-weight:500}
+.hwline span:nth-child(2){flex:1}
+.hwline svg{width:18px;height:18px;stroke:var(--muted);fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.tile{display:flex;flex-direction:column;align-items:flex-start;gap:2px;border:0;background:var(--surface);border-radius:var(--r);padding:14px 16px;text-align:left;min-height:84px}
+.tile b{font-size:16px;font-weight:600}
+.tile span{font-size:13px;color:var(--muted)}
+.tile:active{background:var(--sunk)}
 .trhead{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
 .trhead .lab{font-size:14px;color:var(--muted)}
 .trhead b{font-family:var(--display);font-size:24px}
@@ -283,10 +318,11 @@ label.check input{width:20px;height:20px;accent-color:#32D74B}
   <div class="obtop"><button class="icon" id="obBack" aria-label="Retour"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button><div class="obprog"><i id="obProg"></i></div></div>
   <div class="obslide" id="obSlide"></div>
 </div></div>
-<button class="fab" id="fab">+ Ajouter une note</button>
+<button class="fab" id="fab" aria-label="Ajouter">+</button>
 <div class="screen" id="screen"><div class="sin" id="screenBody"></div></div>
 <div class="sheet" id="sheet"><div class="sbox" id="sheetBody"></div></div>
 <input type="file" id="importFile" accept="application/json,.json" hidden>
+<div class="tut" id="tut" role="dialog" aria-modal="true" aria-label="Tutoriel"><div class="tuthole" id="tutHole"></div><div class="tutbox" id="tutBox"></div></div>
 <div class="toast" id="toast" role="status"></div>
 
 <script>
@@ -407,54 +443,42 @@ function needed(s, target, w, part){
 /* ============ home ============ */
 const lockSvg = '<svg class="lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
 function renderHome(){
-  const o = overall();
+  const o = overall(), r = x => Math.round(x * 100) / 100;
   let h = `<section class="card hero"><div class="lab">Total des points</div>`;
   if(o){
-    const r = x => Math.round(x * 100) / 100;
     const diff = r(o.total - o.need), ok = diff >= 0 && o.under.length <= 4;
     const max = 6 * o.n, pct = Math.max(0, o.total) / max * 100, minPct = o.need / max * 100;
     h += `<div class="big ${ok ? (diff >= o.n * 0.5 ? "c-green" : "") : "c-red"}">${f2(r(o.total))}</div>
-      <div class="break">${diff >= 0 ? `<b class="c-green">+${f2(diff)}</b> au-dessus du minimum de ${o.need}` : `<b class="c-red">Il manque ${f2(-diff)}</b> pour le minimum de ${o.need}`} (${o.n} notes × 4)</div>
+      <div class="break">${diff >= 0 ? `<b class="c-green">+${f2(diff)}</b> au-dessus du minimum (${o.need})` : `<b class="c-red">${f2(-diff)} de moins</b> que le minimum (${o.need})`}</div>
       <div class="scale"><div class="fill" style="width:${pct}%;background:${ok ? "var(--green)" : "var(--red)"}"></div><div class="pass" style="left:${minPct}%"></div></div>
-      <div class="scaleL"><span>0</span><span>Trait = minimum</span><span>${max}</span></div>
       <div class="checks">
-        <div class="${diff >= 0 ? "c-green" : "c-red"}">${diff >= 0 ? "✓" : "✗"} Au moins ${o.need} points après double compensation</div>
-        <div class="${o.under.length <= 4 ? "c-green" : "c-red"}">${o.under.length <= 4 ? "✓" : "✗"} ${o.under.length} ${o.under.length > 1 ? "notes" : "note"} sous 4 (max. 4)${o.under.length ? ": " + o.under.map(x => esc(x.name)).join(", ") : ""}</div>
+        <div class="${diff >= 0 ? "c-green" : "c-red"}">${diff >= 0 ? "✓" : "✗"} ${o.need} points minimum</div>
+        <div class="${o.under.length <= 4 ? "c-green" : "c-red"}">${o.under.length <= 4 ? "✓" : "✗"} ${o.under.length ? o.under.length + (o.under.length > 1 ? " notes" : " note") + " sous 4, max. 4" : "Aucune note sous 4"}${o.under.length ? " (" + o.under.map(x => esc(x.name)).join(", ") + ")" : ""}</div>
       </div>
-      <div class="break" style="margin-top:10px">Moyenne ${f2(r(o.avg))}.${o.comp ? ` Total brut ${f2(r(o.raw))}, moins ${f2(r(o.comp))} pour les notes sous 4.` : ""}</div>
-      ${o.n < o.expected ? `<div class="break" style="margin-top:6px">Calculé sur ${o.n} notes sur ${o.expected}. Il manque encore : ${o.missing.map(esc).join(", ")}.</div>` : ""}`;
-  } else h += `<div class="big muted">–</div><div class="break">Ajoute ta première note pour voir ton total.</div>`;
+      <div class="break" style="margin-top:10px">Moyenne ${f2(r(o.avg))}${o.n < o.expected ? `, ${o.n} notes sur ${o.expected}` : ""}</div>`;
+  } else h += `<div class="big muted">–</div><div class="break">Touche + pour ajouter ta première note.</div>`;
   h += `</section>`;
-
-  h += trendHTML();
-  h += `<button class="secondary" data-act="exams" style="margin-top:10px">Simuler mes examens de maturité</button>`;
-  const up = sortTests(tests().filter(x => x.date >= todayIso())).slice(0, 4);
-  h += `<h2>Prochains tests<small>${up.length ? "" : "Aucun pour l'instant"}</small></h2>${up.map(x => testCard(x, "act")).join("")}<button class="secondary" data-act="addtest" style="margin-top:2px">+ Ajouter un test</button>`;
   const counted = state.subjects.filter(s => s.counts), extra = state.subjects.filter(s => !s.counts);
   h += `<h2>Branches<small>${state.settings.round ? "Arrondies au demi-point" : "Moyennes exactes"}</small></h2><div class="list">${counted.map(rowHTML).join("")}</div>`;
-
-  h += `<h2>Travail de maturité<small>Compte comme une note</small></h2><div class="list">
-    <button class="row" data-act="tm"><div class="rname"><b>TM</b><span>${state.tm.g != null ? "Note finale" : "Pas encore noté"}</span></div>
-    <div class="rval ${state.tm.g != null ? col(state.tm.g) : "none"}">${state.tm.g != null ? f2(state.tm.g) : "Ajouter"}</div></button></div>`;
-
   { const lp = state.lockedPoints;
-  h += `<h2>Notes bloquées<small>2e année, comptent dans le total</small></h2><div class="list">
-    <button class="row" data-act="lockedpts">${lockSvg}<div class="rname"><b>Chimie, physique, arts</b><span>Points par rapport à 3 × 4</span></div><div class="rval ${lp == null ? "none" : lp - 12 > 0 ? "c-green" : lp - 12 < 0 ? "c-red" : ""}">${lp != null ? bonusTxt(lp - 12) : "Ajouter"}</div></button></div>`; }
-
-  if(extra.length) h += `<h2>Hors total<small>Ne compte pas dans le total</small></h2><div class="list">${extra.map(rowHTML).join("")}</div>`;
+  h += `<div class="list" style="margin-top:8px">
+    <button class="row" data-act="tm"><div class="rname"><b>Travail de maturité</b><span>Compte comme une note</span></div><div class="rval ${state.tm.g != null ? col(state.tm.g) : "none"}">${state.tm.g != null ? f2(state.tm.g) : "Ajouter"}</div></button>
+    <button class="row" data-act="lockedpts">${lockSvg}<div class="rname"><b>Notes bloquées</b><span>Chimie, physique, arts</span></div><div class="rval ${lp == null ? "none" : lp - 12 > 0 ? "c-green" : lp - 12 < 0 ? "c-red" : ""}">${lp != null ? bonusTxt(lp - 12) : "Ajouter"}</div></button></div>`; }
+  if(extra.length) h += `<h2>Hors total</h2><div class="list">${extra.map(rowHTML).join("")}</div>`;
+  h += `<h2>Plus</h2><div class="row2"><button class="tile" data-act="trend"><b>Évolution</b><span>Ta moyenne au fil de l'année</span></button><button class="tile" data-act="exams"><b>Examens</b><span>Simule tes examens de maturité</span></button></div>`;
   $("main").innerHTML = h;
 }
 function rowHTML(s){
   const a = avg(s), f = final(s), n = s.grades.length;
   const showExact = a != null && state.settings.round && Math.abs(a - f) > 0.001;
-  return `<button class="row" data-act="open" data-id="${s.id}"><div class="rname"><b>${esc(s.name)}</b><span>${s.parts ? "Option spécifique, " + s.parts.map(p => p.name.slice(0,5).toLowerCase() + ". " + shareTxt(s, p)).join(", ") + (n ? ", " + n + (n > 1 ? " notes" : " note") : "") : n ? n + (n > 1 ? " notes" : " note") : "Pas encore de note"}</span></div>
+  return `<button class="row" data-act="open" data-id="${s.id}"><div class="rname"><b>${esc(s.name)}</b><span>${s.parts ? s.parts.map(p => p.name.slice(0,5) + ". " + shareTxt(s, p)).join(", ") + (n ? ", " + n + (n > 1 ? " notes" : " note") : "") : n ? n + (n > 1 ? " notes" : " note") : "Pas encore de note"}</span></div>
     <div class="rval ${a == null ? "none" : col(f)}">${a == null ? "–" : f2(f)}${showExact ? `<small>${f2(Math.round(a*100)/100)}</small>` : ""}</div></button>`;
 }
 
 /* ============ subject screen ============ */
 let openId = null, needT = 4, needW = 1, needP = "philo";
-function openSubject(id){ openId = id; const s0 = sub(id); if(s0 && s0.parts && !s0.parts.some(p => p.key === needP)) needP = s0.parts[0].key; renderSubject(); $("screen").classList.add("on"); $("fab").textContent = "+ Ajouter une note"; }
-function closeSubject(){ examOpen = false; if(tab === "grades") $("fab").style.display = ""; openId = null; $("screen").classList.remove("on"); renderHome(); }
+function openSubject(id){ openId = id; const s0 = sub(id); if(s0 && s0.parts && !s0.parts.some(p => p.key === needP)) needP = s0.parts[0].key; renderSubject(); $("screen").classList.add("on"); }
+function closeSubject(){ examOpen = false; $("fab").style.display = ""; openId = null; $("screen").classList.remove("on"); renderHome(); }
 function spark(s){
   const g = s.grades; if(g.length < 2) return "";
   const W = 320, H = 90, p = 8, x = i => p + i * (W - 2*p) / (g.length - 1), y = v => H - p - (v - 1) / 5 * (H - 2*p);
@@ -478,9 +502,9 @@ function renderSubject(){
   if(s.grades.length){
     h += `<h2>Notes<small>Touche pour modifier</small></h2><div class="list">${[...s.grades].reverse().map(g => `
       <button class="grow" data-act="editg" data-id="${g.id}"><span class="gbadge ${col(g.g)}">${f2(g.g)}</span><div class="rname"><b>${esc(g.name || "Test")}</b><span>${s.parts && g.part ? esc((s.parts.find(p => p.key === g.part) || {}).name || "") + ", " : ""}${new Date(g.date).toLocaleDateString("fr-CH", {day:"numeric", month:"short"})}</span></div><span class="gw">×${f2(g.w)}</span></button>`).join("")}</div>`;
-  } else h += `<div class="card muted" style="text-align:center;padding:26px">Pas encore de note. Touche « Ajouter une note » en bas.</div>`;
+  } else h += `<div class="card muted" style="text-align:center;padding:26px">Pas encore de note. Touche + pour en ajouter une.</div>`;
   { const st = sortTests(tests().filter(x => x.sid === s.id && x.date >= todayIso()));
-    h += `<h2>Tests à venir</h2>${st.map(x => testCard(x, "act")).join("")}<button class="secondary" data-act="addtest" style="margin-top:2px">+ Ajouter un test</button>`; }
+    if(st.length) h += `<h2>Tests à venir</h2>${st.map(x => testCard(x, "act")).join("")}`; }
   h += `<h2>De combien ai-je besoin ?</h2><div class="card need">
     <div><span class="lab2" style="margin-top:0">Objectif ${state.settings.round ? "(après arrondi)" : "(moyenne)"}</span><div class="chips">${[4,4.5,5,5.5,6].map(t => `<button class="chip" data-act="needt" data-v="${t}" aria-pressed="${needT === t}">${t}</button>`).join("")}</div></div>
     ${s.parts ? `<div><span class="lab2" style="margin-top:0">Le prochain test est en</span><div class="chips">${s.parts.map(p => `<button class="chip" data-act="needp" data-v="${p.key}" aria-pressed="${needP === p.key}">${esc(p.name)}</button>`).join("")}</div></div>` : ""}
@@ -571,6 +595,7 @@ function settingsSheet(){
     <span class="lab2">Apparence</span><div class="chips" id="themeChips">${[["system","Comme le téléphone"],["light","Clair"],["dark","Sombre"]].map(([v, l]) => `<button class="chip" data-v="${v}" aria-pressed="${(st.theme || "system") === v}">${l}</button>`).join("")}</div>
     <button class="secondary" id="fbOpen" style="margin:14px 0 4px">Envoyer un feedback</button>
     <button class="secondary" id="icsOut" style="margin:4px 0">Exporter tests et devoirs vers un agenda</button>
+    <button class="secondary" id="tutAgain" style="margin:4px 0">Revoir le tutoriel</button>
     <span class="lab2">Horaire et options</span>
     <div class="row2"><button class="secondary" id="redo" style="margin:0">Refaire la configuration</button><button class="secondary" id="unhide" style="margin:0">Cours masqués${tt().hidden.length ? " (" + tt().hidden.length + ")" : ""}</button></div>
     <span class="lab2">Branches</span><div id="subList"></div>
@@ -585,6 +610,7 @@ function settingsSheet(){
   $("redo").onclick = () => { closeSheet(); openOnboarding("class"); };
   $("fbOpen").onclick = () => { closeSheet(); setTimeout(() => feedbackSheet(), 260); };
   $("icsOut").onclick = exportIcs;
+  $("tutAgain").onclick = () => { closeSheet(); setTimeout(startTutorial, 300); };
   $("themeChips").onclick = e => { const c = e.target.closest(".chip"); if(!c) return; st.theme = c.dataset.v; save(); applyTheme();
     $("themeChips").querySelectorAll(".chip").forEach(x => x.setAttribute("aria-pressed", x === c)); };
   $("unhide").onclick = () => { const n = tt().hidden.length; tt().hidden = []; tt().rooms = {}; save(); closeSheet(); renderSched(); toast(n ? "Les cours masqués sont de retour" : "Aucun cours masqué"); };
@@ -619,6 +645,7 @@ $("main").addEventListener("click", e => {
   if(a === "test") testSheet(b.dataset.id);
   if(a === "addtest") testSheet(null, {date:todayIso()});
   if(a === "exams") openExams();
+  if(a === "trend"){ const t = trendHTML(); openSheet(`<h3>Évolution</h3>${t || `<p class="note">Il faut des notes à au moins deux dates différentes pour voir l'évolution.</p>`}`); }
   if(a === "tm") valueSheet("Travail de maturité", "La note du TM compte comme une note entière dans ton total.", state.tm.g, v => state.tm.g = v, () => state.tm.g = null);
   if(a === "lockedpts") lockedSheet();
 });
@@ -635,7 +662,20 @@ $("screenBody").addEventListener("click", e => {
   }
   if(a === "counts"){ s.counts = !s.counts; b.setAttribute("aria-checked", s.counts); save(); renderHome(); toast(s.counts ? "Compte dans ton total" : "Ne compte plus dans ton total"); }
 });
-$("fab").onclick = () => gradeSheet(null);
+$("fab").onclick = () => addMenu();
+function addMenu(){
+  const sid = openId || undefined, s = sid ? sub(sid) : null;
+  const opts = [["note", "Une note", "Le résultat d'un test", '<span class="aico nt">5.5</span>'], ["test", "Un test", "À venir, avec sa date", '<span class="aico te">TE</span>'], ["hw", "Un devoir", "Pour un prochain cours", '<span class="aico dv">DV</span>']];
+  if(!sid) opts.push(["cours", "Un cours", "En plus dans ton horaire", '<span class="aico cs"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg></span>']);
+  openSheet(`<h3>Ajouter${s ? " en " + esc(s.name) : ""}</h3>${opts.map(([k, t, d, ic]) => `<button class="opt addopt" data-add="${k}">${ic}<span class="atx"><b>${t}</b><span>${d}</span></span></button>`).join("")}`);
+  $("sheetBody").querySelectorAll("[data-add]").forEach(b => b.onclick = () => { closeSheet(); const k = b.dataset.add;
+    setTimeout(() => {
+      if(k === "note") gradeSheet(null, sid ? {sid} : null);
+      if(k === "test") testSheet(null, Object.assign({date:tab === "sched" && !sid ? iso(sDate()) : todayIso()}, sid ? {sid} : {}));
+      if(k === "hw") hwSheet(null, sid ? {sid} : null);
+      if(k === "cours") addLessonSheet();
+    }, 260); });
+}
 $("openSettings").onclick = settingsSheet;
 // swipe right to go back from a subject
 let sx = null, sy = null;
@@ -898,7 +938,7 @@ function showTab(next, animate){
   document.querySelectorAll(".navbtn").forEach(b => b.setAttribute("aria-current", b.dataset.tab === tab ? "page" : "false"));
   $("navind").style.transform = `translateX(${TABS.indexOf(tab) * 100}%)`;
   $("title").textContent = {sched:"Horaire", agenda:"Agenda", grades:"Notes"}[tab];
-  $("fab").style.display = tab === "grades" ? "" : "none";
+  $("fab").style.display = "";
   $("sched").hidden = tab !== "sched"; $("agenda").hidden = tab !== "agenda"; $("main").hidden = tab !== "grades";
   if(tab === "sched") renderSched(); else if(tab === "agenda") renderAgenda(); else renderHome();
   const el = {sched:$("sched"), agenda:$("agenda"), grades:$("main")}[tab], dir = TABS.indexOf(tab) > TABS.indexOf(prev) ? 1 : -1;
@@ -975,7 +1015,7 @@ function hwSheet(id, preset){
   const d = ex ? Object.assign({}, ex) : Object.assign({sid:(state.subjects[0] || {}).id, due:null, text:""}, preset || {});
   let dateTouched = !!(ex || (preset && preset.due));
   if(!d.due) d.due = nextLessonDate(d.sid, todayIso()) || iso(new Date(Date.now() + 86400000));
-  openSheet(`<h3>${ex ? "Devoir" : "Nouveau devoir"}</h3>
+  openSheet(`<h3>${ex ? "Devoir" : "Nouveau devoir"}</h3>${ex ? `<p class="note" style="margin:0 0 4px">${esc((sub(ex.sid) || {}).name || "")}, ${esc(dueTxt(ex.due))}</p>` : ""}
     <span class="lab2">À faire</span><input class="inp" id="hwT" placeholder="p. ex. Exercices p. 42" value="${esc(d.text)}">
     <span class="lab2">Branche</span><div class="chips" id="hwSub">${state.subjects.map(s => `<button class="chip" data-v="${s.id}" aria-pressed="${d.sid === s.id}">${esc(s.name)}</button>`).join("")}</div>
     <span class="lab2">Pour le</span><div class="row2"><input class="inp" type="date" id="hwD" value="${d.due}"><button class="secondary" id="hwNext" style="margin:0">Prochain cours</button></div>
@@ -1052,7 +1092,7 @@ function testSheet(id, preset){
   const ex = id ? tests().find(x => x.id === id) : null;
   const d = ex ? Object.assign({}, ex) : Object.assign({id:null, sid:(state.subjects[0] || {}).id, date:iso(sDate()), name:"", w:1}, preset || {});
   const due = ex && ex.date <= todayIso();
-  openSheet(`<h3>${ex ? "Test" : "Nouveau test"}</h3>
+  openSheet(`<h3>${ex ? esc(ex.name || "Test") : "Nouveau test"}</h3>${ex ? `<p class="note" style="margin:0 0 4px">${esc((sub(ex.sid) || {}).name || "")}, ${esc(relTxt(ex.date))}</p>` : ""}
     <span class="lab2">Branche</span><div class="chips" id="tsSub">${state.subjects.map(s => `<button class="chip" data-v="${s.id}" aria-pressed="${d.sid === s.id}">${esc(s.name)}</button>`).join("")}</div>
     <span class="lab2">Date</span><input class="inp" type="date" id="tsDate" value="${d.date}">
     <span class="lab2">Nom (facultatif)</span><input class="inp" id="tsName" placeholder="p. ex. TS chapitre 3" value="${esc(d.name)}">
@@ -1094,7 +1134,7 @@ function lockedSheet(){
   if($("lpClear")) $("lpClear").onclick = () => { state.lockedPoints = null; save(); closeSheet(); refreshAll(); };
 }
 const FEEDBACK_EMAIL = "gradesapp@outlook.com";   // ← adresse qui reçoit les feedbacks
-const APP_VERSION = "1.15";
+const APP_VERSION = "1.16";
 function feedbackSheet(kind, text){
   const kinds = [["bug","Un bug"],["idee","Une idée"],["horaire","Horaire faux"],["autre","Autre"]];
   let k = kind || "idee";
@@ -1123,7 +1163,7 @@ function renderAgenda(){
   hws().forEach(x => { if(!x.done) items.push({k:"h", d:x.due, x}); });
   const late = items.filter(i => i.k === "h" && i.d < t).sort((a, b) => a.d < b.d ? -1 : 1);
   const fut = items.filter(i => i.d >= t).sort((a, b) => a.d < b.d ? -1 : a.d > b.d ? 1 : a.k === b.k ? 0 : a.k === "t" ? -1 : 1);
-  let h = countdownHTML() + `<div class="row2"><button class="secondary" data-g2="addhw" style="margin:0">+ Devoir</button><button class="secondary" data-g2="addtest" style="margin:0">+ Test</button></div>`;
+  let h = countdownHTML();
   if(late.length) h += `<h4 class="agh late">En retard</h4>` + late.map(i => hwCard(i.x, "g2")).join("");
   let last = null;
   fut.forEach(i => {
@@ -1131,7 +1171,7 @@ function renderAgenda(){
       h += `<h4 class="agh">${n === 0 ? "Aujourd'hui" : n === 1 ? "Demain" : ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"][dd.getDay()] + " " + fmtD(dd)}</h4>`; }
     h += i.k === "t" ? testCard(i.x, "g2", "drop") : hwCard(i.x, "g2");
   });
-  if(!late.length && !fut.length) h += `<div class="card empty2" style="margin-top:12px"><b>Rien de prévu</b><p>Ajoute tes devoirs et tes tests : ils s'affichent ici, jour par jour.</p></div>`;
+  if(!late.length && !fut.length) h += `<div class="card empty2" style="margin-top:12px"><b>Rien de prévu</b><p>Touche + pour ajouter un devoir ou un test. Ils s'affichent ici, jour par jour.</p></div>`;
   const done = hws().filter(x => x.done);
   if(done.length){
     h += `<button class="textlink" data-g2="showdone">${showDone ? "Masquer" : "Voir"} les devoirs faits (${done.length})</button>`;
@@ -1234,6 +1274,37 @@ function applyTheme(){
 }
 if(window.matchMedia) matchMedia("(prefers-color-scheme: light)").addEventListener?.("change", applyTheme);
 
+/* ============ first-launch tutorial ============ */
+const TUT = [
+  {sel:".dseg", tab:"sched", t:"Ton horaire", d:"Choisis un jour ici, ou glisse vers la gauche ou la droite sur l'écran."},
+  {sel:"#dayBody .les", tab:"sched", t:"Tes cours", d:"Touche un cours pour voir ses tests, ajouter un devoir ou changer la salle."},
+  {sel:"#fab", t:"Le bouton +", d:"Ajoute une note, un test, un devoir ou un cours, depuis n'importe quel onglet."},
+  {sel:'.navbtn[data-tab="agenda"]', t:"Agenda", d:"Tous tes devoirs et tes tests, jour par jour. Coche un devoir quand il est fait."},
+  {sel:'.navbtn[data-tab="grades"]', t:"Notes", d:"Ton total de points, tes moyennes par branche et le simulateur d'examens."},
+  {sel:"#openSettings", t:"Réglages", d:"Apparence, feedback, et ta classe si tu dois la changer."}
+];
+let tutI = 0, tutSteps = [];
+function startTutorial(){
+  if(tab !== "sched" && tt().cls) showTab("sched", false);
+  setTimeout(() => { tutSteps = TUT.filter(x => document.querySelector(x.sel)); if(!tutSteps.length) return;
+    tutI = 0; $("tut").classList.add("on"); drawTut(); }, 120);
+}
+function drawTut(){
+  const st = tutSteps[tutI], el = document.querySelector(st.sel); if(!el){ endTut(); return; }
+  el.scrollIntoView({block:"center", behavior:"instant"});
+  const r = el.getBoundingClientRect(), pad = 6, hole = $("tutHole");
+  Object.assign(hole.style, {left:(r.left - pad) + "px", top:(r.top - pad) + "px", width:(r.width + pad * 2) + "px", height:(r.height + pad * 2) + "px", borderRadius:getComputedStyle(el).borderRadius === "50%" ? "50%" : "16px"});
+  const last = tutI === tutSteps.length - 1, box = $("tutBox");
+  box.innerHTML = `<b>${st.t}</b><p>${st.d}</p><div class="tutfoot"><div class="tutdots">${tutSteps.map((_, i) => `<i class="${i === tutI ? "on" : ""}"></i>`).join("")}</div>${last ? "" : `<button class="tutskip" id="tutSkip">Passer</button>`}<button class="mini" id="tutNext">${last ? "C'est parti" : "Suivant"}</button></div>`;
+  const below = r.top + r.height / 2 < innerHeight / 2;
+  box.style.top = below ? (r.bottom + 18) + "px" : "auto";
+  box.style.bottom = below ? "auto" : (innerHeight - r.top + 18) + "px";
+  $("tutNext").onclick = () => { if(last) endTut(); else { tutI++; drawTut(); } };
+  if($("tutSkip")) $("tutSkip").onclick = endTut;
+}
+function endTut(){ $("tut").classList.remove("on"); state.tutDone = true; save(); }
+addEventListener("resize", () => { if($("tut").classList.contains("on")) drawTut(); });
+
 function refreshAll(){ renderHome(); if(openId) renderSubject(); if(examOpen) renderExams(); if(tab === "sched") renderSched(); if(tab === "agenda") renderAgenda(); }
 
 /* ============ schedule view ============ */
@@ -1261,6 +1332,10 @@ function renderSched(animDir){
       h += `<div class="nowc"><span class="lab">Prochain cours dans ${m >= 60 ? Math.floor(m / 60) + " h " + (m % 60) + " min" : m + " min"}</span><b>${esc(nxt.name)}</b><span>${PERIODS[nxt.p1][0]}${nxt.room ? " en " + esc(nxt.room) : ""}</span></div>`; }
     else h += `<div class="nowc done"><b>Fini pour aujourd'hui</b><span>Bonne soirée.</span></div>`;
   }
+  if(isToday && !hol){
+    const due = hws().filter(x => !x.done && x.due <= dIso), late = due.filter(x => x.due < dIso).length;
+    if(due.length) h += `<button class="hwline" data-s="toAgenda"><span class="kind dv">DV</span><span>${due.length - late ? (due.length - late) + (due.length - late > 1 ? " devoirs" : " devoir") + " pour aujourd'hui" : ""}${due.length - late && late ? ", " : ""}${late ? late + " en retard" : ""}</span><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>`;
+  }
   h += `<div id="dayBody">`;
   const loose = dayTests.filter(x => hol || !lessonSids.has(x.sid)), looseHw = dayHw.filter(x => hol || !lessonSids.has(x.sid));
   h += loose.map(x => testCard(x, "s")).join("") + looseHw.map(x => hwCard(x, "s")).join("");
@@ -1287,7 +1362,7 @@ function renderSched(animDir){
     });
     h += `</div>`;
   }
-  h += `</div><div class="row2" style="margin-top:12px;grid-template-columns:1fr 1fr 1fr"><button class="secondary" data-s="addtest" style="margin:0">+ Test</button><button class="secondary" data-s="addhw" style="margin:0">+ Devoir</button><button class="secondary" data-s="add" style="margin:0">+ Cours</button></div>`;
+  h += `</div>`;
   el.innerHTML = h;
   if(animDir && el.animate && !matchMedia("(prefers-reduced-motion: reduce)").matches){
     const box = $("dayBody"), head = el.querySelector(".dhead");
@@ -1320,10 +1395,11 @@ $("sched").addEventListener("click", e => {
   if(a === "hw") hwSheet(b.dataset.id);
   if(a === "hwdone") toggleHw(b.dataset.id);
   if(a === "addhw") hwSheet(null);
+  if(a === "toAgenda") showTab("agenda", true);
 });
 // swipe anywhere on the Horaire screen to change day
 let tx = null, ty = null;
-const overlayOpen = () => $("sheet").classList.contains("on") || $("screen").classList.contains("on") || $("ob").classList.contains("on");
+const overlayOpen = () => $("sheet").classList.contains("on") || $("screen").classList.contains("on") || $("ob").classList.contains("on") || $("tut").classList.contains("on");
 document.addEventListener("touchstart", e => { tx = null; if(tab !== "sched" || overlayOpen() || e.touches.length !== 1 || (e.target.closest && e.target.closest("input,.dseg,nav"))) return; tx = e.touches[0].clientX; ty = e.touches[0].clientY; }, {passive:true});
 document.addEventListener("touchend", e => { if(tx === null) return; const dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty; tx = null;
   if(Math.abs(dx) > 50 && Math.abs(dy) < Math.abs(dx) * 0.7) goDay(sDay + (dx < 0 ? 1 : -1)); }, {passive:true});
@@ -1447,9 +1523,9 @@ $("obSlide").addEventListener("click", e => {
   const b = e.target.closest("[data-o]"); if(!b) return;
   const v = b.dataset.o;
   if(v === "start") return obNext();
-  if(v === "skipall") return closeOb();
-  if(v === "apply"){ applyGrades(); closeOb(); showTab(t.cls ? "sched" : "grades", true); toast("Ton année est configurée"); return; }
-  if(v === "finish"){ closeOb(); showTab(t.cls ? "sched" : "grades", true); return; }
+  if(v === "skipall"){ closeOb(); if(!state.tutDone) setTimeout(startTutorial, 400); return; }
+  if(v === "apply"){ applyGrades(); closeOb(); showTab(t.cls ? "sched" : "grades", true); if(!state.tutDone) setTimeout(startTutorial, 500); else toast("Ton année est configurée"); return; }
+  if(v === "finish"){ closeOb(); showTab(t.cls ? "sched" : "grades", true); if(!state.tutDone) setTimeout(startTutorial, 500); return; }
   if(v === "lpok"){ if(lockCommit && lockCommit()) obNext(); return; }
   if(v === "slotsok"){ if(t.ocSlots && !t.ocSlots.length) t.ocSlots = null; save(); return obNext(); }
   if(v === "skip"){
@@ -1498,6 +1574,7 @@ if(state.ob && state.ob.step){
   obStep = obSteps().includes(state.ob.step) ? state.ob.step : "welcome";
   $("ob").classList.add("on"); drawOb(0);
 } else if(!state.onboarded) openOnboarding();
+else if(!state.tutDone) setTimeout(startTutorial, 700);
 if("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
 </script>
 </body>
