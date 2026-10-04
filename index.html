@@ -922,7 +922,7 @@ function lockedSheet(){
   $("lpSave").onclick = () => { if(commit()){ closeSheet(); refreshAll(); toast("Enregistré"); } };
   if($("lpClear")) $("lpClear").onclick = () => { state.lockedPoints = null; save(); closeSheet(); refreshAll(); };
 }
-const FEEDBACK_EMAIL = "";   // ← adresse qui reçoit les feedbacks
+const FEEDBACK_EMAIL = "gradesapp@outlook.com";   // ← adresse qui reçoit les feedbacks
 const APP_VERSION = "1.14";
 function feedbackSheet(kind, text){
   const kinds = [["bug","Un bug"],["idee","Une idée"],["horaire","Horaire faux"],["autre","Autre"]];
