@@ -261,12 +261,27 @@ function migrate(st){
   st.subjects.splice(at, 0, combo);
   return st;
 }
+function dedupe(st){
+  const seen = new Map(), out = [];
+  st.subjects.forEach(x => {
+    const k = x.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z]/g, "");
+    const first = seen.get(k);
+    if(!first){ seen.set(k, x); out.push(x); return; }
+    const ids = new Set(first.grades.map(g => g.id));
+    x.grades.forEach(g => { if(!ids.has(g.id)) first.grades.push(g); });
+    first.counts = first.counts || x.counts; if(x.parts && !first.parts) first.parts = x.parts;
+    (st.tests || []).forEach(t => { if(t.sid === x.id) t.sid = first.id; });
+  });
+  st.subjects = out; return st;
+}
 function lockedMig(st){
   if(!st.lockMig){ const L = st.locked || []; if(st.lockedPoints == null && L.length && L.every(l => l.g != null)) st.lockedPoints = L.reduce((a,l) => a + l.g, 0); st.lockMig = true; }
+  if(st.lockedUnder && st.lockedUnder.length && st.lockedPoints != null){ st.lockedPoints -= st.lockedUnder.reduce((a,v) => a + (4 - v), 0); }
+  st.lockedUnder = [];
   return st;
 }
 function load(){
-  try{ const s = JSON.parse(localStorage.getItem(KEY)); if(s && s.v === 1 && Array.isArray(s.subjects)){ const d = defaults(); return Object.assign(d, migrate(lockedMig(s)), {settings:Object.assign(d.settings, s.settings || {})}); } }catch(e){}
+  try{ const s = JSON.parse(localStorage.getItem(KEY)); if(s && s.v === 1 && Array.isArray(s.subjects)){ const d = defaults(); return Object.assign(d, dedupe(migrate(lockedMig(s))), {settings:Object.assign(d.settings, s.settings || {})}); } }catch(e){}
   return lockedMig(defaults());
 }
 let state = load();
@@ -298,14 +313,14 @@ function overall(){
   const items = [], missing = [];
   state.subjects.forEach(s => { if(!s.counts) return; const f = final(s); if(f != null) items.push({name:s.name, g:f}); else missing.push(s.name); });
   if(state.tm.g != null) items.push({name:"TM", g:state.tm.g}); else missing.push("TM");
-  const lp = state.lockedPoints, lu = lp != null ? (state.lockedUnder || []) : [];
+  const lp = state.lockedPoints, lu = [];
   if(!items.length && lp == null) return null;
-  if(lp == null) missing.push("notes de 2e année");
+  if(lp == null) missing.push("points des notes bloquées");
   const n = items.length + (lp != null ? 3 : 0);
   const raw = items.reduce((a,x) => a + x.g, 0) + (lp || 0);
   const comp = items.reduce((a,x) => a + Math.max(0, 4 - x.g), 0) + lu.reduce((a,v) => a + (4 - v), 0);
   const total = raw - comp, need = 4 * n;
-  const under = items.filter(x => x.g < 4).concat(lu.map(v => ({name:"note de 2e année (" + f2(v) + ")", g:v})));
+  const under = items.filter(x => x.g < 4);
   return {raw, comp, total, need, n, expected:n + missing.length + (lp == null ? 2 : 0), missing, under, avg:raw / n};
 }
 function needed(s, target, w, part){
@@ -357,7 +372,7 @@ function renderHome(){
 
   { const lp = state.lockedPoints;
   h += `<h2>Notes bloquées<small>2e année, comptent dans le total</small></h2><div class="list">
-    <button class="row" data-act="lockedpts">${lockSvg}<div class="rname"><b>Chimie, physique, arts</b><span>Total des 3 notes</span></div><div class="rval ${lp != null ? "" : "none"}">${lp != null ? f2(lp) + "<small>points</small>" : "Ajouter"}</div></button></div>`; }
+    <button class="row" data-act="lockedpts">${lockSvg}<div class="rname"><b>Chimie, physique, arts</b><span>Points en plus pour cette année</span></div><div class="rval ${lp == null ? "none" : lp - 12 > 0 ? "c-green" : lp - 12 < 0 ? "c-red" : ""}">${lp != null ? bonusTxt(lp - 12) : "Ajouter"}</div></button></div>`; }
 
   if(extra.length) h += `<h2>Hors total<small>Ne compte pas dans le total</small></h2><div class="list">${extra.map(rowHTML).join("")}</div>`;
   $("main").innerHTML = h;
@@ -835,7 +850,7 @@ const sDate = () => dayDate(sDay);
 function daysUntil(x){ return Math.round((fromIso(x) - fromIso(todayIso())) / 86400000); }
 function whenTxt(x){ const n = daysUntil(x), d = fromIso(x);
   if(n === 0) return "Aujourd'hui"; if(n === 1) return "Demain"; if(n === -1) return "Hier";
-  if(n < 0) return fmtD(d); if(n < 7) return DAYNAMES[(d.getDay() + 6) % 7] + " " + fmtD(d); return fmtD(d) + ", dans " + n + " jours"; }
+  if(n < 0) return fmtD(d); if(n < 7) return ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"][d.getDay()] + " " + fmtD(d); return fmtD(d) + ", dans " + n + " jours"; }
 
 /* ============ tests ============ */
 function tests(){ if(!state.tests) state.tests = []; return state.tests; }
@@ -875,31 +890,25 @@ function testSheet(id, preset){
   if($("tsDel")) $("tsDel").onclick = () => { const i = tests().indexOf(ex); tests().splice(i, 1); save(); closeSheet(); refreshAll();
     toast("Test supprimé", {label:"Annuler", fn:() => { tests().splice(i, 0, ex); save(); refreshAll(); }}); };
 }
-const UNDER = [3.5, 3, 2.5, 2, 1.5, 1];
+const bonusTxt = b => (b > 0 ? "+" : b < 0 ? "−" : "") + f2(Math.abs(Math.round(b * 100) / 100));
+const BONUS = [-1, -0.5, 0, 0.5, 1, 1.5, 2, 2.5, 3];
 function lockedFields(){
-  const lu = state.lockedUnder || [];
-  return `<input class="gradein" id="lpIn" inputmode="decimal" placeholder="13.5" value="${state.lockedPoints ?? ""}">
-    <p class="note" style="margin-top:8px">Exemple : 4,5 + 4 + 5 = 13,5 points.</p>
-    <span class="lab2">Une de ces notes est sous 4 ?</span>
-    <div class="chips" id="luChips"><button class="chip" data-u="none" aria-pressed="${!lu.length}">Non</button>${UNDER.map(v => `<button class="chip" data-u="${v}" aria-pressed="${lu.includes(v)}">${f2(v)}</button>`).join("")}</div>
-    <p class="note">Touche chaque note sous 4. Elle compte double dans le calcul, comme sur le bulletin.</p>`;
+  const cur = state.lockedPoints != null ? Math.round((state.lockedPoints - 12) * 100) / 100 : null;
+  return `<div class="chips" id="bnChips">${BONUS.map(v => `<button class="chip" data-b="${v}" aria-pressed="${cur === v}">${bonusTxt(v)}</button>`).join("")}</div>
+    <p class="note">Exemple : 4,5 en chimie, 4 en physique et 4 en musique, ça fait +0,5.</p>`;
 }
 function bindLocked(){
-  let lu = [...(state.lockedUnder || [])];
-  $("luChips").onclick = e => { const c = e.target.closest(".chip"); if(!c) return;
-    if(c.dataset.u === "none") lu = []; else { const v = +c.dataset.u; lu = lu.includes(v) ? lu.filter(x => x !== v) : (lu.length < 3 ? [...lu, v] : lu); }
-    $("luChips").querySelectorAll(".chip").forEach(x => x.setAttribute("aria-pressed", x.dataset.u === "none" ? !lu.length : lu.includes(+x.dataset.u))); };
-  return () => { const raw = $("lpIn").value.trim(), x = num(raw);
-    if(raw && (x == null || x < 3 || x > 18)){ toast("Entre un total entre 3 et 18"); return false; }
-    if(raw && lu.length && lu.reduce((a,v) => a + v, 0) > x){ toast("Le total est plus petit que tes notes sous 4"); return false; }
-    state.lockedPoints = raw ? x : null; state.lockedUnder = raw ? lu : []; save(); return true; };
+  let pick = state.lockedPoints != null ? Math.round((state.lockedPoints - 12) * 100) / 100 : null;
+  $("bnChips").onclick = e => { const c = e.target.closest(".chip"); if(!c) return; pick = +c.dataset.b;
+    $("bnChips").querySelectorAll(".chip").forEach(x => x.setAttribute("aria-pressed", x === c)); };
+  return () => { if(pick == null){ toast("Choisis combien de points tu as en plus"); return false; } state.lockedPoints = 12 + pick; save(); return true; };
 }
 function lockedSheet(){
-  openSheet(`<h3>Notes bloquées de 2e année</h3><p class="note" style="margin:0 0 10px">Additionne tes notes finales de chimie, de physique et d'arts visuels ou de musique.</p>${lockedFields()}
+  openSheet(`<h3>Notes bloquées de 2e année</h3><p class="note" style="margin:0 0 10px">Combien de points en plus tes notes de chimie, physique et arts te donnent cette année ?</p>${lockedFields()}
     <button class="primary" id="lpSave">Enregistrer</button>${state.lockedPoints != null ? `<button class="secondary danger" id="lpClear">Effacer</button>` : ""}`);
   const commit = bindLocked();
   $("lpSave").onclick = () => { if(commit()){ closeSheet(); refreshAll(); toast("Enregistré"); } };
-  if($("lpClear")) $("lpClear").onclick = () => { state.lockedPoints = null; state.lockedUnder = []; save(); closeSheet(); refreshAll(); };
+  if($("lpClear")) $("lpClear").onclick = () => { state.lockedPoints = null; save(); closeSheet(); refreshAll(); };
 }
 function refreshAll(){ renderHome(); if(openId) renderSubject(); if(tab === "sched") renderSched(); }
 
@@ -1076,7 +1085,7 @@ function drawOb(dir){
     case "tp": { const rooms = GROUPS[effOS()].L.map(x => parseL(x)).filter(x => x.tags.tp);
       h = `<h2>Groupe de TP biologie-chimie</h2><p>La classe se divise en deux pour les travaux pratiques.</p>${rooms.map(r => opt(r.tags.tp, "Groupe TP " + r.tags.tp, "Salle " + r.room, t.ans.tp === r.tags.tp)).join("")}`; break; }
     case "locked":
-      h = `<h2>Tes notes bloquées de 2e année</h2><p>Additionne tes notes finales de chimie, de physique et d'arts visuels ou de musique. Elles comptent pour 3 notes dans ton total.</p>
+      h = `<h2>Tes notes bloquées de 2e année</h2><p>Combien de points en plus tes notes de chimie, physique et arts te donnent cette année ?</p>
         ${lockedFields()}<button class="primary" data-o="lpok">Continuer</button>`; break;
     case "oc": { const os = osOf(effOS()), hide = os ? os.noOC : [];
       h = `<h2>Ton option complémentaire</h2><p>Ton option de 3e année, le jeudi après-midi.</p>${OC_LIST.filter(o => !hide.includes(o)).map(o => opt(o, o, ocWhen(o), t.oc === o)).join("")}`; break; }
@@ -1084,7 +1093,7 @@ function drawOb(dir){
       h = `<h2>Quels cours de ${esc(t.oc.toLowerCase())} sont les tiens ?</h2><p>Cette option a plusieurs blocs. Coche les tiens.</p>${sl.map((x, k) => `<button class="opt multi" data-m="${k}" aria-pressed="${sel.includes(k)}"><b>${esc(slotText(x))}</b></button>`).join("")}<button class="primary" data-o="slotsok">Continuer</button>`; break; }
     case "done": { skip = false;
       const hasGrades = state.subjects.some(x => x.grades.length) || state.tm.g != null;
-      const rows = [["Classe", t.cls], ["Maths", t.ans.math], ["Histoire", t.ans.hist], ["Langue 2", t.ans.l2 ? GROUPS[t.ans.l2].label + " " + t.ans.l2 : null], ["Groupe d'anglais", t.ans.ab], ["Option spécifique", effOS() ? osLabel(effOS()) : null], ["Groupe TP", t.ans.tp], ["Notes de 2e année", state.lockedPoints != null ? f2(state.lockedPoints) + " points" : null], ["Option complémentaire", t.oc]];
+      const rows = [["Classe", t.cls], ["Maths", t.ans.math], ["Histoire", t.ans.hist], ["Langue 2", t.ans.l2 ? GROUPS[t.ans.l2].label + " " + t.ans.l2 : null], ["Groupe d'anglais", t.ans.ab], ["Option spécifique", effOS() ? osLabel(effOS()) : null], ["Groupe TP", t.ans.tp], ["Notes de 2e année", state.lockedPoints != null ? bonusTxt(state.lockedPoints - 12) + (Math.abs(state.lockedPoints - 12) > 1 ? " points" : " point") : null], ["Option complémentaire", t.oc]];
       h = `<h2>C'est prêt</h2><div class="list" style="margin:6px 0 16px">${rows.map(([k, v]) => `<div class="row" style="cursor:default"><div class="rname"><b>${k}</b></div><span class="${v ? "" : "muted"}">${v ? esc(v) : "Tous / plus tard"}</span></div>`).join("")}</div>
         ${hasGrades ? `<p>Tu as déjà des notes. Mettre à jour tes branches selon ces réponses ? Tes notes sont gardées.</p><button class="primary" data-o="apply">Mettre à jour et terminer</button><button class="secondary" data-o="finish">Garder mes branches</button>`
                     : `<button class="primary" data-o="apply">Terminer</button>`}`; break; }
@@ -1109,7 +1118,7 @@ $("obSlide").addEventListener("click", e => {
   if(v === "slotsok"){ if(t.ocSlots && !t.ocSlots.length) t.ocSlots = null; save(); return obNext(); }
   if(v === "skip"){
     if(obStep === "class"){ t.cls = null; t.ans = {}; }
-    else if(obStep === "locked"){ state.lockedPoints = null; state.lockedUnder = []; }
+    else if(obStep === "locked") state.lockedPoints = null;
     else if(obStep === "oc"){ t.oc = null; t.ocSlots = null; }
     else if(obStep === "ocslots") t.ocSlots = null;
     else delete t.ans[obStep];
@@ -1142,7 +1151,7 @@ function applyGrades(){
     return Object.assign({id:uid(), name:w.name, counts:true, grades:[]}, w.parts ? {parts:w.parts.map(p => ({...p}))} : {});
   });
   old.forEach(o => { if(!used.has(o) && o.grades.length){ o.counts = false; subjects.push(o); } });
-  state.subjects = subjects; save();
+  state.subjects = subjects; dedupe(state); save();
 }
 
 showTab(tab, false);
