@@ -25,7 +25,7 @@
 }
 *,*::before,*::after{box-sizing:inherit}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent;overscroll-behavior-y:contain}
-button,input,select{font:inherit;color:inherit}
+button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer;-webkit-user-select:none;user-select:none}
 input{outline:none}
 input:focus{box-shadow:0 0 0 2px var(--ink)}
@@ -131,6 +131,9 @@ nav.tabs{position:fixed;left:0;right:0;bottom:0;background:#000;box-shadow:0 -1p
 .ldrop .testc{margin:6px 0 0 22px;width:calc(100% - 22px);box-shadow:inset 4px 0 0 var(--red)}
 .ldrop .testc .tl{color:var(--red)}
 input[type=date].inp{color-scheme:dark}
+textarea.inp.area{height:auto;min-height:120px;padding:12px 14px;resize:vertical;line-height:1.4}
+label.check{display:flex;align-items:center;gap:10px;margin:14px 0 0;font-size:14px;color:var(--muted)}
+label.check input{width:20px;height:20px;accent-color:#32D74B}
 .empty2 b{font-size:18px} .empty2 p{color:var(--muted);margin:6px 0 4px}
 /* onboarding */
 .ob{position:fixed;inset:0;background:#000;z-index:8;display:none}
@@ -505,6 +508,7 @@ function settingsSheet(){
   const st = state.settings;
   openSheet(`<h3>Réglages</h3>
     <div class="setting"><p>Arrondir les moyennes au demi-point<small>Comme sur le bulletin</small></p><button class="switch" role="switch" id="roundSw" aria-checked="${st.round}"></button></div>
+    <button class="secondary" id="fbOpen" style="margin:6px 0 4px">Envoyer un feedback</button>
     <span class="lab2">Horaire et options</span>
     <div class="row2"><button class="secondary" id="redo" style="margin:0">Refaire la configuration</button><button class="secondary" id="unhide" style="margin:0">Cours masqués${tt().hidden.length ? " (" + tt().hidden.length + ")" : ""}</button></div>
     <span class="lab2">Branches</span><div id="subList"></div>
@@ -517,6 +521,7 @@ function settingsSheet(){
   $("roundSw").onclick = e => { st.round = !st.round; e.target.setAttribute("aria-checked", st.round); save(); refresh(); };
   $("addSub").onclick = () => { const n = $("newSub").value.trim(); if(!n) return; state.subjects.push({id:uid(), name:n, counts:true, grades:[]}); $("newSub").value = ""; save(); drawManage(); renderHome(); };
   $("redo").onclick = () => { closeSheet(); openOnboarding("class"); };
+  $("fbOpen").onclick = () => { closeSheet(); setTimeout(() => feedbackSheet(), 260); };
   $("unhide").onclick = () => { const n = tt().hidden.length; tt().hidden = []; tt().rooms = {}; save(); closeSheet(); renderSched(); toast(n ? "Les cours masqués sont de retour" : "Aucun cours masqué"); };
   $("exp").onclick = exportData; $("imp").onclick = () => $("importFile").click();
   $("wipe").onclick = () => { if(confirm("Effacer toutes les notes et les branches ?") && confirm("C'est définitif. Tout effacer ?")){ state = defaults(); save(); closeSheet(); refresh(); renderSched(); toast("Tout a été effacé"); } };
@@ -917,6 +922,27 @@ function lockedSheet(){
   $("lpSave").onclick = () => { if(commit()){ closeSheet(); refreshAll(); toast("Enregistré"); } };
   if($("lpClear")) $("lpClear").onclick = () => { state.lockedPoints = null; save(); closeSheet(); refreshAll(); };
 }
+const FEEDBACK_EMAIL = "";   // ← adresse qui reçoit les feedbacks
+const APP_VERSION = "1.14";
+function feedbackSheet(kind, text){
+  const kinds = [["bug","Un bug"],["idee","Une idée"],["horaire","Horaire faux"],["autre","Autre"]];
+  let k = kind || "idee";
+  openSheet(`<h3>Feedback</h3><p class="note" style="margin:0 0 4px">Un bug, une idée, un cours au mauvais endroit ? Dis-le, ça aide à améliorer l'app.</p>
+    <span class="lab2">C'est quoi ?</span><div class="chips" id="fbK">${kinds.map(([v, l]) => `<button class="chip" data-v="${v}" aria-pressed="${k === v}">${l}</button>`).join("")}</div>
+    <span class="lab2">Ton message</span><textarea class="inp area" id="fbT" rows="5" placeholder="Explique ce qui se passe ou ce que tu aimerais voir.">${esc(text || "")}</textarea>
+    <label class="check"><input type="checkbox" id="fbInfo" checked><span>Joindre ma classe et mes options, pour corriger plus vite</span></label>
+    <button class="primary" id="fbSend">Envoyer</button>`);
+  $("fbK").onclick = e => { const c = e.target.closest(".chip"); if(!c) return; k = c.dataset.v; $("fbK").querySelectorAll(".chip").forEach(x => x.setAttribute("aria-pressed", x === c)); };
+  $("fbSend").onclick = () => {
+    const msg = $("fbT").value.trim(); if(!msg){ toast("Écris un petit message d'abord"); $("fbT").focus(); return; }
+    const t = tt(), label = kinds.find(x => x[0] === k)[1];
+    let body = msg + "\n\n---\nType : " + label + "\nVersion : " + APP_VERSION;
+    if($("fbInfo").checked) body += "\nClasse : " + (t.cls || "-") + "\nOptions : " + (Object.entries(t.ans).map(([a, b]) => a + "=" + b).join(", ") || "-") + "\nOC : " + (t.oc || "-");
+    if(!FEEDBACK_EMAIL){ toast("Le feedback n'est pas encore configuré"); return; }
+    location.href = "mailto:" + FEEDBACK_EMAIL + "?subject=" + encodeURIComponent("Feedback app gymnase : " + label) + "&body=" + encodeURIComponent(body);
+    closeSheet(); toast("Ton app mail s'ouvre, il reste à envoyer");
+  };
+}
 function refreshAll(){ renderHome(); if(openId) renderSubject(); if(tab === "sched") renderSched(); }
 
 /* ============ schedule view ============ */
@@ -1014,7 +1040,9 @@ function lessonSheet(key){
     <button class="secondary" id="lsAddTest" style="margin-top:2px">+ Ajouter un test</button>` : ""}
     <span class="lab2">Salle</span><input class="inp" id="roomIn" value="${esc(l.room)}" placeholder="p. ex. S2.14">
     <button class="primary" id="roomSave">Enregistrer</button>
-    <button class="secondary ${l.extra ? "danger" : ""}" id="hideL">${l.extra ? "Supprimer ce cours" : "Masquer ce cours"}</button>`);
+    <button class="secondary ${l.extra ? "danger" : ""}" id="hideL">${l.extra ? "Supprimer ce cours" : "Masquer ce cours"}</button>
+    <button class="textlink" id="lsReport">Signaler une erreur dans ce cours</button>`);
+  $("lsReport").onclick = () => { closeSheet(); setTimeout(() => feedbackSheet("horaire", `${l.name}, ${DAYNAMES[l.day].toLowerCase()} de ${PERIODS[l.p1][0]} à ${PERIODS[l.p2][1]}, salle ${l.room || "?"} : `), 260); };
   if($("lsAddTest")) $("lsAddTest").onclick = () => { closeSheet(); setTimeout(() => testSheet(null, {sid:ls.id, date:iso(dayDate(l.day))}), 260); };
   $("sheetBody").querySelectorAll('[data-ls="test"]').forEach(b => b.onclick = () => { closeSheet(); setTimeout(() => testSheet(b.dataset.id), 260); });
   $("roomSave").onclick = () => { const t = tt(), v = $("roomIn").value.trim();
@@ -1061,7 +1089,7 @@ function obSteps(){
   return s;
 }
 function openOnboarding(start){ obHist = []; obStep = start || "welcome"; $("ob").classList.add("on"); drawOb(0); }
-function closeOb(){ $("ob").classList.remove("on"); state.onboarded = true; save(); showTab(tab, false); }
+function closeOb(){ $("ob").classList.remove("on"); state.onboarded = true; state.ob = null; save(); showTab(tab, false); }
 function obNext(){ const s = obSteps(), i = s.indexOf(obStep); obHist.push(obStep); obStep = s[Math.min(s.length - 1, i + 1)]; drawOb(1); }
 function obBack(){ if(!obHist.length){ closeOb(); return; } obStep = obHist.pop(); drawOb(-1); }
 const opt = (v, label, hint, on) => `<button class="opt" data-o="${esc(v)}" aria-pressed="${!!on}"><b>${esc(label)}</b>${hint ? `<span>${esc(hint)}</span>` : ""}</button>`;
@@ -1107,6 +1135,7 @@ function drawOb(dir){
   }
   if(skip) h += `<button class="textlink" data-o="skip">Passer, je le ferai plus tard</button>`;
   const el = $("obSlide"); el.innerHTML = h; el.scrollTop = 0;
+  state.ob = {step:obStep, hist:obHist}; save();
   lockCommit = obStep === "locked" ? bindLocked() : null;
   if(dir && el.animate && !matchMedia("(prefers-reduced-motion: reduce)").matches)
     el.animate([{transform:`translateX(${dir * 50}px)`, opacity:0}, {transform:"none", opacity:1}], {duration:260, easing:"cubic-bezier(.2,.8,.2,1)"});
@@ -1162,7 +1191,12 @@ function applyGrades(){
 }
 
 showTab(tab, false);
-if(!state.onboarded) openOnboarding();
+if(state.ob && state.ob.step){
+  // the app was closed in the middle of the setup: continue where it stopped
+  obHist = (state.ob.hist || []).filter(x => obSteps().includes(x));
+  obStep = obSteps().includes(state.ob.step) ? state.ob.step : "welcome";
+  $("ob").classList.add("on"); drawOb(0);
+} else if(!state.onboarded) openOnboarding();
 if("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
 </script>
 </body>
