@@ -237,14 +237,23 @@ function defaults(){
   return {v:1,
     subjects: SUBJECTS.map(n => ({id:uid(), name:n, counts:true, grades:[]})),
     tm:{g:null},
-    locked:[], lockedPoints:null, lockMig:true,
+    locked:[], lockedPoints:null, lockMig:true, ppMig:true,
     settings:{bonus:0.5, round:true, lastSub:null, lastW:1}};
 }
 function migrate(st){
-  // merge separate Philosophie + Psychologie into one combined subject (3/5 + 2/5)
+  // One-time upgrade from the very first version, where Philosophie and Psychologie were two separate subjects.
+  if(st.ppMig) return st;
+  st.ppMig = true;
+  // Repair: an earlier update could wrongly turn the Philosophie discipline into "Philo & Psycho"
+  // for students whose option spécifique isn't philo-psycho.
+  const osAns = st.tt && st.tt.ans && st.tt.ans.os;
+  const combo0 = st.subjects.find(x => x.parts && x.name === "Philo & Psycho");
+  if(combo0 && osAns && !/^3MSPP/.test(osAns) && !st.subjects.some(x => /^philosophie$/i.test(x.name))){
+    combo0.name = "Philosophie"; delete combo0.parts; combo0.grades.forEach(g => delete g.part); return st;
+  }
   if(st.subjects.some(x => x.parts)) return st;
   const ph = st.subjects.find(x => /^philo/i.test(x.name)), ps = st.subjects.find(x => /^psycho/i.test(x.name));
-  if(!ph && !ps) return st;
+  if(!ps) return st;
   const combo = {id:uid(), name:"Philo & Psycho", counts:true, parts:PP_PARTS.map(x => ({...x})),
     grades:[...(ph ? ph.grades.map(g => ({...g, part:"philo"})) : []), ...(ps ? ps.grades.map(g => ({...g, part:"psycho"})) : [])].sort((a,b) => a.date < b.date ? -1 : 1)};
   const at = st.subjects.indexOf(ph || ps);
@@ -257,7 +266,7 @@ function lockedMig(st){
   return st;
 }
 function load(){
-  try{ const s = JSON.parse(localStorage.getItem(KEY)); if(s && s.v === 1 && Array.isArray(s.subjects)){ const d = defaults(); return migrate(Object.assign(d, lockedMig(s), {settings:Object.assign(d.settings, s.settings || {})})); } }catch(e){}
+  try{ const s = JSON.parse(localStorage.getItem(KEY)); if(s && s.v === 1 && Array.isArray(s.subjects)){ const d = defaults(); return Object.assign(d, migrate(lockedMig(s)), {settings:Object.assign(d.settings, s.settings || {})}); } }catch(e){}
   return lockedMig(defaults());
 }
 let state = load();
@@ -356,7 +365,7 @@ function renderHome(){
 function rowHTML(s){
   const a = avg(s), f = final(s), n = s.grades.length;
   const showExact = a != null && state.settings.round && Math.abs(a - f) > 0.001;
-  return `<button class="row" data-act="open" data-id="${s.id}"><div class="rname"><b>${esc(s.name)}</b><span>${s.parts ? s.parts.map(p => p.name.slice(0,5) + ". " + shareTxt(s, p)).join(", ") + (n ? ", " + n + (n > 1 ? " notes" : " note") : "") : n ? n + (n > 1 ? " notes" : " note") : "Pas encore de note"}</span></div>
+  return `<button class="row" data-act="open" data-id="${s.id}"><div class="rname"><b>${esc(s.name)}</b><span>${s.parts ? "Option spécifique, " + s.parts.map(p => p.name.slice(0,5).toLowerCase() + ". " + shareTxt(s, p)).join(", ") + (n ? ", " + n + (n > 1 ? " notes" : " note") : "") : n ? n + (n > 1 ? " notes" : " note") : "Pas encore de note"}</span></div>
     <div class="rval ${a == null ? "none" : col(f)}">${a == null ? "–" : f2(f)}${showExact ? `<small>${f2(Math.round(a*100)/100)}</small>` : ""}</div></button>`;
 }
 
@@ -554,7 +563,7 @@ $("importFile").onchange = async e => {
   const f = e.target.files[0]; e.target.value = ""; if(!f) return;
   try{ const d = JSON.parse(await f.text()); if(!d || !Array.isArray(d.subjects)) throw 0;
     if(!confirm("Remplacer tes données par cette sauvegarde ?")) return;
-    const x = defaults(); state = migrate(Object.assign(x, lockedMig(d), {settings:Object.assign(x.settings, d.settings || {})})); save(); closeSheet(); refresh(); renderSched(); toast("Sauvegarde importée");
+    const x = defaults(); state = Object.assign(x, migrate(lockedMig(d)), {settings:Object.assign(x.settings, d.settings || {})}); save(); closeSheet(); refresh(); renderSched(); toast("Sauvegarde importée");
   }catch(err){ toast("Ce fichier n'est pas une sauvegarde de l'app"); }
 };
 
@@ -610,8 +619,8 @@ const GROUPS = {
   "3MSBC3":{dim:"os", label:"Biologie et chimie", L:["Mon 7-8 Chimie (OS) @S3.13","Tue 7-8 Biologie-Chimie TP @S3.10 #tp=1","Tue 7-8 Biologie-Chimie TP @S3.07 #tp=2"]},
   "3MSPM1":{dim:"os", label:"Physique et applications des maths", L:["Tue 7-8 Applications des maths @S2.08","Thu 1-2 Physique (OS) @S3.06","Fri 7 Physique TP @S3.03"]},
   "3MSPM2":{dim:"os", label:"Physique et applications des maths", L:["Mon 9-10 Applications des maths @S2.12","Tue 7-8 Physique (OS) @S3.06","Fri 1-2 Physique TP @S3.01"]},
-  "3MSPP1":{dim:"os", label:"Philosophie et psychologie", L:["Mon 9 Philosophie (OS) @S2.01","Tue 7-8 Psychologie @S1.19","Fri 1-2 Philosophie (OS) @S1.09"]},
-  "3MSPP2":{dim:"os", label:"Philosophie et psychologie", L:["Mon 9 Philosophie (OS)","Tue 7-8 Philosophie (OS) @S1.07","Fri 1-2 Psychologie @S1.07"]},
+  "3MSPP1":{dim:"os", label:"Philosophie et psychologie", L:["Mon 9 Philosophie (OS) @S2.01","Tue 7-8 Psychologie (OS) @S1.19","Fri 1-2 Philosophie (OS) @S1.09"]},
+  "3MSPP2":{dim:"os", label:"Philosophie et psychologie", L:["Mon 9 Philosophie (OS)","Tue 7-8 Philosophie (OS) @S1.07","Fri 1-2 Psychologie (OS) @S1.07"]},
   "3MSED1":{dim:"os", label:"Économie et droit", L:["Mon 9 Économie et droit","Tue 7-8 Économie et droit @S2.03","Fri 1-2 Économie et droit @S2.03"]},
   "3MSED2":{dim:"os", label:"Économie et droit", L:["Tue 9-10 Économie et droit @S2.17","Wed 1-2 Économie et droit @S2.17","Fri 3 Économie et droit @S2.17"]},
   "3MSED3":{dim:"os", label:"Économie et droit", L:["Tue 7-8 Économie et droit @S2.20","Wed 5 Économie et droit @S2.02","Fri 1-2 Économie et droit @S2.07"]},
