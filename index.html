@@ -1448,7 +1448,7 @@ function addLessonSheet(){
 /* ============ onboarding ============ */
 let obStep = null, obHist = [], lockCommit = null;
 function obSteps(){
-  const t = tt(), s = ["welcome", "class"];
+  const t = tt(), s = ["intro", "welcome", "class"];
   if(t.cls){
     if(groupsOf(t.cls, "math").length > 1) s.push("math");
     if(groupsOf(t.cls, "hist").length > 1) s.push("hist");
@@ -1464,7 +1464,7 @@ function obSteps(){
   s.push("done");
   return s;
 }
-function openOnboarding(start){ obHist = []; obStep = start || "welcome"; $("ob").classList.add("on"); drawOb(0); }
+function openOnboarding(start){ obHist = []; obStep = start || "intro"; $("ob").classList.add("on"); drawOb(0); }
 function closeOb(){ $("ob").classList.remove("on"); state.onboarded = true; state.ob = null; save(); showTab(tab, false); }
 function obNext(){ const s = obSteps(), i = s.indexOf(obStep); obHist.push(obStep); obStep = s[Math.min(s.length - 1, i + 1)]; drawOb(1); }
 function obBack(){ if(!obHist.length){ closeOb(); return; } obStep = obHist.pop(); drawOb(-1); }
@@ -1473,9 +1473,18 @@ function slotText(s){ const l = parseL(s); return `${DAYNAMES[l.day]}, de ${PERI
 function drawOb(dir){
   const t = tt(), s = obSteps(), i = Math.max(0, s.indexOf(obStep));
   $("obProg").style.width = (i / (s.length - 1) * 100) + "%";
-  $("obBack").style.visibility = obStep === "welcome" ? "hidden" : "visible";
+  $("obBack").style.visibility = obStep === "intro" ? "hidden" : "visible";
   let h = "", skip = true;
   switch(obStep){
+    case "intro": skip = false;
+      h = `<div class="obhero">🎓</div><h2>Bienvenue</h2><p>Une app pour les élèves du gymnase, de la 3M01 à la 3M14. Tout ce qu'il te faut au quotidien, au même endroit.</p>
+        <div class="list" style="margin:0 0 18px">
+          <div class="row" style="cursor:default"><div class="rname"><b>📅 Horaire</b><span class="muted">Ta semaine avec les vraies dates, les vacances vaudoises et le prochain cours.</span></div></div>
+          <div class="row" style="cursor:default"><div class="rname"><b>✅ Agenda</b><span class="muted">Tes tests (TE) et devoirs (DV), avec export vers Google Agenda.</span></div></div>
+          <div class="row" style="cursor:default"><div class="rname"><b>📊 Notes</b><span class="muted">Tes moyennes, la compensation de la maturité vaudoise et un simulateur d'examens.</span></div></div>
+        </div>
+        <p class="muted">Tes données restent sur ton téléphone. L'app ne demande aucun compte.</p>
+        <button class="primary" data-o="start">Suivant</button>`; break;
     case "welcome": skip = false;
       h = `<div class="obhero">📅</div><h2>Configure ton année</h2><p>Choisis ta classe et tes options une seule fois. Ton horaire et tes 14 notes de maturité se mettent en place tout seuls.</p><p class="muted">Tu peux passer chaque question. Une question passée affiche tous les groupes, et tout se modifie plus tard dans les réglages.</p>
         <button class="primary" data-o="start">Commencer</button><button class="textlink" data-o="skipall">Passer la configuration</button>`; break;
@@ -1571,7 +1580,7 @@ showTab(tab, false);
 if(state.ob && state.ob.step){
   // the app was closed in the middle of the setup: continue where it stopped
   obHist = (state.ob.hist || []).filter(x => obSteps().includes(x));
-  obStep = obSteps().includes(state.ob.step) ? state.ob.step : "welcome";
+  obStep = obSteps().includes(state.ob.step) ? state.ob.step : "intro";
   $("ob").classList.add("on"); drawOb(0);
 } else if(!state.onboarded) openOnboarding();
 else if(!state.tutDone) setTimeout(startTutorial, 700);
