@@ -273,10 +273,10 @@ label.check input{width:20px;height:20px;accent-color:#32D74B}
 .primary{width:100%;height:54px;border:0;border-radius:var(--r);background:var(--ink);color:var(--onink);font-weight:700;font-size:17px;margin-top:18px}
 .secondary{width:100%;height:48px;border:0;border-radius:14px;background:var(--sunk);font-weight:600;font-size:15px;margin-top:8px}
 .danger{color:var(--red)}
-.switch{width:50px;height:30px;border-radius:999px;border:0;background:var(--raise);position:relative;flex:none;transition:background .15s}
-.switch::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:transform .15s}
+.switch{width:50px;height:30px;padding:0;border-radius:999px;border:0;background:var(--raise);position:relative;flex:none;transition:background .15s}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:left .15s}
 .switch[aria-checked="true"]{background:var(--green)}
-.switch[aria-checked="true"]::after{transform:translateX(20px)}
+.switch[aria-checked="true"]::after{left:calc(100% - 27px)}
 .setting{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:12px 0}
 .setting+.setting{box-shadow:inset 0 1px 0 var(--line)}
 .setting p{margin:0}
@@ -299,12 +299,9 @@ label.check input{width:20px;height:20px;accent-color:#32D74B}
 .toast.on{display:block}
 .tact{background:none;border:0;font-weight:700;text-decoration:underline;color:inherit;margin-left:10px;padding:0}
 .c-red{color:var(--red)} .c-amber{color:var(--amber)} .c-green{color:var(--green)}
-.scat{box-shadow:inset 0 0 0 1.5px var(--raise);border-radius:16px;margin-bottom:8px}
-.scat summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:15px 18px;font-weight:600;font-size:16px}
-.scat summary::-webkit-details-marker{display:none}
-.scat summary::after{content:"";width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);transition:transform .2s;margin-top:-3px}
-.scat[open] summary::after{transform:rotate(-135deg);margin-top:3px}
-.scbody{padding:0 18px 16px}
+.chev{width:18px;height:18px;stroke:var(--muted);fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+#setScreen .opt{background:var(--surface)}
+#setScreen .opt[aria-pressed="true"]{background:var(--sunk)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -326,6 +323,7 @@ label.check input{width:20px;height:20px;accent-color:#32D74B}
 </div></div>
 <button class="fab" id="fab" aria-label="Ajouter">+</button>
 <div class="screen" id="screen"><div class="sin" id="screenBody"></div></div>
+<div class="screen" id="setScreen"><div class="sin" id="setBody"></div></div>
 <div class="sheet" id="sheet"><div class="sbox" id="sheetBody"></div></div>
 <input type="file" id="importFile" accept="application/json,.json" hidden>
 <div class="tut" id="tut" role="dialog" aria-modal="true" aria-label="Tutoriel"><div class="tuthole" id="tutHole"></div><div class="tutbox" id="tutBox"></div></div>
@@ -400,6 +398,346 @@ const half = g => Math.round(g * 2) / 2;
 const col = g => g == null ? "" : g < 4 ? "c-red" : g < 4.5 ? "c-amber" : g >= 5 ? "c-green" : "";
 const colVar = g => g < 4 ? "var(--red)" : g < 4.5 ? "var(--amber)" : g >= 5 ? "var(--green)" : "var(--ink)";
 const sub = id => state.subjects.find(s => s.id === id);
+
+/* ============ language ============
+   The app is written in French. English and German are applied on top of it:
+   every French text node / placeholder / aria-label is translated after it is rendered.
+   To add or fix a translation, edit TX (whole texts), RU (texts with numbers or names) or VOC (subject names).
+   Text that comes from the user must be wrapped in uesc() so that it is never translated. */
+let LANG = "fr";
+const uesc = s => '<span translate="no">' + esc(s) + "</span>";
+const pl = (n, one, many) => +n === 1 ? one : many;
+// [fr, en, de]: a whole text node
+const TX = [
+  /* navigation, home */
+  ["Horaire","Schedule","Stundenplan"], ["Agenda","Agenda","Agenda"], ["Notes","Grades","Noten"],
+  ["Réglages","Settings","Einstellungen"], ["Navigation","Navigation","Navigation"], ["Configuration","Setup","Einrichtung"],
+  ["Retour","Back","Zurück"], ["Ajouter","Add","Hinzufügen"], ["Tutoriel","Tutorial","Tutorial"],
+  ["Total des points","Total points","Gesamtpunkte"],
+  ["Touche + pour ajouter ta première note.","Tap + to add your first grade.","Tippe auf +, um deine erste Note hinzuzufügen."],
+  ["Branches","Subjects","Fächer"], ["Arrondies au demi-point","Rounded to the half point","Auf halbe Punkte gerundet"],
+  ["Moyennes exactes","Exact averages","Genaue Durchschnitte"], ["Travail de maturité","Matura project","Maturaarbeit"],
+  ["Compte comme une note","Counts as one grade","Zählt als eine Note"], ["Notes bloquées","Locked grades","Gesperrte Noten"],
+  ["Chimie, physique, arts","Chemistry, physics, arts","Chemie, Physik, Kunst"], ["Hors total","Outside the total","Ausserhalb des Totals"],
+  ["Plus","More","Mehr"], ["Évolution","Trend","Verlauf"],
+  ["Ta moyenne au fil de l'année","Your average over the year","Dein Durchschnitt im Jahresverlauf"],
+  ["Examens","Exams","Prüfungen"], ["Simule tes examens de maturité","Simulate your matura exams","Simuliere deine Maturaprüfungen"],
+  ["Pas encore de note","No grades yet","Noch keine Noten"],
+  /* subject screen */
+  ["Arrondie","Rounded","Gerundet"], ["Moyenne","Average","Durchschnitt"], ["Exacte","Exact","Exakt"],
+  ["Touche pour modifier","Tap to edit","Zum Bearbeiten tippen"],
+  ["Pas encore de note. Touche + pour en ajouter une.","No grades yet. Tap + to add one.","Noch keine Noten. Tippe auf +, um eine hinzuzufügen."],
+  ["Tests à venir","Upcoming tests","Kommende Tests"], ["De combien ai-je besoin ?","What do I need?","Was brauche ich?"],
+  ["Objectif (après arrondi)","Target (after rounding)","Ziel (nach Rundung)"], ["Objectif (moyenne)","Target (average)","Ziel (Durchschnitt)"],
+  ["Le prochain test est en","The next test is in","Der nächste Test ist in"],
+  ["Poids du prochain test","Weight of the next test","Gewicht des nächsten Tests"],
+  ["Branche","Subject","Fach"], ["Compte dans mon total","Counts toward my total","Zählt für mein Total"], ["Test","Test","Test"],
+  ["N'importe quelle note de","Any grade of","Jede Note von"], ["ou plus suffit.","or higher is enough.","oder höher genügt."],
+  ["Impossible en un seul test. Il te faudrait","Not possible in a single test. You would need","In einem einzigen Test nicht möglich. Du bräuchtest"],
+  ["Il te faut au moins","You need at least","Du brauchst mindestens"],
+  /* grade sheet */
+  ["Modifier la note","Edit grade","Note bearbeiten"], ["Ajouter une note","Add a grade","Note hinzufügen"], ["Partie","Part","Teil"],
+  ["Note (de 1 à 6, suffisant dès 4)","Grade (1 to 6, pass from 4)","Note (1 bis 6, genügend ab 4)"],
+  ["Pondération","Weight","Gewichtung"], ["autre","other","andere"], ["Nom (facultatif)","Name (optional)","Name (optional)"],
+  ["p. ex. TS chapitre 3","e.g. Test chapter 3","z. B. Test Kapitel 3"], ["Ajouter la note","Add grade","Note hinzufügen"],
+  ["Enregistrer","Save","Speichern"], ["Supprimer la note","Delete grade","Note löschen"],
+  ["Entre une note entre 1 et 6","Enter a grade between 1 and 6","Gib eine Note zwischen 1 und 6 ein"],
+  ["Enregistré","Saved","Gespeichert"], ["Note supprimée","Grade deleted","Note gelöscht"], ["Annuler","Undo","Rückgängig"],
+  ["La note du TM compte comme une note entière dans ton total.","The TM grade counts as a full grade in your total.","Die Note der Maturaarbeit zählt als ganze Note in deinem Total."],
+  ["Effacer","Clear","Löschen"],
+  /* add menu, badges */
+  ["Une note","A grade","Eine Note"], ["Le résultat d'un test","The result of a test","Das Ergebnis eines Tests"],
+  ["Un test","A test","Ein Test"], ["À venir, avec sa date","Upcoming, with its date","Bevorstehend, mit Datum"],
+  ["Un devoir","Homework","Eine Hausaufgabe"], ["Pour un prochain cours","For an upcoming lesson","Für eine nächste Lektion"],
+  ["Un cours","A lesson","Eine Lektion"], ["En plus dans ton horaire","Extra in your schedule","Zusätzlich in deinem Stundenplan"],
+  ["TE","TEST","TEST"], ["DV","HW","HA"],
+  /* settings */
+  ["Apparence","Appearance","Darstellung"], ["Thème et arrondi des moyennes","Theme and rounding of averages","Design und Rundung der Durchschnitte"],
+  ["Langue","Language","Sprache"], ["Automatique","Automatic","Automatisch"], ["Suit la langue du téléphone","Follows the phone's language","Folgt der Sprache des Telefons"],
+  ["Par défaut, l'app suit la langue de ton téléphone.","By default, the app uses your phone's language.","Standardmässig verwendet die App die Sprache deines Telefons."],
+  ["Classe, options et cours masqués","Class, options and hidden lessons","Klasse, Optionen und ausgeblendete Lektionen"],
+  ["Ordre, noms et ajout","Order, names and adding","Reihenfolge, Namen und Hinzufügen"],
+  ["Aide et feedback","Help and feedback","Hilfe und Feedback"], ["Tutoriel et envoi de feedback","Tutorial and sending feedback","Tutorial und Feedback senden"],
+  ["Données","Data","Daten"], ["Sauvegarde et effacement","Backup and erasing","Sicherung und Löschen"],
+  ["Comme le téléphone","Like the phone","Wie das Telefon"], ["Clair","Light","Hell"], ["Sombre","Dark","Dunkel"],
+  ["Arrondir les moyennes au demi-point","Round averages to the half point","Durchschnitte auf halbe Punkte runden"],
+  ["Comme sur le bulletin","Like on the report card","Wie im Zeugnis"],
+  ["Refaire la configuration","Redo the setup","Einrichtung wiederholen"], ["Cours masqués","Hidden lessons","Ausgeblendete Lektionen"],
+  ["Exporter tests et devoirs vers un agenda","Export tests and homework to a calendar","Tests und Hausaufgaben in einen Kalender exportieren"],
+  ["Nouvelle branche","New subject","Neues Fach"],
+  ["Revoir le tutoriel","Replay the tutorial","Tutorial nochmals ansehen"], ["Envoyer un feedback","Send feedback","Feedback senden"],
+  ["Exporter une sauvegarde","Export a backup","Sicherung exportieren"], ["Importer","Import","Importieren"],
+  ["Tout effacer","Erase everything","Alles löschen"], ["Tout reste sur ce téléphone.","Everything stays on this phone.","Alles bleibt auf diesem Telefon."],
+  ["Effacer toutes les notes et les branches ?","Erase all grades and subjects?","Alle Noten und Fächer löschen?"],
+  ["C'est définitif. Tout effacer ?","This is permanent. Erase everything?","Das ist endgültig. Alles löschen?"],
+  ["Remplacer tes données par cette sauvegarde ?","Replace your data with this backup?","Deine Daten durch diese Sicherung ersetzen?"],
+  ["Sauvegarde exportée","Backup exported","Sicherung exportiert"], ["Sauvegarde importée","Backup imported","Sicherung importiert"],
+  ["Ce fichier n'est pas une sauvegarde de l'app","This file is not a backup of the app","Diese Datei ist keine Sicherung der App"],
+  ["Impossible d'enregistrer","Could not save","Speichern nicht möglich"], ["Tout a été effacé","Everything has been erased","Alles wurde gelöscht"],
+  ["Les cours masqués sont de retour","Hidden lessons are back","Ausgeblendete Lektionen sind zurück"],
+  ["Aucun cours masqué","No hidden lessons","Keine ausgeblendeten Lektionen"],
+  ["Ton année est configurée","Your year is set up","Dein Jahr ist eingerichtet"],
+  /* dates and holidays */
+  ["Aujourd'hui","Today","Heute"], ["Demain","Tomorrow","Morgen"], ["Hier","Yesterday","Gestern"],
+  ["aujourd'hui","today","heute"], ["demain","tomorrow","morgen"], ["hier","yesterday","gestern"],
+  ["pour aujourd'hui","for today","für heute"], ["pour demain","for tomorrow","für morgen"],
+  ["c'était pour hier","it was for yesterday","es war für gestern"], ["jusqu'au","until","bis"],
+  ["Vacances d'automne","Autumn break","Herbstferien"], ["Vacances de Noël","Christmas break","Weihnachtsferien"],
+  ["Relâches","February break","Sportferien"], ["Vacances de Pâques","Easter break","Osterferien"],
+  ["Pont de l'Ascension","Ascension bridge","Auffahrtsbrücke"], ["Lundi de Pentecôte","Whit Monday","Pfingstmontag"],
+  ["Vacances d'été","Summer break","Sommerferien"],
+  /* schedule */
+  ["Semaine précédente","Previous week","Vorherige Woche"], ["Semaine suivante","Next week","Nächste Woche"],
+  ["Salle inconnue","Unknown room","Unbekannter Raum"], ["Fini pour aujourd'hui","Done for today","Für heute fertig"],
+  ["Bonne soirée.","Have a good evening.","Schönen Abend."], ["Pas encore d'horaire","No schedule yet","Noch kein Stundenplan"],
+  ["Choisis ta classe et tes options, et ta semaine se remplit toute seule.","Choose your class and options, and your week fills itself in.","Wähle deine Klasse und deine Optionen, und deine Woche füllt sich von selbst."],
+  ["Configurer mon horaire","Set up my schedule","Meinen Stundenplan einrichten"], ["Pas de cours","No lessons","Keine Lektionen"],
+  ["Pas de cours ce jour-là.","No lessons that day.","An diesem Tag kein Unterricht."],
+  ["Voir les tests et devoirs","Show tests and homework","Tests und Hausaufgaben anzeigen"],
+  ["Aucun test ni devoir prévu.","No test or homework planned.","Kein Test und keine Hausaufgabe geplant."],
+  ["+ Test","+ Test","+ Test"], ["+ Devoir","+ Homework","+ Hausaufgabe"], ["Salle","Room","Raum"],
+  ["p. ex. S2.14","e.g. S2.14","z. B. S2.14"], ["p. ex. S1.06","e.g. S1.06","z. B. S1.06"],
+  ["Masquer ce cours","Hide this lesson","Diese Lektion ausblenden"], ["Supprimer ce cours","Delete this lesson","Diese Lektion löschen"],
+  ["Signaler une erreur dans ce cours","Report an error in this lesson","Fehler in dieser Lektion melden"],
+  ["Cours masqué","Lesson hidden","Lektion ausgeblendet"], ["Cours supprimé","Lesson deleted","Lektion gelöscht"],
+  ["Ajouter un cours","Add a lesson","Lektion hinzufügen"], ["Nom","Name","Name"],
+  ["p. ex. Appui de maths","e.g. Maths support","z. B. Mathe-Stützkurs"], ["Jour","Day","Tag"], ["Début","Start","Beginn"], ["Durée","Duration","Dauer"],
+  ["Salle (facultatif)","Room (optional)","Raum (optional)"], ["Ajouter le cours","Add lesson","Lektion hinzufügen"],
+  ["Donne un nom au cours","Give the lesson a name","Gib der Lektion einen Namen"], ["Cours ajouté","Lesson added","Lektion hinzugefügt"],
+  ["Jeudi après-midi","Thursday afternoon","Donnerstagnachmittag"],
+  /* agenda, homework, tests */
+  ["En retard","Overdue","Überfällig"], ["Rien de prévu","Nothing planned","Nichts geplant"],
+  ["Touche + pour ajouter un devoir ou un test. Ils s'affichent ici, jour par jour.","Tap + to add homework or a test. They show up here, day by day.","Tippe auf +, um eine Hausaufgabe oder einen Test hinzuzufügen. Sie erscheinen hier, Tag für Tag."],
+  ["Branche supprimée","Deleted subject","Gelöschtes Fach"], ["Fait","Done","Erledigt"], ["Devoir fait","Homework done","Hausaufgabe erledigt"],
+  ["Devoir","Homework","Hausaufgabe"], ["Nouveau devoir","New homework","Neue Hausaufgabe"], ["À faire","To do","Zu erledigen"],
+  ["p. ex. Exercices p. 42","e.g. Exercises p. 42","z. B. Übungen S. 42"], ["Pour le","Due on","Fällig am"],
+  ["Prochain cours","Next lesson","Nächste Lektion"], ["Ajouter le devoir","Add homework","Hausaufgabe hinzufügen"],
+  ["Pas encore fait","Not done yet","Noch nicht erledigt"], ["Marquer comme fait","Mark as done","Als erledigt markieren"],
+  ["Supprimer","Delete","Löschen"], ["Devoir supprimé","Homework deleted","Hausaufgabe gelöscht"],
+  ["Devoir ajouté","Homework added","Hausaufgabe hinzugefügt"], ["Écris le devoir","Write the homework","Schreib die Hausaufgabe"],
+  ["Aucun cours trouvé pour cette branche","No lesson found for this subject","Keine Lektion für dieses Fach gefunden"],
+  ["Nouveau test","New test","Neuer Test"], ["Date","Date","Datum"], ["Entrer la note","Enter the grade","Note eintragen"],
+  ["Supprimer le test","Delete test","Test löschen"], ["Ajouter à Google Agenda","Add to Google Calendar","Zu Google Kalender hinzufügen"],
+  ["Ajouter le test","Add test","Test hinzufügen"], ["Choisis une branche","Choose a subject","Wähle ein Fach"],
+  ["Test ajouté","Test added","Test hinzugefügt"], ["Test supprimé","Test deleted","Test gelöscht"],
+  ["Aucun test ni devoir à venir","No upcoming test or homework","Kein bevorstehender Test oder Hausaufgabe"],
+  /* locked grades */
+  ["Notes bloquées de 2e année","Locked 2nd-year grades","Gesperrte Noten des 2. Jahres"],
+  ["Combien de points en plus ou en moins tes notes de chimie, physique et arts te donnent ? Chaque note compte par rapport à 4.","How many points more or less do your chemistry, physics and arts grades give you? Each grade counts relative to 4.","Wie viele Punkte mehr oder weniger geben dir deine Noten in Chemie, Physik und Kunst? Jede Note zählt im Vergleich zu 4."],
+  ["Moins 0,5","Minus 0.5","Minus 0,5"], ["Plus 0,5","Plus 0.5","Plus 0,5"],
+  ["Exemple : 4,5 + 4 + 4 = +0,5. Une note sous 4 compte double : 3,5 + 4 + 4 = −1.","Example: 4.5 + 4 + 4 = +0.5. A grade below 4 counts double: 3.5 + 4 + 4 = −1.","Beispiel: 4,5 + 4 + 4 = +0,5. Eine Note unter 4 zählt doppelt: 3,5 + 4 + 4 = −1."],
+  /* feedback */
+  ["Feedback","Feedback","Feedback"],
+  ["Un bug, une idée, un cours au mauvais endroit ? Dis-le, ça aide à améliorer l'app.","A bug, an idea, a lesson in the wrong place? Tell us, it helps improve the app.","Ein Fehler, eine Idee, eine Lektion am falschen Ort? Sag es uns, das hilft, die App zu verbessern."],
+  ["C'est quoi ?","What is it?","Worum geht es?"], ["Un bug","A bug","Ein Fehler"], ["Une idée","An idea","Eine Idee"],
+  ["Horaire faux","Wrong schedule","Falscher Stundenplan"], ["Autre","Other","Anderes"], ["Ton message","Your message","Deine Nachricht"],
+  ["Explique ce qui se passe ou ce que tu aimerais voir.","Explain what is happening or what you would like to see.","Erkläre, was passiert oder was du gerne sehen würdest."],
+  ["Joindre ma classe et mes options, pour corriger plus vite","Attach my class and options, to fix things faster","Meine Klasse und Optionen anhängen, damit es schneller geht"],
+  ["Envoyer","Send","Senden"], ["Écris un petit message d'abord","Write a short message first","Schreib zuerst eine kurze Nachricht"],
+  ["Le feedback n'est pas encore configuré","Feedback is not set up yet","Feedback ist noch nicht eingerichtet"],
+  ["Ton app mail s'ouvre, il reste à envoyer","Your mail app is opening, you just need to send","Deine Mail-App öffnet sich, du musst nur noch senden"],
+  /* trend, exams */
+  ["Il faut des notes à au moins deux dates différentes pour voir l'évolution.","You need grades on at least two different dates to see the trend.","Du brauchst Noten an mindestens zwei verschiedenen Daten, um den Verlauf zu sehen."],
+  ["Pointillés : 4","Dashed line: 4","Gestrichelt: 4"],
+  ["Pour une branche examinée, la note finale est la moyenne de la note annuelle et de l'examen. Avec un écrit et un oral : (2 × annuelle + écrit + oral) / 4. Arrondi au demi-point.","For an examined subject, the final grade is the average of the year grade and the exam. With a written and an oral exam: (2 × year + written + oral) / 4. Rounded to the half point.","Für ein geprüftes Fach ist die Endnote der Durchschnitt aus Jahresnote und Prüfung. Mit schriftlicher und mündlicher Prüfung: (2 × Jahr + schriftlich + mündlich) / 4. Auf halbe Punkte gerundet."],
+  ["Total avec ces examens","Total with these exams","Total mit diesen Prüfungen"],
+  ["Branches examinées","Examined subjects","Geprüfte Fächer"], ["Touche un chiffre pour l'effacer","Tap a number to clear it","Tippe auf eine Zahl, um sie zu löschen"],
+  ["Écrit","Written","Schriftlich"], ["Oral","Oral","Mündlich"], ["Moins","Minus","Minus"], ["Pas examinée","Not examined","Nicht geprüft"],
+  ["Autres branches","Other subjects","Andere Fächer"], ["Touche pour l'ajouter","Tap to add it","Tippe zum Hinzufügen"],
+  ["Vérifie la liste des branches examinées et les règles exactes avec ton gymnase.","Check the list of examined subjects and the exact rules with your school.","Prüfe die Liste der geprüften Fächer und die genauen Regeln mit deinem Gymnasium."],
+  /* tutorial */
+  ["Ton horaire","Your schedule","Dein Stundenplan"],
+  ["Choisis un jour ici, ou glisse vers la gauche ou la droite sur l'écran.","Pick a day here, or swipe left or right on the screen.","Wähle hier einen Tag oder wische auf dem Bildschirm nach links oder rechts."],
+  ["Tes cours","Your lessons","Deine Lektionen"],
+  ["Touche un cours pour voir ses tests, ajouter un devoir ou changer la salle.","Tap a lesson to see its tests, add homework or change the room.","Tippe auf eine Lektion, um ihre Tests zu sehen, eine Hausaufgabe hinzuzufügen oder den Raum zu ändern."],
+  ["Le bouton +","The + button","Die +-Taste"],
+  ["Ajoute une note, un test, un devoir ou un cours, depuis n'importe quel onglet.","Add a grade, a test, homework or a lesson, from any tab.","Füge eine Note, einen Test, eine Hausaufgabe oder eine Lektion hinzu, von jedem Tab aus."],
+  ["Tous tes devoirs et tes tests, jour par jour. Coche un devoir quand il est fait.","All your homework and tests, day by day. Tick homework when it is done.","Alle deine Hausaufgaben und Tests, Tag für Tag. Hake eine Hausaufgabe ab, wenn sie erledigt ist."],
+  ["Ton total de points, tes moyennes par branche et le simulateur d'examens.","Your total points, your averages per subject and the exam simulator.","Dein Punktetotal, deine Durchschnitte pro Fach und der Prüfungssimulator."],
+  ["Apparence, langue, feedback, et ta classe si tu dois la changer.","Appearance, language, feedback, and your class if you need to change it.","Darstellung, Sprache, Feedback und deine Klasse, falls du sie ändern musst."],
+  ["Passer","Skip","Überspringen"], ["C'est parti","Let's go","Los geht's"], ["Suivant","Next","Weiter"],
+  /* onboarding */
+  ["Bienvenue","Welcome","Willkommen"],
+  ["Une app pour les élèves du gymnase, de la 3M01 à la 3M14. Tout ce qu'il te faut au quotidien, au même endroit.","An app for gymnase students, from 3M01 to 3M14. Everything you need day to day, in one place.","Eine App für die Gymnasiastinnen und Gymnasiasten, von 3M01 bis 3M14. Alles, was du im Alltag brauchst, an einem Ort."],
+  ["📅 Horaire","📅 Schedule","📅 Stundenplan"], ["✅ Agenda","✅ Agenda","✅ Agenda"], ["📊 Notes","📊 Grades","📊 Noten"],
+  ["Ta semaine avec les vraies dates, les vacances vaudoises et le prochain cours.","Your week with real dates, the Vaud school holidays and your next lesson.","Deine Woche mit echten Daten, den Waadtländer Ferien und der nächsten Lektion."],
+  ["Tes tests (TE) et devoirs (DV), avec export vers Google Agenda.","Your tests and homework, with export to Google Calendar.","Deine Tests und Hausaufgaben, mit Export in den Google Kalender."],
+  ["Tes moyennes, la compensation de la maturité vaudoise et un simulateur d'examens.","Your averages, the Vaud matura compensation rules and an exam simulator.","Deine Durchschnitte, die Kompensationsregeln der Waadtländer Matura und ein Prüfungssimulator."],
+  ["Tes données restent sur ton téléphone. L'app ne demande aucun compte.","Your data stays on your phone. The app needs no account.","Deine Daten bleiben auf deinem Telefon. Die App braucht kein Konto."],
+  ["Configure ton année","Set up your year","Richte dein Jahr ein"],
+  ["Choisis ta classe et tes options une seule fois. Ton horaire et tes 14 notes de maturité se mettent en place tout seuls.","Choose your class and options once. Your schedule and your 14 matura grades set themselves up.","Wähle deine Klasse und deine Optionen nur einmal. Dein Stundenplan und deine 14 Maturanoten richten sich von selbst ein."],
+  ["Tu peux passer chaque question. Une question passée affiche tous les groupes, et tout se modifie plus tard dans les réglages.","You can skip any question. A skipped question shows all groups, and everything can be changed later in the settings.","Du kannst jede Frage überspringen. Eine übersprungene Frage zeigt alle Gruppen, und alles lässt sich später in den Einstellungen ändern."],
+  ["Commencer","Start","Starten"], ["Passer la configuration","Skip the setup","Einrichtung überspringen"],
+  ["Dans quelle classe es-tu ?","Which class are you in?","In welcher Klasse bist du?"],
+  ["Le code de ta classe sur Hermes, par exemple 3M09.","Your class code on Hermes, for example 3M09.","Der Code deiner Klasse auf Hermes, zum Beispiel 3M09."],
+  ["Ton groupe de maths","Your maths group","Deine Mathe-Gruppe"], ["Regarde sur Hermes si tu n'es pas sûr·e.","Check on Hermes if you are not sure.","Schau auf Hermes nach, wenn du nicht sicher bist."],
+  ["Ton groupe d'histoire","Your history group","Deine Geschichtsgruppe"], ["Certaines classes ont deux groupes d'histoire.","Some classes have two history groups.","Einige Klassen haben zwei Geschichtsgruppen."],
+  ["Ta langue 2","Your language 2","Deine Sprache 2"], ["Allemand ou italien, et ton groupe.","German or Italian, and your group.","Deutsch oder Italienisch, und deine Gruppe."],
+  ["Ton groupe en anglais : A ou B ?","Your English group: A or B?","Deine Englischgruppe: A oder B?"],
+  ["Pour les cours de langue en demi-classe. Une seule question : quand ta moitié de classe a anglais, l'autre a allemand ou italien, donc l'app règle ta langue 2 toute seule.","For language lessons in half classes. Just one question: when your half of the class has English, the other half has German or Italian, so the app sets your language 2 by itself.","Für den Sprachunterricht in halben Klassen. Nur eine Frage: Wenn deine Klassenhälfte Englisch hat, hat die andere Deutsch oder Italienisch, deshalb stellt die App deine Sprache 2 selbst ein."],
+  ["Groupe A en anglais","Group A in English","Gruppe A in Englisch"], ["Langue 2 : groupe B","Language 2: group B","Sprache 2: Gruppe B"],
+  ["Groupe B en anglais","Group B in English","Gruppe B in Englisch"], ["Langue 2 : groupe A","Language 2: group A","Sprache 2: Gruppe A"],
+  ["Ton option spécifique","Your specific option","Dein Schwerpunktfach"], ["La branche choisie en 1re année.","The subject chosen in 1st year.","Das im 1. Jahr gewählte Fach."],
+  ["Dans ta classe","In your class","In deiner Klasse"], ["Autres options","Other options","Andere Optionen"], ["Toutes les options","All options","Alle Optionen"],
+  ["Groupe de TP biologie-chimie","Biology-chemistry practicals group","Gruppe für das Praktikum Biologie-Chemie"],
+  ["La classe se divise en deux pour les travaux pratiques.","The class splits in two for practical work.","Die Klasse teilt sich für die praktischen Arbeiten in zwei."],
+  ["Tes notes bloquées de 2e année","Your locked 2nd-year grades","Deine gesperrten Noten des 2. Jahres"], ["Continuer","Continue","Weiter"],
+  ["Ton option complémentaire","Your complementary option","Dein Ergänzungsfach"], ["Ton option de 3e année, le jeudi après-midi.","Your 3rd-year option, on Thursday afternoon.","Dein Fach im 3. Jahr, am Donnerstagnachmittag."],
+  ["Cette option a plusieurs blocs. Coche les tiens.","This option has several blocks. Tick yours.","Dieses Fach hat mehrere Blöcke. Wähle deine."],
+  ["C'est prêt","You're all set","Alles bereit"], ["Classe","Class","Klasse"], ["Maths","Maths","Mathe"], ["Histoire","History","Geschichte"],
+  ["Langue 2","Language 2","Sprache 2"], ["Groupe d'anglais","English group","Englischgruppe"], ["Groupe TP","TP group","TP-Gruppe"],
+  ["Notes de 2e année","2nd-year grades","Noten des 2. Jahres"], ["Tous / plus tard","All / later","Alle / später"],
+  ["Tu as déjà des notes. Mettre à jour tes branches selon ces réponses ? Tes notes sont gardées.","You already have grades. Update your subjects based on these answers? Your grades are kept.","Du hast bereits Noten. Deine Fächer anhand dieser Antworten aktualisieren? Deine Noten bleiben erhalten."],
+  ["Mettre à jour et terminer","Update and finish","Aktualisieren und beenden"], ["Garder mes branches","Keep my subjects","Meine Fächer behalten"],
+  ["Terminer","Finish","Beenden"], ["Passer, je le ferai plus tard","Skip, I'll do it later","Überspringen, ich mache es später"]
+];
+// [regex, en, de]: texts with numbers or names. Replacements are strings ($1...) or functions.
+const RU = [
+  [/^au-dessus du minimum \(([\d.]+)\)$/, "above the minimum ($1)", "über dem Minimum ($1)"],
+  [/^([\d.]+) de moins$/, "$1 below", "$1 unter"],
+  [/^que le minimum \(([\d.]+)\)$/, "the minimum ($1)", "dem Minimum ($1)"],
+  [/^au-dessus du minimum de ([\d.]+)$/, "above the minimum of $1", "über dem Minimum von $1"],
+  [/^Il manque ([\d.]+)$/, "$1 missing", "Es fehlen $1"],
+  [/^pour le minimum de ([\d.]+)$/, "for the minimum of $1", "für das Minimum von $1"],
+  [/^(✓|✗) ([\d.]+) points minimum$/, "$1 $2 points minimum", "$1 mindestens $2 Punkte"],
+  [/^(✓|✗) Au moins ([\d.]+) points$/, "$1 At least $2 points", "$1 Mindestens $2 Punkte"],
+  [/^(✓|✗) Aucune note sous 4$/, "$1 No grade below 4", "$1 Keine Note unter 4"],
+  [/^(✓|✗) (\d+) notes? sous 4, max\. 4/, (m, i, n) => `${i} ${n} ${pl(n, "grade", "grades")} below 4, max. 4`, (m, i, n) => `${i} ${n} ${pl(n, "Note", "Noten")} unter 4, max. 4`],
+  [/^(✓|✗) (\d+) notes? sous 4 \(max\. 4\)$/, (m, i, n) => `${i} ${n} ${pl(n, "grade", "grades")} below 4 (max. 4)`, (m, i, n) => `${i} ${n} ${pl(n, "Note", "Noten")} unter 4 (max. 4)`],
+  [/^(✓|✗) Moyenne des examens au moins 3,5/, "$1 Exam average at least 3.5", "$1 Prüfungsdurchschnitt mindestens 3,5"],
+  [/^Moyenne ([\d.]+)(?:, (\d+) notes sur (\d+))?$/, (m, a, n, t) => `Average ${a}${n ? `, ${n} of ${t} grades` : ""}`, (m, a, n, t) => `Durchschnitt ${a}${n ? `, ${n} von ${t} Noten` : ""}`],
+  [/^Poids total ([\d.]+)$/, "Total weight $1", "Gesamtgewicht $1"],
+  [/^Compte pour (\d+\/\d+), (\d+) notes?$/, (m, a, n) => `Counts for ${a}, ${n} ${pl(n, "grade", "grades")}`, (m, a, n) => `Zählt für ${a}, ${n} ${pl(n, "Note", "Noten")}`],
+  [/(\d+) notes?(?![\p{L}])/gu, (m, n) => `${n} ${pl(n, "grade", "grades")}`, (m, n) => `${n} ${pl(n, "Note", "Noten")}`],
+  [/^C'est déjà acquis\. Même un 1 te garde à ([\d.]+) ou plus\.$/, "Already secured. Even a 1 keeps you at $1 or higher.", "Schon gesichert. Selbst eine 1 hält dich bei $1 oder höher."],
+  [/^au prochain test(?: de (.+))?\.$/, (m, g) => g ? `on the next ${g} test.` : "on the next test.", (m, g) => g ? `im nächsten ${g}-Test.` : "im nächsten Test."],
+  [/^Ajouter en (.+)$/, "Add to $1", "Zu $1 hinzufügen"],
+  [/^([\d.]+) ajouté en (.+)$/, "$1 added to $2", "$1 zu $2 hinzugefügt"],
+  [/^Entre un nombre entre ([\d.]+) et ([\d.]+)$/, "Enter a number between $1 and $2", "Gib eine Zahl zwischen $1 und $2 ein"],
+  [/^Cours masqués \((\d+)\)$/, "Hidden lessons ($1)", "Ausgeblendete Lektionen ($1)"],
+  [/^Supprimer (.+?)(?: et ses (\d+) notes)? \?$/, (m, a, n) => `Delete ${a}${n ? ` and its ${n} grades` : ""}?`, (m, a, n) => `${a}${n ? ` und seine ${n} Noten` : ""} löschen?`],
+  [/^(\d+) événements? exportés?$/, (m, n) => `${n} ${pl(n, "event", "events")} exported`, (m, n) => `${n} ${pl(n, "Termin", "Termine")} exportiert`],
+  [/^en retard de (\d+) jours$/, "$1 days late", "$1 Tage zu spät"],
+  [/^il y a (\d+) jours$/, "$1 days ago", "vor $1 Tagen"],
+  [/^dans (\d+) jours$/, "in $1 days", "in $1 Tagen"],
+  [/^pour (.+)$/, "for $1", "für $1"],
+  [/^Jeudi après-midi, (\d+) blocs$/, "Thursday afternoon, $1 blocks", "Donnerstagnachmittag, $1 Blöcke"],
+  [/^Semaine du (.+)$/, "Week of $1", "Woche vom $1"],
+  [/^(\d+) cours$/, (m, n) => `${n} ${pl(n, "lesson", "lessons")}`, (m, n) => `${n} ${pl(n, "Lektion", "Lektionen")}`],
+  [/^En cours, jusqu'à (\S+)$/, "In progress, until $1", "Läuft, bis $1"],
+  [/\. Ensuite : (.+?) à (\d\d:\d\d)(?: en (.+))?$/, (m, n, t, r) => `. Next: ${n} at ${t}${r ? ` in ${r}` : ""}`, (m, n, t, r) => `. Danach: ${n} um ${t}${r ? ` in ${r}` : ""}`],
+  [/\. Dernier cours de la journée$/, ". Last lesson of the day", ". Letzte Lektion des Tages"],
+  [/^Prochain cours dans (.+)$/, "Next lesson in $1", "Nächste Lektion in $1"],
+  [/^(\d\d:\d\d) en (.+)$/, "$1 in $2", "$1 in $2"],
+  [/^Libre de (\S+) à (\S+)$/, "Free from $1 to $2", "Frei von $1 bis $2"],
+  [/^Groupe TP (\S+)$/, "TP group $1", "TP-Gruppe $1"],
+  [/Groupe TP (\S+)/g, "TP group $1", "TP-Gruppe $1"],
+  [/Groupe (\S+)/g, "Group $1", "Gruppe $1"],
+  [/, groupe (\S+)/g, ", group $1", ", Gruppe $1"],
+  [/\bde (\d\d:\d\d) à (\d\d:\d\d)/g, "from $1 to $2", "von $1 bis $2"],
+  [/^(.+) : à venir$/, "$1: upcoming", "$1: bevorstehend"],
+  [/^Rien ce (.+)\.$/, "Nothing on $1.", "Nichts am $1."],
+  [/^Jusqu'au (.+)$/, "Until $1", "Bis $1"],
+  [/(\d+) devoirs? pour aujourd'hui/g, (m, n) => `${n} homework due today`, (m, n) => `${n} ${pl(n, "Hausaufgabe", "Hausaufgaben")} für heute`],
+  [/(\d+) en retard(?![\p{L}])/gu, "$1 overdue", "$1 überfällig"],
+  [/^(Masquer|Voir) les devoirs faits \((\d+)\)$/, (m, a, n) => `${a === "Voir" ? "Show" : "Hide"} completed homework (${n})`, (m, a, n) => `Erledigte Hausaufgaben ${a === "Voir" ? "anzeigen" : "ausblenden"} (${n})`],
+  [/^Année (\S+)( → finale)?$/, (m, a, f) => `Year ${a}${f ? " → final" : ""}`, (m, a, f) => `Jahr ${a}${f ? " → Endnote" : ""}`],
+  [/^Quels cours de (.+) sont les tiens \?$/, "Which $1 lessons are yours?", "Welche $1-Lektionen sind deine?"],
+  [/^Salle ((?:[A-Z]{1,2}-?\d[\w.\-]*)(?:, [A-Z]{1,2}-?\d[\w.\-]*)*)$/, "Room $1", "Raum $1"],
+  [/^([+−]?[\d.]+) (points?)$/, "$1 $2", (m, v, p) => `${v} ${p === "point" ? "Punkt" : "Punkte"}`],
+  [/^(\d+) périodes?$/, (m, n) => `${n} ${pl(n, "period", "periods")}`, (m, n) => `${n} ${pl(n, "Lektion", "Lektionen")}`]
+];
+// [fr, en, de]: subject, group and lesson names (whole words, also inside longer texts)
+const VOC = [
+  ["Mathématiques","Mathematics","Mathematik"], ["Maths renforcé","Enhanced maths","Mathe verstärkt"], ["Maths standard","Standard maths","Mathe Standard"],
+  ["Maths","Maths","Mathe"], ["Renforcé bilingue","Enhanced bilingual","Verstärkt zweisprachig"], ["Standard bilingue","Standard bilingual","Standard zweisprachig"],
+  ["Renforcé","Enhanced","Verstärkt"], ["Histoire bilingue","Bilingual history","Geschichte zweisprachig"], ["Histoire de l'art","Art history","Kunstgeschichte"],
+  ["Histoire et sciences des religions","History and religious studies","Geschichte und Religionswissenschaft"], ["Histoire","History","Geschichte"],
+  ["Géographie","Geography","Geografie"], ["Philosophie et psychologie","Philosophy and psychology","Philosophie und Psychologie"], ["Philosophie","Philosophy","Philosophie"],
+  ["Psychologie","Psychology","Psychologie"], ["Philo & Psycho","Philo & Psych","Philo & Psycho"], ["Français","French","Französisch"], ["Allemand","German","Deutsch"],
+  ["Anglais","English","Englisch"], ["Italien","Italian","Italienisch"], ["Espagnol","Spanish","Spanisch"], ["Latin","Latin","Latein"], ["Grec","Greek","Griechisch"],
+  ["Biologie et chimie","Biology and chemistry","Biologie und Chemie"], ["Biologie-Chimie TP","Biology-Chemistry practicals","Biologie-Chemie Praktikum"],
+  ["Biologie","Biology","Biologie"], ["Chimie","Chemistry","Chemie"], ["Physique et applications des maths","Physics and applications of maths","Physik und Anwendungen der Mathematik"],
+  ["Applications des maths","Applications of maths","Anwendungen der Mathematik"], ["Physique TP","Physics practicals","Physik Praktikum"], ["Physique","Physics","Physik"],
+  ["Économie et droit","Economics and law","Wirtschaft und Recht"], ["Arts visuels","Visual arts","Bildnerisches Gestalten"], ["Musique","Music","Musik"],
+  ["Informatique","Computer science","Informatik"], ["Bio & Chimie","Bio & Chem","Bio & Chemie"], ["Physique & Applic. maths","Physics & Applied maths","Physik & Angew. Mathe"],
+  ["Option spécifique","Specific option","Schwerpunktfach"], ["Option complémentaire","Complementary option","Ergänzungsfach"],
+  ["(OS)","(OS)","(SF)"], ["(OC)","(OC)","(EF)"], ["OC","OC","EF"],
+  ["Ajouté par toi","Added by you","Von dir hinzugefügt"], ["à vérifier","to check","zu prüfen"], ["Salle inconnue","Unknown room","Unbekannter Raum"], ["Salle ?","Room ?","Raum ?"]
+];
+const I18N = {};
+(function buildI18n(){
+  [["en", 1], ["de", 2]].forEach(([lg, i]) => {
+    const x = {}; TX.forEach(r => x[r[0]] = r[i]);
+    const voc = [];
+    VOC.forEach(r => { voc.push([r[0], r[i]]); const lo = r[0].toLowerCase(); if(r[0].length > 4 && lo !== r[0]) voc.push([lo, i === 1 ? r[1].toLowerCase() : r[2]]); });
+    voc.sort((a, b) => b[0].length - a[0].length);
+    I18N[lg] = {x, rules:RU.map(r => [r[0], r[i]]),
+      voc:voc.map(([f, t]) => [new RegExp("(^|[^\\p{L}\\p{N}])" + f.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(?![\\p{L}\\p{N}])", "gu"), "$1" + t.replace(/\$/g, "$$$$")])};
+  });
+})();
+function trCore(s){
+  const d = I18N[LANG]; if(!d) return s;
+  const k = s.replace(/\s+/g, " ");
+  if(d.x[k] !== undefined) return d.x[k];
+  let o = k;
+  for(const [re, rep] of d.rules) o = o.replace(re, rep);
+  for(const [re, rep] of d.voc) o = o.replace(re, rep);
+  return o;
+}
+function tr(s){ const m = String(s).match(/^(\s*)([\s\S]*?)(\s*)$/); return m[2] ? m[1] + trCore(m[2]) + m[3] : String(s); }
+const tn = name => { const d = I18N[LANG]; if(!d) return name; let o = name; for(const [re, rep] of d.voc) o = o.replace(re, rep); return o; };
+const evT = (kind, sb, extra) => { const p = {fr:["Test","Devoir"," de "," : "], en:["Test","Homework"," in "," : "], de:["Test","Hausaufgabe"," in "," : "]}[LANG];
+  return p[kind] + (sb ? p[2] + tn(sb.name) : "") + (extra ? p[3] + extra : ""); };
+
+const LNG = {
+  fr:{d:["Lun","Mar","Mer","Jeu","Ven"], n:["Lundi","Mardi","Mercredi","Jeudi","Vendredi"], m:["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."]},
+  en:{d:["Mon","Tue","Wed","Thu","Fri"], n:["Monday","Tuesday","Wednesday","Thursday","Friday"], m:["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]},
+  de:{d:["Mo","Di","Mi","Do","Fr"], n:["Montag","Dienstag","Mittwoch","Donnerstag","Freitag"], m:["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"]}
+};
+function sysLang(){ const l = String((navigator.languages && navigator.languages[0]) || navigator.language || "fr").toLowerCase(); return l.startsWith("de") ? "de" : l.startsWith("en") ? "en" : "fr"; }
+
+// translate the page after it is rendered; the French source of every node is remembered so the language can change at any time
+const SRC = new WeakMap(), ASRC = new WeakMap(), TR_ATTRS = ["placeholder", "aria-label", "title"];
+const noTr = el => !el || /^(SCRIPT|STYLE|TEXTAREA)$/.test(el.tagName) || (el.closest && el.closest('[translate="no"]'));
+function trNode(n){
+  const p = n.parentNode; if(!p || noTr(p) || !/\S/.test(n.data)) return;
+  const rec = SRC.get(n), src = rec && n.data === rec.out ? rec.src : n.data, out = LANG === "fr" ? src : tr(src);
+  if(out !== n.data) n.data = out;
+  if(out !== src) SRC.set(n, {src, out}); else SRC.delete(n);
+}
+function trAttr(el, a){
+  const v = el.getAttribute(a); if(v == null || el.closest('[translate="no"]')) return;
+  let m = ASRC.get(el); if(!m){ m = {}; ASRC.set(el, m); }
+  const rec = m[a], src = rec && v === rec.out ? rec.src : v, out = LANG === "fr" ? src : tr(src);
+  if(out !== v) el.setAttribute(a, out);
+  if(out !== src) m[a] = {src, out}; else delete m[a];
+}
+function trTree(root){
+  if(root.nodeType === 3){ trNode(root); return; }
+  if(root.nodeType !== 1) return;
+  const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT); let n;
+  while((n = w.nextNode())) trNode(n);
+  root.querySelectorAll("[placeholder],[aria-label],[title]").forEach(el => TR_ATTRS.forEach(a => trAttr(el, a)));
+  TR_ATTRS.forEach(a => trAttr(root, a));
+}
+new MutationObserver(ms => {
+  if(LANG === "fr") return;
+  for(const m of ms){
+    if(m.type === "characterData") trNode(m.target);
+    else if(m.type === "attributes") trAttr(m.target, m.attributeName);
+    else m.addedNodes.forEach(trTree);
+  }
+}).observe(document.body, {childList:true, subtree:true, characterData:true, attributes:true, attributeFilter:TR_ATTRS});
+function applyLang(first){
+  const pref = state.settings.lang;
+  LANG = pref === "fr" || pref === "en" || pref === "de" ? pref : sysLang();
+  const L = LNG[LANG]; DAYS_FR = L.d; DAYNAMES = L.n; MONTHS = L.m;
+  document.documentElement.lang = LANG;
+  trTree(document.body);
+  if(!first){ showTab(tab, false); if(setPage) $("fab").style.display = "none"; }
+}
+
 
 function wavg(list){ const g = list.filter(x => x.w > 0); if(!g.length) return null; return g.reduce((a,x) => a + x.g * x.w, 0) / g.reduce((a,x) => a + x.w, 0); }
 const partAvg = (s, key) => wavg(s.grades.filter(x => x.part === key));
@@ -477,7 +815,7 @@ function renderHome(){
 function rowHTML(s){
   const a = avg(s), f = final(s), n = s.grades.length;
   const showExact = a != null && state.settings.round && Math.abs(a - f) > 0.001;
-  return `<button class="row" data-act="open" data-id="${s.id}"><div class="rname"><b>${esc(s.name)}</b><span>${s.parts ? s.parts.map(p => p.name.slice(0,5) + ". " + shareTxt(s, p)).join(", ") + (n ? ", " + n + (n > 1 ? " notes" : " note") : "") : n ? n + (n > 1 ? " notes" : " note") : "Pas encore de note"}</span></div>
+  return `<button class="row" data-act="open" data-id="${s.id}"><div class="rname"><b>${esc(s.name)}</b><span>${s.parts ? s.parts.map(p => tn(p.name).slice(0,5) + ". " + shareTxt(s, p)).join(", ") + (n ? ", " + n + (n > 1 ? " notes" : " note") : "") : n ? n + (n > 1 ? " notes" : " note") : "Pas encore de note"}</span></div>
     <div class="rval ${a == null ? "none" : col(f)}">${a == null ? "–" : f2(f)}${showExact ? `<small>${f2(Math.round(a*100)/100)}</small>` : ""}</div></button>`;
 }
 
@@ -507,7 +845,7 @@ function renderSubject(){
   h += spark(s);
   if(s.grades.length){
     h += `<h2>Notes<small>Touche pour modifier</small></h2><div class="list">${[...s.grades].reverse().map(g => `
-      <button class="grow" data-act="editg" data-id="${g.id}"><span class="gbadge ${col(g.g)}">${f2(g.g)}</span><div class="rname"><b>${esc(g.name || "Test")}</b><span>${s.parts && g.part ? esc((s.parts.find(p => p.key === g.part) || {}).name || "") + ", " : ""}${new Date(g.date).toLocaleDateString("fr-CH", {day:"numeric", month:"short"})}</span></div><span class="gw">×${f2(g.w)}</span></button>`).join("")}</div>`;
+      <button class="grow" data-act="editg" data-id="${g.id}"><span class="gbadge ${col(g.g)}">${f2(g.g)}</span><div class="rname"><b>${g.name ? uesc(g.name) : "Test"}</b><span>${s.parts && g.part ? esc((s.parts.find(p => p.key === g.part) || {}).name || "") + ", " : ""}${fmtD(new Date(g.date))}</span></div><span class="gw">×${f2(g.w)}</span></button>`).join("")}</div>`;
   } else h += `<div class="card muted" style="text-align:center;padding:26px">Pas encore de note. Touche + pour en ajouter une.</div>`;
   { const st = sortTests(tests().filter(x => x.sid === s.id && x.date >= todayIso()));
     if(st.length) h += `<h2>Tests à venir</h2>${st.map(x => testCard(x, "act")).join("")}`; }
@@ -594,61 +932,80 @@ function valueSheet(title, sub, val, onSave, onClear, min = 1, max = 6){
   setTimeout(() => $("vIn").focus(), 320);
 }
 
-function settingsSheet(){
-  const st = state.settings;
-  openSheet(`<h3>Réglages</h3>
-    <details class="scat" open><summary>Affichage</summary><div class="scbody">
-      <span class="lab2" style="margin-top:0">Apparence</span><div class="chips" id="themeChips">${[["system","Comme le téléphone"],["light","Clair"],["dark","Sombre"]].map(([v, l]) => `<button class="chip" data-v="${v}" aria-pressed="${(st.theme || "system") === v}">${l}</button>`).join("")}</div>
-      <div class="setting" style="margin-top:12px"><p>Arrondir les moyennes au demi-point<small>Comme sur le bulletin</small></p><button class="switch" role="switch" id="roundSw" aria-checked="${st.round}"></button></div>
-    </div></details>
-    <details class="scat"><summary>Horaire</summary><div class="scbody">
-      <div class="row2"><button class="secondary" id="redo" style="margin:0">Refaire la configuration</button><button class="secondary" id="unhide" style="margin:0">Cours masqués${tt().hidden.length ? " (" + tt().hidden.length + ")" : ""}</button></div>
-      <button class="secondary" id="icsOut" style="margin:8px 0 0">Exporter tests et devoirs vers un agenda</button>
-    </div></details>
-    <details class="scat"><summary>Branches</summary><div class="scbody">
-      <div id="subList"></div>
-      <div class="mrow"><input class="inp" id="newSub" placeholder="Nouvelle branche"><span></span><button class="mini" id="addSub">Ajouter</button></div>
-    </div></details>
-    <details class="scat"><summary>Aide et feedback</summary><div class="scbody">
-      <button class="secondary" id="tutAgain" style="margin:0 0 8px">Revoir le tutoriel</button>
-      <button class="secondary" id="fbOpen" style="margin:0">Envoyer un feedback</button>
-    </div></details>
-    <details class="scat"><summary>Données</summary><div class="scbody">
-      <div class="row2"><button class="secondary" id="exp" style="margin:0">Exporter une sauvegarde</button><button class="secondary" id="imp" style="margin:0">Importer</button></div>
-      <button class="secondary danger" id="wipe" style="margin:8px 0 0">Tout effacer</button>
-      <p class="note">Tout reste sur ce téléphone.</p>
-    </div></details>`);
-  drawManage();
-  $("roundSw").onclick = e => { st.round = !st.round; e.target.setAttribute("aria-checked", st.round); save(); refresh(); };
-  $("addSub").onclick = () => { const n = $("newSub").value.trim(); if(!n) return; state.subjects.push({id:uid(), name:n, counts:true, grades:[]}); $("newSub").value = ""; save(); drawManage(); renderHome(); };
-  $("redo").onclick = () => { closeSheet(); openOnboarding("class"); };
-  $("fbOpen").onclick = () => { closeSheet(); setTimeout(() => feedbackSheet(), 260); };
-  $("icsOut").onclick = exportIcs;
-  $("tutAgain").onclick = () => { closeSheet(); setTimeout(startTutorial, 300); };
-  $("themeChips").onclick = e => { const c = e.target.closest(".chip"); if(!c) return; st.theme = c.dataset.v; save(); applyTheme();
+/* ============ settings (sub pages) ============ */
+let setPage = null;
+const SPAGES = [["look", "Apparence", "Thème et arrondi des moyennes"], ["lang", "Langue", null], ["sched", "Horaire", "Classe, options et cours masqués"], ["subs", "Branches", "Ordre, noms et ajout"], ["help", "Aide et feedback", "Tutoriel et envoi de feedback"], ["data", "Données", "Sauvegarde et effacement"]];
+const LANG_NAMES = {fr:"Français", en:"English", de:"Deutsch"};
+const CHEV = '<svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>';
+function openSettings(){ setPage = "main"; $("fab").style.display = "none"; drawSettings(0); $("setScreen").classList.add("on"); }
+function closeSettings(){ setPage = null; $("setScreen").classList.remove("on"); $("fab").style.display = ""; }
+function goSet(p, dir){ setPage = p; drawSettings(dir); }
+function drawSettings(dir){
+  const st = state.settings, pg = setPage, meta = SPAGES.find(x => x[0] === pg);
+  let h = `<div class="shead"><button class="icon" data-set="back" aria-label="Retour"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button><h1>${pg === "main" ? "Réglages" : meta[1]}</h1></div>`;
+  if(pg === "main"){
+    h += `<div class="list">${SPAGES.map(([id, t, d]) => `<button class="row" data-set="go" data-p="${id}"><div class="rname"><b>${t}</b><span>${id === "lang" ? (LANG_NAMES[st.lang] ? `<span translate="no">${LANG_NAMES[st.lang]}</span>` : "Automatique") : d}</span></div>${CHEV}</button>`).join("")}</div>
+      <p class="note" style="margin:12px 2px 0">Tout reste sur ce téléphone.</p>`;
+  } else if(pg === "look"){
+    h += `<div class="card"><div class="chips" id="themeChips">${[["system","Comme le téléphone"],["light","Clair"],["dark","Sombre"]].map(([v, l]) => `<button class="chip" data-v="${v}" aria-pressed="${(st.theme || "system") === v}">${l}</button>`).join("")}</div>
+      <div class="setting" style="margin-top:12px;padding-bottom:0"><p>Arrondir les moyennes au demi-point<small>Comme sur le bulletin</small></p><button class="switch" role="switch" id="roundSw" aria-checked="${st.round}"></button></div></div>`;
+  } else if(pg === "lang"){
+    h += `<p class="note" style="margin:0 2px 12px">Par défaut, l'app suit la langue de ton téléphone.</p>
+      <button class="opt" data-lang="auto" aria-pressed="${!LANG_NAMES[st.lang]}"><b>Automatique</b><span>Suit la langue du téléphone</span></button>
+      ${Object.keys(LANG_NAMES).map(c => `<button class="opt" data-lang="${c}" aria-pressed="${st.lang === c}"><b translate="no">${LANG_NAMES[c]}</b></button>`).join("")}`;
+  } else if(pg === "sched"){
+    h += `<div class="card"><div class="row2"><button class="secondary" id="redo" style="margin:0">Refaire la configuration</button><button class="secondary" id="unhide" style="margin:0">Cours masqués${tt().hidden.length ? " (" + tt().hidden.length + ")" : ""}</button></div>
+      <button class="secondary" id="icsOut" style="margin:8px 0 0">Exporter tests et devoirs vers un agenda</button></div>`;
+  } else if(pg === "subs"){
+    h += `<div class="card"><div id="subList"></div><div class="mrow"><input class="inp" id="newSub" placeholder="Nouvelle branche"><span></span><button class="mini" id="addSub">Ajouter</button></div></div>`;
+  } else if(pg === "help"){
+    h += `<div class="card"><button class="secondary" id="tutAgain" style="margin:0">Revoir le tutoriel</button><button class="secondary" id="fbOpen">Envoyer un feedback</button></div>`;
+  } else if(pg === "data"){
+    h += `<div class="card"><div class="row2"><button class="secondary" id="exp" style="margin:0">Exporter une sauvegarde</button><button class="secondary" id="imp" style="margin:0">Importer</button></div>
+      <button class="secondary danger" id="wipe" style="margin:8px 0 0">Tout effacer</button><p class="note">Tout reste sur ce téléphone.</p></div>`;
+  }
+  const el = $("setBody"); el.innerHTML = h; $("setScreen").scrollTop = 0;
+  const on = (id, fn) => { const b = $(id); if(b) b.onclick = fn; };
+  if(pg === "subs") drawManage();
+  on("roundSw", e => { st.round = !st.round; e.currentTarget.setAttribute("aria-checked", st.round); save(); refresh(); });
+  on("addSub", () => { const n = $("newSub").value.trim(); if(!n) return; state.subjects.push({id:uid(), name:n, counts:true, grades:[]}); $("newSub").value = ""; save(); drawManage(); renderHome(); });
+  on("redo", () => { closeSettings(); openOnboarding("class"); });
+  on("fbOpen", () => feedbackSheet());
+  on("icsOut", exportIcs);
+  on("tutAgain", () => { closeSettings(); setTimeout(startTutorial, 300); });
+  on("unhide", () => { const n = tt().hidden.length; tt().hidden = []; tt().rooms = {}; save(); closeSettings(); renderSched(); toast(n ? "Les cours masqués sont de retour" : "Aucun cours masqué"); });
+  on("exp", exportData); on("imp", () => $("importFile").click());
+  on("wipe", () => { if(confirm(tr("Effacer toutes les notes et les branches ?")) && confirm(tr("C'est définitif. Tout effacer ?"))){ state = defaults(); save(); closeSettings(); applyLang(); refresh(); renderSched(); toast("Tout a été effacé"); } });
+  if($("themeChips")) $("themeChips").onclick = e => { const c = e.target.closest(".chip"); if(!c) return; st.theme = c.dataset.v; save(); applyTheme();
     $("themeChips").querySelectorAll(".chip").forEach(x => x.setAttribute("aria-pressed", x === c)); };
-  $("unhide").onclick = () => { const n = tt().hidden.length; tt().hidden = []; tt().rooms = {}; save(); closeSheet(); renderSched(); toast(n ? "Les cours masqués sont de retour" : "Aucun cours masqué"); };
-  $("exp").onclick = exportData; $("imp").onclick = () => $("importFile").click();
-  $("wipe").onclick = () => { if(confirm("Effacer toutes les notes et les branches ?") && confirm("C'est définitif. Tout effacer ?")){ state = defaults(); save(); closeSheet(); refresh(); renderSched(); toast("Tout a été effacé"); } };
+  if(dir && el.animate && !matchMedia("(prefers-reduced-motion: reduce)").matches)
+    el.animate([{transform:`translateX(${dir * 40}px)`, opacity:0}, {transform:"none", opacity:1}], {duration:240, easing:"cubic-bezier(.2,.8,.2,1)"});
 }
+$("setBody").addEventListener("click", e => {
+  const b = e.target.closest("[data-set],[data-lang]"); if(!b) return;
+  if(b.dataset.lang){ if(b.dataset.lang === "auto") delete state.settings.lang; else state.settings.lang = b.dataset.lang; save(); applyLang(); drawSettings(0); return; }
+  const a = b.dataset.set;
+  if(a === "go") goSet(b.dataset.p, 1);
+  if(a === "back"){ if(setPage === "main") closeSettings(); else goSet("main", -1); }
+});
 function drawManage(){
   $("subList").innerHTML = state.subjects.map((s, i) => `<div class="mrow" data-i="${i}"><input class="inp" data-m="sname" value="${esc(s.name)}"><button class="mini" data-m="sup" ${i ? "" : "disabled"}>↑</button><button class="mini danger" data-m="sdel">✕</button></div>`).join("");
   $("subList").querySelectorAll(".mrow").forEach(r => r.style.gridTemplateColumns = "1fr 46px 46px");
 }
-$("sheetBody").addEventListener("input", e => {
+[$("sheetBody"), $("setBody")].forEach(box => box.addEventListener("input", e => {
   const m = e.target.dataset.m; if(!m) return;
   const i = +e.target.closest(".mrow").dataset.i;
   if(m === "sname"){ state.subjects[i].name = e.target.value; save(); renderHome(); }
   if(m === "lname"){ state.locked[i].name = e.target.value; save(); renderHome(); }
-});
-$("sheetBody").addEventListener("click", e => {
+}));
+[$("sheetBody"), $("setBody")].forEach(box => box.addEventListener("click", e => {
   const b = e.target.closest("[data-m]"); if(!b || b.tagName === "INPUT") return;
   const i = +b.closest(".mrow").dataset.i, m = b.dataset.m;
   if(m === "sup" && i > 0){ [state.subjects[i-1], state.subjects[i]] = [state.subjects[i], state.subjects[i-1]]; }
-  if(m === "sdel"){ const s = state.subjects[i]; if(!confirm(`Supprimer ${s.name}${s.grades.length ? " et ses " + s.grades.length + " notes" : ""} ?`)) return; state.subjects.splice(i, 1); }
-  if(m === "ldel"){ if(!confirm("Supprimer " + state.locked[i].name + " ?")) return; state.locked.splice(i, 1); }
+  if(m === "sdel"){ const s = state.subjects[i]; if(!confirm(tr(`Supprimer ${s.name}${s.grades.length ? " et ses " + s.grades.length + " notes" : ""} ?`))) return; state.subjects.splice(i, 1); }
+  if(m === "ldel"){ if(!confirm(tr("Supprimer " + state.locked[i].name + " ?"))) return; state.locked.splice(i, 1); }
   save(); drawManage(); renderHome();
-});
+}));
 
 /* ============ events ============ */
 function refresh(){ renderHome(); if(openId) renderSubject(); }
@@ -690,7 +1047,7 @@ function addMenu(){
       if(k === "cours") addLessonSheet();
     }, 260); });
 }
-$("openSettings").onclick = settingsSheet;
+$("openSettings").onclick = openSettings;
 // swipe right to go back from a subject
 let sx = null, sy = null;
 $("screen").addEventListener("touchstart", e => { if(e.target.closest("input")) { sx = null; return; } sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, {passive:true});
@@ -706,7 +1063,7 @@ function exportData(){
 $("importFile").onchange = async e => {
   const f = e.target.files[0]; e.target.value = ""; if(!f) return;
   try{ const d = JSON.parse(await f.text()); if(!d || !Array.isArray(d.subjects)) throw 0;
-    if(!confirm("Remplacer tes données par cette sauvegarde ?")) return;
+    if(!confirm(tr("Remplacer tes données par cette sauvegarde ?"))) return;
     const x = defaults(); state = Object.assign(x, migrate(lockedMig(d)), {settings:Object.assign(x.settings, d.settings || {})}); save(); closeSheet(); refresh(); renderSched(); toast("Sauvegarde importée");
   }catch(err){ toast("Ce fichier n'est pas une sauvegarde de l'app"); }
 };
@@ -715,7 +1072,7 @@ $("importFile").onchange = async e => {
 document.addEventListener("focusin", e => { if(e.target.tagName === "INPUT") e.target.enterKeyHint = "done"; });
 document.addEventListener("keydown", e => {
   if(e.key !== "Enter" || e.target.tagName !== "INPUT") return;
-  const box = e.target.closest("#sheetBody, #obSlide"); if(!box) return;
+  const box = e.target.closest("#sheetBody, #obSlide, #setBody"); if(!box) return;
   e.preventDefault();
   if(e.target.id === "newSub"){ $("addSub").click(); return; }
   if(e.target.dataset.m){ e.target.blur(); return; }
@@ -875,7 +1232,8 @@ const OC_SLOTS = {
 
 /* ============ timetable engine ============ */
 const PERIODS = {1:["08:10","08:55"],2:["09:00","09:45"],3:["10:05","10:50"],4:["10:55","11:40"],5:["11:45","12:30"],6:["12:35","13:20"],7:["13:25","14:10"],8:["14:15","15:00"],9:["15:10","15:55"],10:["16:00","16:45"]};
-const DAYS = ["Mon","Tue","Wed","Thu","Fri"], DAYS_FR = ["Lun","Mar","Mer","Jeu","Ven"], DAYNAMES = ["Lundi","Mardi","Mercredi","Jeudi","Vendredi"];
+const DAYS = ["Mon","Tue","Wed","Thu","Fri"];
+let DAYS_FR = ["Lun","Mar","Mer","Jeu","Ven"], DAYNAMES = ["Lundi","Mardi","Mercredi","Jeudi","Vendredi"];
 const RX = /^(Mon|Tue|Wed|Thu|Fri) (\d+)(?:-(\d+))? ([^@#]+?)\s*(?:@([^#]+?))?\s*((?:#\S+\s*)*)$/;
 const mins = t => { const [h, m] = t.split(":").map(Number); return h * 60 + m; };
 const PALETTE = ["#F2A3C2","#93C3F2","#9FDDBE","#C7B5F4","#EBCB7A","#F5B38A","#8FD3D9","#E8A0A0","#B7D58A","#D9DCE0"];
@@ -917,7 +1275,7 @@ function ocWhen(oc){
   const sl = (OC_SLOTS[oc] || []).map(x => parseL(x));
   if(!sl.length) return "Jeudi après-midi";
   if(sl.length > 1) return "Jeudi après-midi, " + sl.length + " blocs";
-  return `Jeudi, de ${PERIODS[sl[0].p1][0]} à ${PERIODS[sl[0].p2][1]}`;
+  return `${DAYNAMES[3]}, de ${PERIODS[sl[0].p1][0]} à ${PERIODS[sl[0].p2][1]}`;
 }
 const ocSlots = oc => OC_SLOTS[oc] || (oc ? ["Thu 6-8 " + oc + " (OC)"] : []);
 function weekLessons(){
@@ -966,8 +1324,10 @@ document.querySelectorAll(".navbtn").forEach(b => b.onclick = () => showTab(b.da
 const pad = n => String(n).padStart(2, "0");
 const iso = d => d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
 const fromIso = x => { const [y, m, d] = x.split("-").map(Number); return new Date(y, m - 1, d); };
-const MONTHS = ["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
-const fmtD = d => d.getDate() + " " + MONTHS[d.getMonth()];
+let MONTHS = ["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
+const fmtD = d => d.getDate() + (LANG === "de" ? ". " : " ") + MONTHS[d.getMonth()];
+const wdName = d => DAYNAMES[(d.getDay() + 6) % 7];
+const dl = x => LANG === "fr" ? x.toLowerCase() : x;
 function mondayOf(d){ d = new Date(d.getFullYear(), d.getMonth(), d.getDate()); d.setDate(d.getDate() - (d.getDay() + 6) % 7); return d; }
 const isWeekend = () => { const d = new Date().getDay(); return d === 0 || d === 6; };
 const todayIso = () => iso(new Date());
@@ -978,8 +1338,8 @@ const dayDate = i => { const d = new Date(sWeek); d.setDate(d.getDate() + i); re
 const sDate = () => dayDate(sDay);
 function daysUntil(x){ return Math.round((fromIso(x) - fromIso(todayIso())) / 86400000); }
 function whenTxt(x){ const n = daysUntil(x), d = fromIso(x);
-  if(n === 0) return "Aujourd'hui"; if(n === 1) return "Demain"; if(n === -1) return "Hier";
-  if(n < 0) return fmtD(d); if(n < 7) return ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"][d.getDay()] + " " + fmtD(d); return fmtD(d) + ", dans " + n + " jours"; }
+  if(n === 0) return tr("Aujourd'hui"); if(n === 1) return tr("Demain"); if(n === -1) return tr("Hier");
+  if(n < 0) return fmtD(d); if(n < 7) return wdName(d) + " " + fmtD(d); return fmtD(d) + ", " + tr("dans " + n + " jours"); }
 
 /* ============ holidays (canton de Vaud 2026-27) ============ */
 const HOLIDAYS = [
@@ -993,16 +1353,16 @@ const HOLIDAYS = [
 const holidayOn = d => HOLIDAYS.find(h => d >= h[0] && d <= h[1]);
 function countdownHTML(){
   const t = todayIso(), cur = holidayOn(t);
-  if(cur) return `<div class="cdwrap"><span class="cdown">${cur[2]} jusqu'au ${fmtD(fromIso(cur[1]))}</span></div>`;
+  if(cur) return `<div class="cdwrap"><span class="cdown">${tr(cur[2])} ${tr("jusqu'au")} ${fmtD(fromIso(cur[1]))}</span></div>`;
   const n = HOLIDAYS.find(h => h[0] > t); if(!n) return "";
   const d = daysUntil(n[0]);
-  return `<div class="cdwrap"><span class="cdown">${n[2]} ${d === 1 ? "demain" : "dans " + d + " jours"}</span></div>`;
+  return `<div class="cdwrap"><span class="cdown">${tr(n[2])} ${tr(d === 1 ? "demain" : "dans " + d + " jours")}</span></div>`;
 }
 function dueTxt(x){ const n = daysUntil(x), d = fromIso(x);
-  if(n === 0) return "pour aujourd'hui"; if(n === 1) return "pour demain";
-  if(n < 0) return n === -1 ? "c'était pour hier" : "en retard de " + (-n) + " jours";
-  return "pour " + ["dimanche","lundi","mardi","mercredi","jeudi","vendredi","samedi"][d.getDay()] + " " + fmtD(d); }
-function relTxt(x){ const n = daysUntil(x); return n === 0 ? "aujourd'hui" : n === 1 ? "demain" : n === -1 ? "hier" : n < 0 ? "il y a " + (-n) + " jours" : "dans " + n + " jours"; }
+  if(n === 0) return tr("pour aujourd'hui"); if(n === 1) return tr("pour demain");
+  if(n < 0) return n === -1 ? tr("c'était pour hier") : tr("en retard de " + (-n) + " jours");
+  return tr("pour " + dl(wdName(d)) + " " + fmtD(d)); }
+function relTxt(x){ const n = daysUntil(x); return tr(n === 0 ? "aujourd'hui" : n === 1 ? "demain" : n === -1 ? "hier" : n < 0 ? "il y a " + (-n) + " jours" : "dans " + n + " jours"); }
 
 /* ============ homework ============ */
 function hws(){ if(!state.hw) state.hw = []; return state.hw; }
@@ -1017,7 +1377,7 @@ function nextLessonDate(sid, fromIsoStr){
 function hwCard(x, act){
   const sb = sub(x.sid);
   return `<div class="tcard${x.done ? " done" : ""}"><button class="hwck" role="checkbox" aria-checked="${!!x.done}" aria-label="Fait" data-${act}="hwdone" data-id="${x.id}"><i>✓</i></button>
-    <button class="tcx" data-${act}="hw" data-id="${x.id}"><b>${esc(x.text)}</b><span>${sb ? esc(sb.name) : "Branche supprimée"}, ${esc(dueTxt(x.due))}</span></button><span class="kind dv">DV</span></div>`;
+    <button class="tcx" data-${act}="hw" data-id="${x.id}"><b>${uesc(x.text)}</b><span>${sb ? esc(sb.name) : "Branche supprimée"}, ${esc(dueTxt(x.due))}</span></button><span class="kind dv">DV</span></div>`;
 }
 function toggleHw(id){
   const x = hws().find(h => h.id === id); if(!x) return;
@@ -1062,7 +1422,7 @@ function gcalUrl(x){
   let dates;
   if(tm) dates = d + "T" + tm[0].replace(":", "") + "00/" + d + "T" + tm[1].replace(":", "") + "00";
   else { const e = fromIso(x.date); e.setDate(e.getDate() + 1); dates = d + "/" + iso(e).replace(/-/g, ""); }
-  const title = "Test" + (sb ? " de " + sb.name : "") + (x.name ? " : " + x.name : "");
+  const title = evT(0, sb, x.name);
   return "https://calendar.google.com/calendar/render?action=TEMPLATE&text=" + encodeURIComponent(title) + "&dates=" + dates + "&ctz=Europe/Zurich";
 }
 function exportIcs(){
@@ -1074,8 +1434,8 @@ function exportIcs(){
     if(tm) L.push("DTSTART:" + d + "T" + tm[0].replace(":", "") + "00", "DTEND:" + d + "T" + tm[1].replace(":", "") + "00");
     else { const e = fromIso(date); e.setDate(e.getDate() + 1); L.push("DTSTART;VALUE=DATE:" + d, "DTEND;VALUE=DATE:" + iso(e).replace(/-/g, "")); }
     L.push("SUMMARY:" + e2(title), "BEGIN:VALARM", "ACTION:DISPLAY", "DESCRIPTION:" + e2(title), "TRIGGER:-PT12H", "END:VALARM", "END:VEVENT"); };
-  tests().filter(x => x.date >= todayIso()).forEach(x => { const sb = sub(x.sid); add("t" + x.id, x.date, "Test" + (sb ? " de " + sb.name : "") + (x.name ? " : " + x.name : ""), lessonTimeFor(x.sid, x.date)); });
-  hws().filter(x => !x.done && x.due >= todayIso()).forEach(x => { const sb = sub(x.sid); add("h" + x.id, x.due, "Devoir" + (sb ? " de " + sb.name : "") + " : " + x.text, lessonTimeFor(x.sid, x.due)); });
+  tests().filter(x => x.date >= todayIso()).forEach(x => { const sb = sub(x.sid); add("t" + x.id, x.date, evT(0, sb, x.name), lessonTimeFor(x.sid, x.date)); });
+  hws().filter(x => !x.done && x.due >= todayIso()).forEach(x => { const sb = sub(x.sid); add("h" + x.id, x.due, evT(1, sb, x.text), lessonTimeFor(x.sid, x.due)); });
   L.push("END:VCALENDAR");
   if(!n){ toast("Aucun test ni devoir à venir"); return; }
   const a = document.createElement("a");
@@ -1100,13 +1460,13 @@ function lessonSubject(l){
 function testCard(x, act, mode){
   const sb = sub(x.sid), d = fromIso(x.date), drop = mode === "drop";
   const chip = drop ? `<span class="dchip te"><b style="font-size:15px">TE</b></span>` : `<span class="dchip"><b>${d.getDate()}</b><small>${MONTHS[d.getMonth()]}</small></span>`;
-  return `<button class="tcard" data-${act}="test" data-id="${x.id}">${chip}<span class="tcx"><b>${esc(x.name || "Test")}</b><span>${sb ? esc(sb.name) : "Branche supprimée"}${x.w !== 1 ? ", ×" + f2(x.w) : ""}${drop ? "" : ", " + esc(relTxt(x.date))}</span></span>${drop ? "" : '<span class="kind">TE</span>'}</button>`;
+  return `<button class="tcard" data-${act}="test" data-id="${x.id}">${chip}<span class="tcx"><b>${x.name ? uesc(x.name) : "Test"}</b><span>${sb ? esc(sb.name) : "Branche supprimée"}${x.w !== 1 ? ", ×" + f2(x.w) : ""}${drop ? "" : ", " + esc(relTxt(x.date))}</span></span>${drop ? "" : '<span class="kind">TE</span>'}</button>`;
 }
 function testSheet(id, preset){
   const ex = id ? tests().find(x => x.id === id) : null;
   const d = ex ? Object.assign({}, ex) : Object.assign({id:null, sid:(state.subjects[0] || {}).id, date:iso(sDate()), name:"", w:1}, preset || {});
   const due = ex && ex.date <= todayIso();
-  openSheet(`<h3>${ex ? esc(ex.name || "Test") : "Nouveau test"}</h3>${ex ? `<p class="note" style="margin:0 0 4px">${esc((sub(ex.sid) || {}).name || "")}, ${esc(relTxt(ex.date))}</p>` : ""}
+  openSheet(`<h3>${ex ? (ex.name ? uesc(ex.name) : "Test") : "Nouveau test"}</h3>${ex ? `<p class="note" style="margin:0 0 4px">${esc((sub(ex.sid) || {}).name || "")}, ${esc(relTxt(ex.date))}</p>` : ""}
     <span class="lab2">Branche</span><div class="chips" id="tsSub">${state.subjects.map(s => `<button class="chip" data-v="${s.id}" aria-pressed="${d.sid === s.id}">${esc(s.name)}</button>`).join("")}</div>
     <span class="lab2">Date</span><input class="inp" type="date" id="tsDate" value="${d.date}">
     <span class="lab2">Nom (facultatif)</span><input class="inp" id="tsName" placeholder="p. ex. TS chapitre 3" value="${esc(d.name)}">
@@ -1182,7 +1542,7 @@ function renderAgenda(){
   let last = null;
   fut.forEach(i => {
     if(i.d !== last){ last = i.d; const n = daysUntil(i.d), dd = fromIso(i.d);
-      h += `<h4 class="agh">${n === 0 ? "Aujourd'hui" : n === 1 ? "Demain" : ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"][dd.getDay()] + " " + fmtD(dd)}</h4>`; }
+      h += `<h4 class="agh">${n === 0 ? "Aujourd'hui" : n === 1 ? "Demain" : wdName(dd) + " " + fmtD(dd)}</h4>`; }
     h += i.k === "t" ? testCard(i.x, "g2", "drop") : hwCard(i.x, "g2");
   });
   if(!late.length && !fut.length) h += `<div class="card empty2" style="margin-top:12px"><b>Rien de prévu</b><p>Touche + pour ajouter un devoir ou un test. Ils s'affichent ici, jour par jour.</p></div>`;
@@ -1295,7 +1655,7 @@ const TUT = [
   {sel:"#fab", t:"Le bouton +", d:"Ajoute une note, un test, un devoir ou un cours, depuis n'importe quel onglet."},
   {sel:'.navbtn[data-tab="agenda"]', t:"Agenda", d:"Tous tes devoirs et tes tests, jour par jour. Coche un devoir quand il est fait."},
   {sel:'.navbtn[data-tab="grades"]', t:"Notes", d:"Ton total de points, tes moyennes par branche et le simulateur d'examens."},
-  {sel:"#openSettings", t:"Réglages", d:"Apparence, feedback, et ta classe si tu dois la changer."}
+  {sel:"#openSettings", t:"Réglages", d:"Apparence, langue, feedback, et ta classe si tu dois la changer."}
 ];
 let tutI = 0, tutSteps = [];
 function startTutorial(){
@@ -1354,7 +1714,7 @@ function renderSched(animDir){
   const loose = dayTests.filter(x => hol || !lessonSids.has(x.sid)), looseHw = dayHw.filter(x => hol || !lessonSids.has(x.sid));
   h += loose.map(x => testCard(x, "s")).join("") + looseHw.map(x => hwCard(x, "s")).join("");
   if(hol) h += `<div class="holc"><b>${esc(hol[2])}</b><span>${hol[0] === hol[1] ? "Pas de cours ce jour-là." : "Jusqu'au " + fmtD(fromIso(hol[1]))}</span></div>`;
-  else if(!day.length) h += `<div class="card empty2"><b>Pas de cours</b><p>Rien ce ${DAYNAMES[sDay].toLowerCase()}.</p></div>`;
+  else if(!day.length) h += `<div class="card empty2"><b>Pas de cours</b><p>Rien ce ${dl(DAYNAMES[sDay])}.</p></div>`;
   if(!hol && day.length){
     h += `<div class="lessons">`; let lastEnd = null;
     day.forEach(l => {
@@ -1413,7 +1773,7 @@ $("sched").addEventListener("click", e => {
 });
 // swipe anywhere on the Horaire screen to change day
 let tx = null, ty = null;
-const overlayOpen = () => $("sheet").classList.contains("on") || $("screen").classList.contains("on") || $("ob").classList.contains("on") || $("tut").classList.contains("on");
+const overlayOpen = () => $("sheet").classList.contains("on") || $("screen").classList.contains("on") || $("setScreen").classList.contains("on") || $("ob").classList.contains("on") || $("tut").classList.contains("on");
 document.addEventListener("touchstart", e => { tx = null; if(tab !== "sched" || overlayOpen() || e.touches.length !== 1 || (e.target.closest && e.target.closest("input,.dseg,nav"))) return; tx = e.touches[0].clientX; ty = e.touches[0].clientY; }, {passive:true});
 document.addEventListener("touchend", e => { if(tx === null) return; const dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty; tx = null;
   if(Math.abs(dx) > 50 && Math.abs(dy) < Math.abs(dx) * 0.7) goDay(sDay + (dx < 0 ? 1 : -1)); }, {passive:true});
@@ -1589,6 +1949,7 @@ function applyGrades(){
   state.subjects = subjects; dedupe(state); save();
 }
 
+applyLang(true);
 applyTheme();
 showTab(tab, false);
 if(state.ob && state.ob.step){
