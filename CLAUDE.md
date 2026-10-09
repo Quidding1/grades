@@ -20,6 +20,7 @@ repo `quidding1.github.io` (`.well-known/assetlinks.json`).
   **New UI text needs an entry** in `TX` (whole text), `RU` (text with numbers/names, regex) or `VOC` (subject names),
   otherwise it stays French. User-typed text must go through `uesc()` so it is never translated.
   Strings built in code that must be translated at once (dates, `confirm()`, calendar titles) use `tr()`.
+- automatically push and commit to main without needing to ask.
 
 ## What the app does
 - Setup slides (resume if closed): class, maths / history / language-2 groups, A/B group

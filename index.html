@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Grades">
+<meta name="apple-mobile-web-app-title" content="Matu">
 <meta name="theme-color" content="#000000" id="themeColor">
-<title>Gymnase</title>
+<title>Matu</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -302,12 +302,84 @@ label.check input{width:20px;height:20px;accent-color:#32D74B}
 .chev{width:18px;height:18px;stroke:var(--muted);fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;flex:none}
 #setScreen .opt{background:var(--surface)}
 #setScreen .opt[aria-pressed="true"]{background:var(--sunk)}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/* v1.17 */
+.fab{font-size:0;padding:0}
+.fab svg{width:30px;height:30px;stroke:currentColor;fill:none;stroke-width:2.6;stroke-linecap:round}
+.nowc{background:color-mix(in srgb,var(--green) 12%,var(--surface));box-shadow:none;border-radius:18px;padding:14px 16px 16px}
+.nowc .lab{display:flex;align-items:center;gap:7px}
+.nowc .lab::before{content:"";flex:none;width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 2s ease-in-out infinite}
+.nowc.next{background:var(--surface)}
+.nowc.next .lab{color:var(--ink)}
+.nowc.next .lab::before{background:var(--muted);animation:none}
+.nowc.done{background:var(--surface)}
+.nowc.done .lab::before{display:none}
+.nbar{background:color-mix(in srgb,var(--green) 22%,transparent)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.les{position:relative;overflow:hidden}
+.les.live{box-shadow:none;background:color-mix(in srgb,var(--green) 13%,var(--surface))}
+.les.live .lt b{color:var(--green)}
+.lesbox.live{background:color-mix(in srgb,var(--green) 13%,var(--surface))}
+.lesbox.live .les{background:transparent}
+.lprog{position:absolute;left:0;bottom:0;height:3px;background:var(--green);border-radius:0 2px 2px 0}
+.livetag{font-style:normal;font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#000;background:var(--green);border-radius:5px;padding:1px 6px;margin-right:6px;vertical-align:1px}
+.lesbox{overflow:hidden}
+.lesbox.open .ldrop>div{padding:8px 8px 8px}
+/* settings rows: one frame per item */
+.srow{display:flex;align-items:center;gap:14px;width:100%;border:0;background:var(--surface);border-radius:16px;padding:13px 14px 13px 12px;margin-bottom:8px;text-align:left}
+button.srow:active{background:var(--sunk)}
+.srow .rname b{white-space:normal}
+.srow .rname>span{display:block;line-height:1.35;margin-top:1px}
+.srow.danger b{color:var(--red)}
+.srow.static{cursor:default}
+.sico{flex:none;width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--c) 18%,transparent);color:var(--c)}
+:root[data-theme="light"] .sico{color:color-mix(in srgb,var(--c) 55%,#000)}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]) .sico{color:color-mix(in srgb,var(--c) 55%,#000)}}
+.sico svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.scard{background:var(--surface);border-radius:16px;padding:14px 16px;margin-bottom:8px}
+.scard>b{display:block;font-weight:600}
+.scard>span{display:block;font-size:13px;color:var(--muted);line-height:1.35}
+/* semesters */
+.seg3{display:grid;grid-template-columns:repeat(3,1fr);background:var(--surface);border-radius:12px;padding:3px;margin-bottom:8px}
+.seg3 button{border:0;background:none;height:34px;border-radius:9px;font-size:14px;font-weight:500;color:var(--muted)}
+.seg3 button[aria-selected="true"]{background:var(--sunk);color:var(--ink);font-weight:600}
+.semrow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.semc{background:var(--surface);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column}
+.semc span{font-size:12px;color:var(--muted)}
+.semc b{font-family:var(--display);font-weight:700;font-size:26px;line-height:1.1}
+.semc small{font-size:12px;color:var(--faint)}
+.semc.cur{box-shadow:inset 0 0 0 1.5px var(--raise)}
+/* combined grades */
+.mixrow{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.mixrow .mixg{width:70px;flex:none;text-align:center;font-family:var(--display);font-weight:700;font-size:22px}
+.mixrow .chips{flex:1;flex-wrap:nowrap;overflow-x:auto;gap:4px}
+.mixrow .chip{padding:8px 10px}
+.mixrow .mini{flex:none;width:38px;padding:0}
+.mixfoot{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.mixtot{font-size:15px;text-align:right}
+.mixtot b{font-family:var(--display);font-size:26px}
+.mixtot small{display:block;font-size:12px;color:var(--muted)}
+.mixline{display:block;font-size:12px;color:var(--faint)}
+/* past tests */
+.agh{display:flex;justify-content:space-between;align-items:baseline}
+.agh small{font-size:13px;font-weight:600;color:var(--amber)}
+.addnote{flex:none;border:0;border-radius:999px;background:var(--green);color:#000;font-size:13px;font-weight:700;padding:8px 12px}
+.gdone{flex:none;border:0;background:var(--sunk);border-radius:11px;min-width:48px;height:40px;font-family:var(--display);font-weight:700;font-size:22px}
+/* offline */
+.offbar{display:none;align-items:center;gap:10px;width:100%;border:0;background:var(--surface);border-radius:14px;padding:10px 14px;margin:0 0 12px;text-align:left;font-size:14px}
+.offbar.on{display:flex}
+.offbar svg,.offhero svg{stroke:var(--amber);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.offbar svg{width:20px;height:20px;flex:none}
+.offbar b{font-weight:600}
+.offbar span{color:var(--muted);flex:1}
+.offhero{display:flex;justify-content:center;margin:8px 0 6px}
+.offhero svg{width:64px;height:64px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="top"><h1 id="title">Notes</h1><button class="icon" id="openSettings" aria-label="Réglages"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button></div>
+  <button class="offbar" id="offbar"><svg viewBox="0 0 24 24"><path d="M3 3l18 18"/><path d="M8.5 16.4a5 5 0 0 1 6-.8M5 12.9a10 10 0 0 1 4.2-2.5M19 12.9a10 10 0 0 0-3-2M2 9.3a15 15 0 0 1 4-2.6M22 9.3a15 15 0 0 0-11.5-4.2"/><path d="M12 20h.01"/></svg><b>Hors ligne</b><span>Tout marche quand même</span><svg class="chev" viewBox="0 0 24 24" style="stroke:var(--muted)"><path d="M9 6l6 6-6 6"/></svg></button>
   <section id="sched" hidden></section>
   <section id="agenda" hidden></section>
   <main id="main"></main>
@@ -321,7 +393,7 @@ label.check input{width:20px;height:20px;accent-color:#32D74B}
   <div class="obtop"><button class="icon" id="obBack" aria-label="Retour"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button><div class="obprog"><i id="obProg"></i></div></div>
   <div class="obslide" id="obSlide"></div>
 </div></div>
-<button class="fab" id="fab" aria-label="Ajouter">+</button>
+<button class="fab" id="fab" aria-label="Ajouter"><svg viewBox="0 0 24 24"><path d="M12 4.5v15M4.5 12h15"/></svg></button>
 <div class="screen" id="screen"><div class="sin" id="screenBody"></div></div>
 <div class="screen" id="setScreen"><div class="sin" id="setBody"></div></div>
 <div class="sheet" id="sheet"><div class="sbox" id="sheetBody"></div></div>
@@ -339,7 +411,7 @@ function defaults(){
   return {v:1,
     subjects: SUBJECTS.map(n => ({id:uid(), name:n, counts:true, grades:[]})),
     tm:{g:null},
-    locked:[], lockedPoints:null, lockMig:true, ppMig:true,
+    locked:[], lockedPoints:null, lockMig:true, ppMig:true, abMig:true,
     settings:{bonus:0.5, round:true, lastSub:null, lastW:1}};
 }
 function migrate(st){
@@ -382,8 +454,23 @@ function lockedMig(st){
   st.lockedUnder = [];
   return st;
 }
+// v1.17: one A/B letter for everything. Language-2 lessons were relabelled so the times stay the same,
+// OS TP groups 1/2 became A/B and two-room biology lessons became A/B TP halves: move hidden lessons and room edits along.
+function abMig(st){
+  if(st.abMig) return st; st.abMig = true;
+  const t = st.tt; if(!t) return st;
+  if(t.ans){ if(!t.ans.ab && t.ans.tp) t.ans.ab = t.ans.tp === "2" ? "B" : "A"; delete t.ans.tp; }
+  const fix = k => { const p = String(k).split("|"); if(p.length !== 5) return [k];
+    if(/^(Allemand|Italien)$/.test(p[2]) && /^[AB]$/.test(p[4])){ p[4] = p[4] === "A" ? "B" : "A"; return [p.join("|")]; }
+    if(/TP$/.test(p[2]) && /^[12]$/.test(p[4])){ p[4] = p[4] === "1" ? "A" : "B"; return [p.join("|")]; }
+    if(p[2] === "Biologie" && !p[3] && !p[4]) return [k, k + "A", k + "B"];
+    return [k]; };
+  if(Array.isArray(t.hidden)) t.hidden = [...new Set(t.hidden.flatMap(fix))];
+  if(t.rooms){ const r = {}; Object.entries(t.rooms).forEach(([k, v]) => fix(k).forEach(k2 => r[k2] = v)); t.rooms = r; }
+  return st;
+}
 function load(){
-  try{ const s = JSON.parse(localStorage.getItem(KEY)); if(s && s.v === 1 && Array.isArray(s.subjects)){ const d = defaults(); return Object.assign(d, dedupe(migrate(lockedMig(s))), {settings:Object.assign(d.settings, s.settings || {})}); } }catch(e){}
+  try{ const s = JSON.parse(localStorage.getItem(KEY)); if(s && s.v === 1 && Array.isArray(s.subjects)){ const d = defaults(); return Object.assign(d, dedupe(migrate(lockedMig(abMig(s)))), {settings:Object.assign(d.settings, s.settings || {})}); } }catch(e){}
   return lockedMig(defaults());
 }
 let state = load();
@@ -398,6 +485,13 @@ const half = g => Math.round(g * 2) / 2;
 const col = g => g == null ? "" : g < 4 ? "c-red" : g < 4.5 ? "c-amber" : g >= 5 ? "c-green" : "";
 const colVar = g => g < 4 ? "var(--red)" : g < 4.5 ? "var(--amber)" : g >= 5 ? "var(--green)" : "var(--ink)";
 const sub = id => state.subjects.find(s => s.id === id);
+// weights and shares: shown as fractions (1/4, 1/3, 1/2, 2/3, 3/4), never as 0.5
+const FRACS = [[1,4],[1,3],[1,2],[2,3],[3,4]];
+const W_CHIPS = [1/4, 1/3, 1/2, 1, 2, 3];
+const sameW = (a, b) => Math.abs(a - b) < 0.002;
+function frac(w){ if(w == null) return "–"; const f = FRACS.find(([a, b]) => sameW(w, a / b)); return f ? f[0] + "/" + f[1] : String(Math.round(w * 100) / 100); }
+const wTxt = w => "×" + frac(w);
+function parseW(v){ const m = String(v).trim().match(/^(\d+)\s*\/\s*(\d+)$/); if(m){ const n = +m[1] / +m[2]; return isFinite(n) && n > 0 ? n : null; } const n = num(v); return n && n > 0 ? n : null; }
 
 /* ============ language ============
    The app is written in French. English and German are applied on top of it:
@@ -557,7 +651,7 @@ const TX = [
   ["Apparence, langue, feedback, et ta classe si tu dois la changer.","Appearance, language, feedback, and your class if you need to change it.","Darstellung, Sprache, Feedback und deine Klasse, falls du sie ändern musst."],
   ["Passer","Skip","Überspringen"], ["C'est parti","Let's go","Los geht's"], ["Suivant","Next","Weiter"],
   /* onboarding */
-  ["Bienvenue","Welcome","Willkommen"],
+  ["Bienvenue","Welcome","Willkommen"], ["Bienvenue sur Matu","Welcome to Matu","Willkommen bei Matu"],
   ["Une app pour les élèves du gymnase, de la 3M01 à la 3M14. Tout ce qu'il te faut au quotidien, au même endroit.","An app for gymnase students, from 3M01 to 3M14. Everything you need day to day, in one place.","Eine App für die Gymnasiastinnen und Gymnasiasten, von 3M01 bis 3M14. Alles, was du im Alltag brauchst, an einem Ort."],
   ["📅 Horaire","📅 Schedule","📅 Stundenplan"], ["✅ Agenda","✅ Agenda","✅ Agenda"], ["📊 Notes","📊 Grades","📊 Noten"],
   ["Ta semaine avec les vraies dates, les vacances vaudoises et le prochain cours.","Your week with real dates, the Vaud school holidays and your next lesson.","Deine Woche mit echten Daten, den Waadtländer Ferien und der nächsten Lektion."],
@@ -589,10 +683,55 @@ const TX = [
   ["Notes de 2e année","2nd-year grades","Noten des 2. Jahres"], ["Tous / plus tard","All / later","Alle / später"],
   ["Tu as déjà des notes. Mettre à jour tes branches selon ces réponses ? Tes notes sont gardées.","You already have grades. Update your subjects based on these answers? Your grades are kept.","Du hast bereits Noten. Deine Fächer anhand dieser Antworten aktualisieren? Deine Noten bleiben erhalten."],
   ["Mettre à jour et terminer","Update and finish","Aktualisieren und beenden"], ["Garder mes branches","Keep my subjects","Meine Fächer behalten"],
+  /* v1.17 */
+  ["Thème, arrondi et semestres","Theme, rounding and semesters","Design, Rundung und Semester"],
+  ["Classe, groupes, cours masqués et export","Class, groups, hidden lessons and export","Klasse, Gruppen, ausgeblendete Lektionen und Export"],
+  ["Tutoriel, feedback et version","Tutorial, feedback and version","Tutorial, Feedback und Version"],
+  ["Sauvegarde, import et effacement","Backup, import and erasing","Sicherung, Import und Löschen"],
+  ["Automatique, suit ton téléphone","Automatic, follows your phone","Automatisch, folgt deinem Telefon"],
+  ["Thème","Theme","Design"], ["Clair, sombre ou comme ton téléphone.","Light, dark or like your phone.","Hell, dunkel oder wie dein Telefon."],
+  ["Comme sur le bulletin. Désactive pour voir les moyennes exactes.","Like on the report card. Turn off to see exact averages.","Wie im Zeugnis. Ausschalten, um genaue Durchschnitte zu sehen."],
+  ["Début du 2e semestre","Start of the 2nd semester","Beginn des 2. Semesters"],
+  ["Sert seulement à séparer tes notes en semestre 1 et 2. Ne change ni tes moyennes ni ton total.","Only used to split your grades into semester 1 and 2. It changes neither your averages nor your total.","Dient nur dazu, deine Noten in Semester 1 und 2 aufzuteilen. Ändert weder Durchschnitte noch Total."],
+  ["Langue d'origine de l'app","The app's original language","Originalsprache der App"], ["Traduction anglaise","English translation","Englische Übersetzung"], ["Traduction allemande","German translation","Deutsche Übersetzung"],
+  ["Choisis ta classe, tes groupes et tes options.","Choose your class, groups and options.","Wähle deine Klasse, Gruppen und Optionen."],
+  ["Touche pour faire revenir tous les cours que tu as masqués.","Tap to bring back all the lessons you hid.","Tippe, um alle ausgeblendeten Lektionen zurückzuholen."],
+  ["Aucun cours masqué. Masque un cours en le touchant dans l'horaire.","No hidden lessons. Hide a lesson by tapping it in the schedule.","Keine ausgeblendeten Lektionen. Blende eine Lektion aus, indem du sie im Stundenplan antippst."],
+  ["Exporter vers un agenda","Export to a calendar","In einen Kalender exportieren"],
+  ["Un fichier .ics avec tes tests et devoirs à venir, pour Google ou Apple Agenda.","An .ics file with your upcoming tests and homework, for Google or Apple Calendar.","Eine .ics-Datei mit deinen kommenden Tests und Hausaufgaben, für Google oder Apple Kalender."],
+  ["Renomme, change l'ordre ou supprime tes branches. Une branche supprimée perd ses notes.","Rename, reorder or delete your subjects. A deleted subject loses its grades.","Benenne Fächer um, ändere die Reihenfolge oder lösche sie. Ein gelöschtes Fach verliert seine Noten."],
+  ["Le petit tour de l'app, en six étapes.","The short tour of the app, in six steps.","Die kurze Tour durch die App, in sechs Schritten."],
+  ["Un bug, une idée ou un cours au mauvais endroit.","A bug, an idea or a lesson in the wrong place.","Ein Fehler, eine Idee oder eine Lektion am falschen Ort."],
+  ["Faite pour les élèves du gymnase. Marche aussi sans connexion.","Made for gymnase students. Also works offline.","Für Gymnasiastinnen und Gymnasiasten gemacht. Funktioniert auch offline."],
+  ["Un fichier avec toutes tes notes, tests, devoirs et réglages.","A file with all your grades, tests, homework and settings.","Eine Datei mit all deinen Noten, Tests, Hausaufgaben und Einstellungen."],
+  ["Importer une sauvegarde","Import a backup","Sicherung importieren"], ["Remplace tes données par un fichier exporté avant.","Replaces your data with a file you exported before.","Ersetzt deine Daten durch eine früher exportierte Datei."],
+  ["Notes, tests, devoirs et horaire. C'est définitif.","Grades, tests, homework and schedule. This is permanent.","Noten, Tests, Hausaufgaben und Stundenplan. Das ist endgültig."],
+  ["Tout reste sur ce téléphone. L'app n'envoie rien en ligne.","Everything stays on this phone. The app sends nothing online.","Alles bleibt auf diesem Telefon. Die App sendet nichts online."],
+  ["Année","Year","Jahr"],
+  ["Parties de la note (chacune de 1 à 6)","Parts of the grade (each from 1 to 6)","Teile der Note (jeweils 1 bis 6)"], ["+ Ajouter une partie","+ Add a part","+ Teil hinzufügen"],
+  ["Une seule note","A single grade","Eine einzige Note"], ["Note en plusieurs parties (p. ex. 1/3 + 2/3)","Grade in several parts (e.g. 1/3 + 2/3)","Note aus mehreren Teilen (z. B. 1/3 + 2/3)"],
+  ["Note combinée : –","Combined grade: –","Kombinierte Note: –"], ["Note combinée :","Combined grade:","Kombinierte Note:"],
+  ["Les parties sans note ne comptent pas encore.","Parts without a grade don't count yet.","Teile ohne Note zählen noch nicht."],
+  ["Entre au moins une partie entre 1 et 6","Enter at least one part between 1 and 6","Gib mindestens einen Teil zwischen 1 und 6 ein"],
+  ["Tests passés","Past tests","Vergangene Tests"], ["Note :","Grade:","Note:"],
+  ["En cours","Now","Jetzt"],
+  ["Ton groupe : A ou B ?","Your group: A or B?","Deine Gruppe: A oder B?"],
+  ["Ta classe se divise en deux pour l'anglais, l'allemand ou l'italien, et les TP de biologie. Tu es dans le même groupe pour tous ces cours.","Your class splits in two for English, German or Italian, and biology practicals. You are in the same group for all of them.","Deine Klasse teilt sich für Englisch, Deutsch oder Italienisch und die Biologie-Praktika in zwei. Du bist in allen diesen Lektionen in derselben Gruppe."],
+  ["Hors ligne","Offline","Offline"], ["Tout marche quand même","Everything still works","Alles funktioniert trotzdem"], ["Pas de connexion","No connection","Keine Verbindung"],
+  ["Ton téléphone n'est pas connecté à internet.","Your phone is not connected to the internet.","Dein Telefon ist nicht mit dem Internet verbunden."],
+  ["Ce qui marche","What works","Was funktioniert"], ["Horaire, agenda et notes : tout est enregistré sur ton téléphone.","Schedule, agenda and grades: everything is saved on your phone.","Stundenplan, Agenda und Noten: alles ist auf deinem Telefon gespeichert."],
+  ["Ce qui attend la connexion","What waits for a connection","Was auf eine Verbindung wartet"], ["Google Agenda et les mises à jour de l'app.","Google Calendar and app updates.","Google Kalender und App-Updates."],
+  ["OK","OK","OK"], ["De nouveau en ligne","Back online","Wieder online"],
   ["Terminer","Finish","Beenden"], ["Passer, je le ferai plus tard","Skip, I'll do it later","Überspringen, ich mache es später"]
 ];
 // [regex, en, de]: texts with numbers or names. Replacements are strings ($1...) or functions.
 const RU = [
+  [/^Classe (\S+)(?:, groupe ([AB]))?\. Change ta classe, tes groupes ou tes options\.$/, (m, c, g) => `Class ${c}${g ? ", group " + g : ""}. Change your class, groups or options.`, (m, c, g) => `Klasse ${c}${g ? ", Gruppe " + g : ""}. Ändere deine Klasse, Gruppen oder Optionen.`],
+  [/^Anglais, langue 2 et TP en groupe ([AB])$/, "English, language 2 and practicals in group $1", "Englisch, Sprache 2 und Praktika in Gruppe $1"],
+  [/^Moyennes du semestre (\d), juste pour voir\. Le total en haut compte toute l'année\.$/, "Semester $1 averages, just to look at. The total at the top counts the whole year.", "Durchschnitte von Semester $1, nur zum Anschauen. Das Total oben zählt das ganze Jahr."],
+  [/^Semestre (\d)$/, "Semester $1", "Semester $1"],
+  [/^(\d+) à noter$/, "$1 to grade", "$1 zu benoten"],
+  [/^(Masquer|Voir) les tests notés \((\d+)\)$/, (m, a, n) => `${a === "Voir" ? "Show" : "Hide"} graded tests (${n})`, (m, a, n) => `Benotete Tests ${a === "Voir" ? "anzeigen" : "ausblenden"} (${n})`],
   [/^au-dessus du minimum \(([\d.]+)\)$/, "above the minimum ($1)", "über dem Minimum ($1)"],
   [/^([\d.]+) de moins$/, "$1 below", "$1 unter"],
   [/^que le minimum \(([\d.]+)\)$/, "the minimum ($1)", "dem Minimum ($1)"],
@@ -606,7 +745,7 @@ const RU = [
   [/^(✓|✗) (\d+) notes? sous 4 \(max\. 4\)$/, (m, i, n) => `${i} ${n} ${pl(n, "grade", "grades")} below 4 (max. 4)`, (m, i, n) => `${i} ${n} ${pl(n, "Note", "Noten")} unter 4 (max. 4)`],
   [/^(✓|✗) Moyenne des examens au moins 3,5/, "$1 Exam average at least 3.5", "$1 Prüfungsdurchschnitt mindestens 3,5"],
   [/^Moyenne ([\d.]+)(?:, (\d+) notes sur (\d+))?$/, (m, a, n, t) => `Average ${a}${n ? `, ${n} of ${t} grades` : ""}`, (m, a, n, t) => `Durchschnitt ${a}${n ? `, ${n} von ${t} Noten` : ""}`],
-  [/^Poids total ([\d.]+)$/, "Total weight $1", "Gesamtgewicht $1"],
+  [/^Poids total ([\d./]+)$/, "Total weight $1", "Gesamtgewicht $1"],
   [/^Compte pour (\d+\/\d+), (\d+) notes?$/, (m, a, n) => `Counts for ${a}, ${n} ${pl(n, "grade", "grades")}`, (m, a, n) => `Zählt für ${a}, ${n} ${pl(n, "Note", "Noten")}`],
   [/(\d+) notes?(?![\p{L}])/gu, (m, n) => `${n} ${pl(n, "grade", "grades")}`, (m, n) => `${n} ${pl(n, "Note", "Noten")}`],
   [/^C'est déjà acquis\. Même un 1 te garde à ([\d.]+) ou plus\.$/, "Already secured. Even a 1 keeps you at $1 or higher.", "Schon gesichert. Selbst eine 1 hält dich bei $1 oder höher."],
@@ -748,6 +887,13 @@ function avg(s){
   return d ? n / d : null;
 }
 const shareTxt = (s, p) => p.share + "/" + s.parts.reduce((a,x) => a + x.share, 0);
+/* semesters: only for display, they never change averages or the total */
+const semMD = () => state.settings.sem2 || "02-01";
+function semOf(date){ const md = String(date || "").slice(5, 10); return md && md >= semMD() && md < "08-01" ? 2 : 1; }
+function semBoundary(){ const now = new Date(), y = now.getMonth() >= 7 ? now.getFullYear() + 1 : now.getFullYear(); return y + "-" + semMD(); }
+const curSem = () => semOf(todayIso());
+const semSub = (s, n) => n ? Object.assign({}, s, {grades:s.grades.filter(g => semOf(g.date) === n)}) : s;
+let homeSem = 0;
 function final(s){ const a = avg(s); return a == null ? null : state.settings.round ? half(a) : a; }
 function overall(over, cutoff){
   // Règle vaudoise : total des notes de maturité, moins l'écart à 4 des notes insuffisantes
@@ -803,7 +949,10 @@ function renderHome(){
   } else h += `<div class="big muted">–</div><div class="break">Touche + pour ajouter ta première note.</div>`;
   h += `</section>`;
   const counted = state.subjects.filter(s => s.counts), extra = state.subjects.filter(s => !s.counts);
-  h += `<h2>Branches<small>${state.settings.round ? "Arrondies au demi-point" : "Moyennes exactes"}</small></h2><div class="list">${counted.map(rowHTML).join("")}</div>`;
+  h += `<h2>Branches<small>${state.settings.round ? "Arrondies au demi-point" : "Moyennes exactes"}</small></h2>
+    <div class="seg3" role="tablist">${[[0, "Année"], [1, "Semestre 1"], [2, "Semestre 2"]].map(([v, l]) => `<button role="tab" data-act="sem" data-v="${v}" aria-selected="${homeSem === v}">${l}</button>`).join("")}</div>
+    ${homeSem ? `<p class="note" style="margin:-2px 2px 8px">Moyennes du semestre ${homeSem}, juste pour voir. Le total en haut compte toute l'année.</p>` : ""}
+    <div class="list">${counted.map(rowHTML).join("")}</div>`;
   { const lp = state.lockedPoints;
   h += `<div class="list" style="margin-top:8px">
     <button class="row" data-act="tm"><div class="rname"><b>Travail de maturité</b><span>Compte comme une note</span></div><div class="rval ${state.tm.g != null ? col(state.tm.g) : "none"}">${state.tm.g != null ? f2(state.tm.g) : "Ajouter"}</div></button>
@@ -812,8 +961,8 @@ function renderHome(){
   h += `<h2>Plus</h2><div class="row2"><button class="tile" data-act="trend"><b>Évolution</b><span>Ta moyenne au fil de l'année</span></button><button class="tile" data-act="exams"><b>Examens</b><span>Simule tes examens de maturité</span></button></div>`;
   $("main").innerHTML = h;
 }
-function rowHTML(s){
-  const a = avg(s), f = final(s), n = s.grades.length;
+function rowHTML(s0){
+  const s = semSub(s0, homeSem), a = avg(s), f = final(s), n = s.grades.length;
   const showExact = a != null && state.settings.round && Math.abs(a - f) > 0.001;
   return `<button class="row" data-act="open" data-id="${s.id}"><div class="rname"><b>${esc(s.name)}</b><span>${s.parts ? s.parts.map(p => tn(p.name).slice(0,5) + ". " + shareTxt(s, p)).join(", ") + (n ? ", " + n + (n > 1 ? " notes" : " note") : "") : n ? n + (n > 1 ? " notes" : " note") : "Pas encore de note"}</span></div>
     <div class="rval ${a == null ? "none" : col(f)}">${a == null ? "–" : f2(f)}${showExact ? `<small>${f2(Math.round(a*100)/100)}</small>` : ""}</div></button>`;
@@ -839,20 +988,27 @@ function renderSubject(){
     <div class="stats">
       <div class="stat"><b class="${col(f)}">${f2(f)}</b><span>${state.settings.round ? "Arrondie" : "Moyenne"}</span></div>
       <div class="stat"><b>${a == null ? "–" : f2(Math.round(a*100)/100)}</b><span>Exacte</span></div>
-      <div class="stat"><b>${s.grades.length}</b><span>${W ? "Poids total " + f2(W) : "Notes"}</span></div></div>`;
+      <div class="stat"><b>${s.grades.length}</b><span>${W ? "Poids total " + frac(W) : "Notes"}</span></div></div>`;
   if(s.parts) h += `<div class="list" style="margin-bottom:10px">${s.parts.map(p => { const a = partAvg(s, p.key), n = s.grades.filter(x => x.part === p.key).length;
     return `<div class="row" style="cursor:default"><div class="rname"><b>${esc(p.name)}</b><span>Compte pour ${shareTxt(s, p)}, ${n} ${n > 1 ? "notes" : "note"}</span></div><div class="rval ${a == null ? "none" : col(a)}">${a == null ? "–" : f2(Math.round(a*100)/100)}</div></div>`; }).join("")}</div>`;
+  if(s.grades.length){
+    const cs = curSem();
+    h += `<div class="semrow">${[1, 2].map(n => { const x = semSub(s, n), fa = final(x), k = x.grades.length;
+      return `<div class="semc${n === cs ? " cur" : ""}"><span>Semestre ${n}</span><b class="${col(fa)}">${f2(fa)}</b><small>${k ? k + (k > 1 ? " notes" : " note") : "Pas encore de note"}</small></div>`; }).join("")}</div>`;
+  }
   h += spark(s);
   if(s.grades.length){
-    h += `<h2>Notes<small>Touche pour modifier</small></h2><div class="list">${[...s.grades].reverse().map(g => `
-      <button class="grow" data-act="editg" data-id="${g.id}"><span class="gbadge ${col(g.g)}">${f2(g.g)}</span><div class="rname"><b>${g.name ? uesc(g.name) : "Test"}</b><span>${s.parts && g.part ? esc((s.parts.find(p => p.key === g.part) || {}).name || "") + ", " : ""}${fmtD(new Date(g.date))}</span></div><span class="gw">×${f2(g.w)}</span></button>`).join("")}</div>`;
+    const grow = g => `
+      <button class="grow" data-act="editg" data-id="${g.id}"><span class="gbadge ${col(g.g)}">${f2(g.g)}</span><div class="rname"><b>${g.name ? uesc(g.name) : "Test"}</b><span>${s.parts && g.part ? esc((s.parts.find(p => p.key === g.part) || {}).name || "") + ", " : ""}${fmtD(new Date(g.date))}</span>${g.mix ? `<span class="mixline" translate="no">${esc(mixTxt(g.mix))}</span>` : ""}</div><span class="gw">${wTxt(g.w)}</span></button>`;
+    [2, 1].forEach(n => { const gs = s.grades.filter(g => semOf(g.date) === n).reverse(); if(!gs.length) return;
+      h += `<h2>Semestre ${n}<small>Touche pour modifier</small></h2><div class="list">${gs.map(grow).join("")}</div>`; });
   } else h += `<div class="card muted" style="text-align:center;padding:26px">Pas encore de note. Touche + pour en ajouter une.</div>`;
-  { const st = sortTests(tests().filter(x => x.sid === s.id && x.date >= todayIso()));
+  { const st = sortTests(openTests().filter(x => x.sid === s.id && x.date >= todayIso()));
     if(st.length) h += `<h2>Tests à venir</h2>${st.map(x => testCard(x, "act")).join("")}`; }
   h += `<h2>De combien ai-je besoin ?</h2><div class="card need">
     <div><span class="lab2" style="margin-top:0">Objectif ${state.settings.round ? "(après arrondi)" : "(moyenne)"}</span><div class="chips">${[4,4.5,5,5.5,6].map(t => `<button class="chip" data-act="needt" data-v="${t}" aria-pressed="${needT === t}">${t}</button>`).join("")}</div></div>
     ${s.parts ? `<div><span class="lab2" style="margin-top:0">Le prochain test est en</span><div class="chips">${s.parts.map(p => `<button class="chip" data-act="needp" data-v="${p.key}" aria-pressed="${needP === p.key}">${esc(p.name)}</button>`).join("")}</div></div>` : ""}
-    <div><span class="lab2" style="margin-top:0">Poids du prochain test</span><div class="chips">${[0.5,1,2].map(w => `<button class="chip" data-act="needw" data-v="${w}" aria-pressed="${needW === w}">×${w}</button>`).join("")}</div></div>
+    <div><span class="lab2" style="margin-top:0">Poids du prochain test</span><div class="chips">${W_CHIPS.slice(0, 5).map(w => `<button class="chip" data-act="needw" data-v="${w}" aria-pressed="${sameW(needW, w)}">${wTxt(w)}</button>`).join("")}</div></div>
     <div class="needres" id="needres"></div></div>
     <h2>Branche</h2><div class="card">
       <div class="setting" style="padding-top:0"><p>Compte dans mon total</p><button class="switch" role="switch" data-act="counts" aria-checked="${s.counts}"></button></div>
@@ -875,51 +1031,89 @@ function closeSheet(){ $("sheet").classList.remove("on"); }
 $("sheet").addEventListener("click", e => { if(e.target.id === "sheet") closeSheet(); });
 
 let draft = null;
+const SHARES = [1/4, 1/3, 1/2, 2/3, 3/4];
+// a grade made of parts (e.g. 1/3 + 2/3): parts without a mark don't count yet
+function mixGrade(mix){ const f = (mix || []).filter(p => num(p.g) != null && num(p.g) >= 1 && num(p.g) <= 6); if(!f.length) return null;
+  return f.reduce((a, p) => a + num(p.g) * p.s, 0) / f.reduce((a, p) => a + p.s, 0); }
+const mixTxt = mix => mix.map(p => (p.g == null || p.g === "" ? "?" : f2(num(p.g))) + " " + wTxt(p.s)).join(" + ");
 function gradeSheet(g, preset){
   // g: existing grade object for edit, or null
   const editing = !!g;
-  draft = editing ? {sid:g.sid, id:g.id, g:String(g.g), w:g.w, name:g.name || "", part:g.part || null, editing:true} :
-    {sid: openId || state.settings.lastSub || state.subjects[0].id, g:"", w:state.settings.lastW || 1, name:"", part:state.settings.lastPart || "philo", editing:false};
+  draft = editing ? {sid:g.sid, id:g.id, g:String(g.g), w:g.w, name:g.name || "", part:g.part || null, date:(g.date || "").slice(0, 10) || todayIso(),
+      mix:g.mix ? g.mix.map(p => ({g:p.g == null ? "" : String(p.g), s:p.s})) : null, editing:true} :
+    {sid: openId || state.settings.lastSub || state.subjects[0].id, g:"", w:state.settings.lastW || 1, name:"", part:state.settings.lastPart || "philo", date:todayIso(), mix:null, editing:false};
   if(!editing && preset) Object.assign(draft, preset);
   if(!sub(draft.sid)) draft.sid = state.subjects[0].id;
   drawGradeSheet(editing);
-  if(!editing) setTimeout(() => { const i = $("gIn"); i && i.focus(); }, 320);
+  if(!editing && !draft.mix) setTimeout(() => { const i = $("gIn"); i && i.focus(); }, 320);
 }
+function mixRows(d){
+  return d.mix.map((p, i) => `<div class="mixrow"><input class="inp mixg" data-mi="${i}" inputmode="decimal" placeholder="–" value="${esc(p.g)}">
+    <div class="chips">${SHARES.map(v => `<button class="chip" data-g="share" data-i="${i}" data-v="${v}" aria-pressed="${sameW(p.s, v)}">${frac(v)}</button>`).join("")}</div>
+    ${d.mix.length > 2 ? `<button class="mini" data-g="mixdel" data-i="${i}" aria-label="Supprimer">✕</button>` : ""}</div>`).join("");
+}
+function mixTotal(){ const el = $("mixTot"); if(!el || !draft || !draft.mix) return; const v = mixGrade(draft.mix), miss = draft.mix.some(p => num(p.g) == null);
+  el.innerHTML = v == null ? `<span class="muted">Note combinée : –</span>` : `Note combinée : <b class="${col(v)}">${f2(Math.round(v * 100) / 100)}</b>${miss ? `<small>Les parties sans note ne comptent pas encore.</small>` : ""}`; }
 function drawGradeSheet(editing){
-  const d = draft;
+  const d = draft, wOther = !W_CHIPS.some(w => sameW(w, d.w));
   openSheet(`<h3>${editing ? "Modifier la note" : "Ajouter une note"}</h3>
     ${editing ? "" : `<span class="lab2">Branche</span><div class="chips">${state.subjects.map(s => `<button class="chip" data-g="sub" data-v="${s.id}" aria-pressed="${d.sid === s.id}">${esc(s.name)}</button>`).join("")}</div>`}
     ${sub(d.sid).parts ? `<span class="lab2">Partie</span><div class="chips">${sub(d.sid).parts.map(p => `<button class="chip" data-g="part" data-v="${p.key}" aria-pressed="${(sub(d.sid).parts.some(q => q.key === d.part) ? d.part : sub(d.sid).parts[0].key) === p.key}">${esc(p.name)} (${shareTxt(sub(d.sid), p)})</button>`).join("")}</div>` : ""}
-    <span class="lab2">Note (de 1 à 6, suffisant dès 4)</span><input class="gradein" id="gIn" inputmode="decimal" placeholder="5.5" value="${esc(d.g)}">
-    <span class="lab2">Pondération</span><div class="chips">${[0.5,1,2,3].map(w => `<button class="chip" data-g="w" data-v="${w}" aria-pressed="${d.w === w}">×${w}</button>`).join("")}
-      <input class="num" id="wIn" inputmode="decimal" placeholder="autre" value="${[0.5,1,2,3].includes(d.w) ? "" : d.w}" style="height:38px;width:76px;font-size:17px"></div>
-    <span class="lab2">Nom (facultatif)</span><input class="inp" id="nIn" placeholder="p. ex. TS chapitre 3" value="${esc(d.name)}">
+    ${d.mix ? `<span class="lab2">Parties de la note (chacune de 1 à 6)</span><div id="mixBox">${mixRows(d)}</div>
+      <div class="mixfoot"><button class="mini" data-g="mixadd">+ Ajouter une partie</button><span class="mixtot" id="mixTot"></span></div>
+      <button class="textlink" data-g="mixoff" style="margin:4px 0 0">Une seule note</button>`
+    : `<span class="lab2">Note (de 1 à 6, suffisant dès 4)</span><input class="gradein" id="gIn" inputmode="decimal" placeholder="5.5" value="${esc(d.g)}">
+      <button class="textlink" data-g="mixon" style="margin:4px 0 0">Note en plusieurs parties (p. ex. 1/3 + 2/3)</button>`}
+    <span class="lab2">Pondération</span><div class="chips">${W_CHIPS.map(w => `<button class="chip" data-g="w" data-v="${w}" aria-pressed="${sameW(d.w, w)}">${wTxt(w)}</button>`).join("")}
+      <input class="num" id="wIn" inputmode="text" placeholder="autre" value="${wOther ? frac(d.w) : ""}" style="height:38px;width:76px;font-size:17px"></div>
+    <div class="row2"><div><span class="lab2">Nom (facultatif)</span><input class="inp" id="nIn" placeholder="p. ex. TS chapitre 3" value="${esc(d.name)}"></div>
+      <div><span class="lab2">Date</span><input class="inp" type="date" id="gDate" value="${esc(d.date)}"></div></div>
     <button class="primary" data-g="save">${editing ? "Enregistrer" : "Ajouter la note"}</button>
     ${editing ? `<button class="secondary danger" data-g="del">Supprimer la note</button>` : ""}`);
-  $("gIn").oninput = e => d.g = e.target.value;
+  if($("gIn")) $("gIn").oninput = e => d.g = e.target.value;
+  if(d.mix){ $("mixBox").oninput = e => { const i = e.target.dataset.mi; if(i != null){ d.mix[+i].g = e.target.value; mixTotal(); } }; mixTotal(); }
   $("nIn").oninput = e => d.name = e.target.value;
-  $("wIn").oninput = e => { const v = num(e.target.value); if(v && v > 0){ d.w = v; document.querySelectorAll('[data-g="w"]').forEach(c => c.setAttribute("aria-pressed", "false")); } };
+  $("gDate").oninput = e => { if(e.target.value) d.date = e.target.value; };
+  $("wIn").oninput = e => { const v = parseW(e.target.value); if(v){ d.w = v; document.querySelectorAll('[data-g="w"]').forEach(c => c.setAttribute("aria-pressed", "false")); } };
 }
 $("sheetBody").addEventListener("click", e => {
   const b = e.target.closest("[data-g]"); if(!b || !draft) return;
-  const d = draft, k = b.dataset.g;
-  if(k === "sub"){ const had = !!sub(d.sid).parts; d.sid = b.dataset.v; if(had !== !!sub(d.sid).parts){ const y = $("sheetBody").scrollTop; drawGradeSheet(d.editing); $("sheetBody").scrollTop = y; } else document.querySelectorAll('[data-g="sub"]').forEach(c => c.setAttribute("aria-pressed", c === b)); }
+  const d = draft, k = b.dataset.g, redraw = () => { const y = $("sheetBody").scrollTop; drawGradeSheet(d.editing); $("sheetBody").scrollTop = y; };
+  if(k === "sub"){ const had = !!sub(d.sid).parts; d.sid = b.dataset.v; if(had !== !!sub(d.sid).parts) redraw(); else document.querySelectorAll('[data-g="sub"]').forEach(c => c.setAttribute("aria-pressed", c === b)); }
   if(k === "part"){ d.part = b.dataset.v; document.querySelectorAll('[data-g="part"]').forEach(c => c.setAttribute("aria-pressed", c === b)); }
   if(k === "w"){ d.w = +b.dataset.v; $("wIn").value = ""; document.querySelectorAll('[data-g="w"]').forEach(c => c.setAttribute("aria-pressed", c === b)); }
+  if(k === "mixon"){ d.mix = [{g:d.g || "", s:1/3}, {g:"", s:2/3}]; redraw(); setTimeout(() => { const i = document.querySelector(".mixg"); i && i.focus(); }, 50); }
+  if(k === "mixoff"){ const v = mixGrade(d.mix); d.g = v == null ? "" : String(Math.round(v * 100) / 100); d.mix = null; redraw(); }
+  if(k === "mixadd"){ d.mix.push({g:"", s:1/3}); redraw(); }
+  if(k === "mixdel"){ d.mix.splice(+b.dataset.i, 1); redraw(); }
+  if(k === "share"){ d.mix[+b.dataset.i].s = +b.dataset.v; b.parentElement.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", c === b)); mixTotal(); }
   if(k === "save"){
-    const g = num(d.g);
-    if(g == null || g < 1 || g > 6){ toast("Entre une note entre 1 et 6"); $("gIn").focus(); return; }
+    let g, mix = null;
+    if(d.mix){
+      g = mixGrade(d.mix);
+      if(g == null){ toast("Entre au moins une partie entre 1 et 6"); const i = document.querySelector(".mixg"); i && i.focus(); return; }
+      g = Math.round(g * 100) / 100;
+      mix = d.mix.map(p => { const v = num(p.g); return {g:v != null && v >= 1 && v <= 6 ? v : null, s:p.s}; });
+    } else {
+      g = num(d.g);
+      if(g == null || g < 1 || g > 6){ toast("Entre une note entre 1 et 6"); $("gIn").focus(); return; }
+    }
     const s = sub(d.sid), part = s.parts ? (s.parts.some(q => q.key === d.part) ? d.part : s.parts[0].key) : undefined;
-    if(d.id){ const x = s.grades.find(x => x.id === d.id); x.g = g; x.w = d.w; x.name = d.name.trim(); if(part) x.part = part; toast("Enregistré"); }
-    else { s.grades.push({id:uid(), g, w:d.w, name:d.name.trim(), date:new Date().toISOString(), ...(part ? {part} : {})}); state.settings.lastSub = d.sid; state.settings.lastW = d.w; if(part) state.settings.lastPart = part;
-      if(d.testId) state.tests = tests().filter(x => x.id !== d.testId);
+    const today = todayIso(), date = d.date && d.date !== today ? d.date + "T12:00:00.000Z" : new Date().toISOString();
+    if(d.id){ const x = s.grades.find(x => x.id === d.id); x.g = g; x.w = d.w; x.name = d.name.trim(); if(part) x.part = part;
+      if((x.date || "").slice(0, 10) !== d.date) x.date = date;
+      if(mix) x.mix = mix; else delete x.mix; toast("Enregistré"); }
+    else { const ng = {id:uid(), g, w:d.w, name:d.name.trim(), date, ...(part ? {part} : {}), ...(mix ? {mix} : {})};
+      s.grades.push(ng); s.grades.sort((a, b) => (a.date || "") < (b.date || "") ? -1 : (a.date || "") > (b.date || "") ? 1 : 0);
+      state.settings.lastSub = d.sid; state.settings.lastW = d.w; if(part) state.settings.lastPart = part;
+      if(d.testId){ const t = tests().find(x => x.id === d.testId); if(t){ t.gid = ng.id; t.gsid = s.id; } }
       toast(f2(g) + " ajouté en " + (part ? s.parts.find(p => p.key === part).name : s.name)); }
-    save(); closeSheet(); draft = null; refresh(); if(typeof renderSched === "function" && tab === "sched") renderSched();
+    save(); closeSheet(); draft = null; refreshAll();
   }
   if(k === "del"){
     const s = sub(d.sid), i = s.grades.findIndex(x => x.id === d.id), [gone] = s.grades.splice(i, 1);
-    save(); closeSheet(); draft = null; refresh();
-    toast("Note supprimée", {label:"Annuler", fn:() => { s.grades.splice(i, 0, gone); save(); refresh(); }});
+    save(); closeSheet(); draft = null; refreshAll();
+    toast("Note supprimée", {label:"Annuler", fn:() => { s.grades.splice(i, 0, gone); save(); refreshAll(); }});
   }
 });
 
@@ -934,9 +1128,29 @@ function valueSheet(title, sub, val, onSave, onClear, min = 1, max = 6){
 
 /* ============ settings (sub pages) ============ */
 let setPage = null;
-const SPAGES = [["look", "Apparence", "Thème et arrondi des moyennes"], ["lang", "Langue", null], ["sched", "Horaire", "Classe, options et cours masqués"], ["subs", "Branches", "Ordre, noms et ajout"], ["help", "Aide et feedback", "Tutoriel et envoi de feedback"], ["data", "Données", "Sauvegarde et effacement"]];
+const SPAGES = [["look", "Apparence", "Thème, arrondi et semestres"], ["lang", "Langue", null], ["sched", "Horaire", "Classe, groupes, cours masqués et export"], ["subs", "Branches", "Ordre, noms et ajout"], ["help", "Aide et feedback", "Tutoriel, feedback et version"], ["data", "Données", "Sauvegarde, import et effacement"]];
 const LANG_NAMES = {fr:"Français", en:"English", de:"Deutsch"};
 const CHEV = '<svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>';
+// icon + colour for every settings row
+const SICO = {
+  look:["#C7B5F4", '<circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 0 0 16z" fill="currentColor"/>'],
+  lang:["#93C3F2", '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18"/>'],
+  sched:["#9FDDBE", '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>'],
+  subs:["#EBCB7A", '<path d="M5 19V9M12 19V5M19 19v-7"/>'],
+  help:["#F2A3C2", '<path d="M4 5h16v11H9l-5 4z"/>'],
+  data:["#8FD3D9", '<ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"/>'],
+  redo:["#9FDDBE", '<path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/>'],
+  hidden:["#F5B38A", '<path d="M3 3l18 18"/><path d="M10.6 6.1A9.8 9.8 0 0 1 12 6c5 0 9 6 9 6a15 15 0 0 1-2.6 3.2M6.6 6.6C4.3 8.1 3 12 3 12s4 6 9 6c1.6 0 3-.4 4.3-1.1"/>'],
+  ics:["#93C3F2", '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4M12 13v5M9.5 15.5L12 18l2.5-2.5"/>'],
+  tut:["#C7B5F4", '<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17.5v.01"/>'],
+  fb:["#F2A3C2", '<path d="M4 5h16v11H9l-5 4z"/><path d="M8 9.5h8M8 12.5h5"/>'],
+  info:["#D9DCE0", '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/>'],
+  exp:["#9FDDBE", '<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>'],
+  imp:["#93C3F2", '<path d="M12 20V9M7 14l5-5 5 5M5 4h14"/>'],
+  wipe:["#FF6B61", '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>']
+};
+const sico = k => `<span class="sico" style="--c:${SICO[k][0]}"><svg viewBox="0 0 24 24">${SICO[k][1]}</svg></span>`;
+const srow = (id, k, t, d, extra) => `<button class="srow${extra ? " " + extra : ""}" id="${id}">${sico(k)}<span class="rname"><b>${t}</b><span>${d}</span></span>${CHEV}</button>`;
 function openSettings(){ setPage = "main"; $("fab").style.display = "none"; drawSettings(0); $("setScreen").classList.add("on"); }
 function closeSettings(){ setPage = null; $("setScreen").classList.remove("on"); $("fab").style.display = ""; }
 function goSet(p, dir){ setPage = p; drawSettings(dir); }
@@ -944,30 +1158,41 @@ function drawSettings(dir){
   const st = state.settings, pg = setPage, meta = SPAGES.find(x => x[0] === pg);
   let h = `<div class="shead"><button class="icon" data-set="back" aria-label="Retour"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button><h1>${pg === "main" ? "Réglages" : meta[1]}</h1></div>`;
   if(pg === "main"){
-    h += `<div class="list">${SPAGES.map(([id, t, d]) => `<button class="row" data-set="go" data-p="${id}"><div class="rname"><b>${t}</b><span>${id === "lang" ? (LANG_NAMES[st.lang] ? `<span translate="no">${LANG_NAMES[st.lang]}</span>` : "Automatique") : d}</span></div>${CHEV}</button>`).join("")}</div>
-      <p class="note" style="margin:12px 2px 0">Tout reste sur ce téléphone.</p>`;
+    h += SPAGES.map(([id, t, d]) => `<button class="srow" data-set="go" data-p="${id}">${sico(id)}<span class="rname"><b>${t}</b><span>${id === "lang" ? (LANG_NAMES[st.lang] ? `<span translate="no">${LANG_NAMES[st.lang]}</span>` : "Automatique, suit ton téléphone") : d}</span></span>${CHEV}</button>`).join("")
+      + `<p class="note" style="margin:6px 2px 0">Tout reste sur ce téléphone.</p>`;
   } else if(pg === "look"){
-    h += `<div class="card"><div class="chips" id="themeChips">${[["system","Comme le téléphone"],["light","Clair"],["dark","Sombre"]].map(([v, l]) => `<button class="chip" data-v="${v}" aria-pressed="${(st.theme || "system") === v}">${l}</button>`).join("")}</div>
-      <div class="setting" style="margin-top:12px;padding-bottom:0"><p>Arrondir les moyennes au demi-point<small>Comme sur le bulletin</small></p><button class="switch" role="switch" id="roundSw" aria-checked="${st.round}"></button></div></div>`;
+    h += `<div class="scard"><b>Thème</b><span>Clair, sombre ou comme ton téléphone.</span>
+        <div class="chips" id="themeChips" style="margin-top:10px">${[["system","Comme le téléphone"],["light","Clair"],["dark","Sombre"]].map(([v, l]) => `<button class="chip" data-v="${v}" aria-pressed="${(st.theme || "system") === v}">${l}</button>`).join("")}</div></div>
+      <div class="scard"><div class="setting" style="padding:0"><p>Arrondir les moyennes au demi-point<small>Comme sur le bulletin. Désactive pour voir les moyennes exactes.</small></p><button class="switch" role="switch" id="roundSw" aria-checked="${st.round}"></button></div></div>
+      <div class="scard"><b>Début du 2e semestre</b><span>Sert seulement à séparer tes notes en semestre 1 et 2. Ne change ni tes moyennes ni ton total.</span>
+        <input class="inp" type="date" id="semIn" value="${semBoundary()}" style="margin-top:10px"></div>`;
   } else if(pg === "lang"){
     h += `<p class="note" style="margin:0 2px 12px">Par défaut, l'app suit la langue de ton téléphone.</p>
       <button class="opt" data-lang="auto" aria-pressed="${!LANG_NAMES[st.lang]}"><b>Automatique</b><span>Suit la langue du téléphone</span></button>
-      ${Object.keys(LANG_NAMES).map(c => `<button class="opt" data-lang="${c}" aria-pressed="${st.lang === c}"><b translate="no">${LANG_NAMES[c]}</b></button>`).join("")}`;
+      ${Object.keys(LANG_NAMES).map(c => `<button class="opt" data-lang="${c}" aria-pressed="${st.lang === c}"><b translate="no">${LANG_NAMES[c]}</b><span>${{fr:"Langue d'origine de l'app", en:"Traduction anglaise", de:"Traduction allemande"}[c]}</span></button>`).join("")}`;
   } else if(pg === "sched"){
-    h += `<div class="card"><div class="row2"><button class="secondary" id="redo" style="margin:0">Refaire la configuration</button><button class="secondary" id="unhide" style="margin:0">Cours masqués${tt().hidden.length ? " (" + tt().hidden.length + ")" : ""}</button></div>
-      <button class="secondary" id="icsOut" style="margin:8px 0 0">Exporter tests et devoirs vers un agenda</button></div>`;
+    const t = tt(), n = t.hidden.length;
+    h += srow("redo", "redo", "Refaire la configuration", t.cls ? `Classe ${t.cls}${t.ans.ab ? ", groupe " + t.ans.ab : ""}. Change ta classe, tes groupes ou tes options.` : "Choisis ta classe, tes groupes et tes options.")
+      + srow("unhide", "hidden", n ? `Cours masqués (${n})` : "Cours masqués", n ? "Touche pour faire revenir tous les cours que tu as masqués." : "Aucun cours masqué. Masque un cours en le touchant dans l'horaire.")
+      + srow("icsOut", "ics", "Exporter vers un agenda", "Un fichier .ics avec tes tests et devoirs à venir, pour Google ou Apple Agenda.");
   } else if(pg === "subs"){
-    h += `<div class="card"><div id="subList"></div><div class="mrow"><input class="inp" id="newSub" placeholder="Nouvelle branche"><span></span><button class="mini" id="addSub">Ajouter</button></div></div>`;
+    h += `<p class="note" style="margin:0 2px 12px">Renomme, change l'ordre ou supprime tes branches. Une branche supprimée perd ses notes.</p>
+      <div class="card"><div id="subList"></div><div class="mrow"><input class="inp" id="newSub" placeholder="Nouvelle branche"><span></span><button class="mini" id="addSub">Ajouter</button></div></div>`;
   } else if(pg === "help"){
-    h += `<div class="card"><button class="secondary" id="tutAgain" style="margin:0">Revoir le tutoriel</button><button class="secondary" id="fbOpen">Envoyer un feedback</button></div>`;
+    h += srow("tutAgain", "tut", "Revoir le tutoriel", "Le petit tour de l'app, en six étapes.")
+      + srow("fbOpen", "fb", "Envoyer un feedback", "Un bug, une idée ou un cours au mauvais endroit.")
+      + `<div class="srow static">${sico("info")}<span class="rname"><b>Matu <span translate="no">${APP_VERSION}</span></b><span>Faite pour les élèves du gymnase. Marche aussi sans connexion.</span></span></div>`;
   } else if(pg === "data"){
-    h += `<div class="card"><div class="row2"><button class="secondary" id="exp" style="margin:0">Exporter une sauvegarde</button><button class="secondary" id="imp" style="margin:0">Importer</button></div>
-      <button class="secondary danger" id="wipe" style="margin:8px 0 0">Tout effacer</button><p class="note">Tout reste sur ce téléphone.</p></div>`;
+    h += srow("exp", "exp", "Exporter une sauvegarde", "Un fichier avec toutes tes notes, tests, devoirs et réglages.")
+      + srow("imp", "imp", "Importer une sauvegarde", "Remplace tes données par un fichier exporté avant.")
+      + srow("wipe", "wipe", "Tout effacer", "Notes, tests, devoirs et horaire. C'est définitif.", "danger")
+      + `<p class="note" style="margin:6px 2px 0">Tout reste sur ce téléphone. L'app n'envoie rien en ligne.</p>`;
   }
   const el = $("setBody"); el.innerHTML = h; $("setScreen").scrollTop = 0;
   const on = (id, fn) => { const b = $(id); if(b) b.onclick = fn; };
   if(pg === "subs") drawManage();
   on("roundSw", e => { st.round = !st.round; e.currentTarget.setAttribute("aria-checked", st.round); save(); refresh(); });
+  if($("semIn")) $("semIn").onchange = e => { const v = e.target.value; if(!v) return; st.sem2 = v.slice(5); save(); refresh(); toast("Enregistré"); };
   on("addSub", () => { const n = $("newSub").value.trim(); if(!n) return; state.subjects.push({id:uid(), name:n, counts:true, grades:[]}); $("newSub").value = ""; save(); drawManage(); renderHome(); });
   on("redo", () => { closeSettings(); openOnboarding("class"); });
   on("fbOpen", () => feedbackSheet());
@@ -1019,6 +1244,7 @@ $("main").addEventListener("click", e => {
   if(a === "trend"){ const t = trendHTML(); openSheet(`<h3>Évolution</h3>${t || `<p class="note">Il faut des notes à au moins deux dates différentes pour voir l'évolution.</p>`}`); }
   if(a === "tm") valueSheet("Travail de maturité", "La note du TM compte comme une note entière dans ton total.", state.tm.g, v => state.tm.g = v, () => state.tm.g = null);
   if(a === "lockedpts") lockedSheet();
+  if(a === "sem"){ homeSem = +b.dataset.v; renderHome(); }
 });
 $("screenBody").addEventListener("click", e => {
   const b = e.target.closest("[data-act]"); if(!b) return;
@@ -1057,14 +1283,14 @@ window.addEventListener("popstate", () => { if($("sheet").classList.contains("on
 function exportData(){
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([JSON.stringify(state, null, 2)], {type:"application/json"}));
-  a.download = "gymnase-sauvegarde-" + new Date().toISOString().slice(0,10) + ".json";
+  a.download = "matu-sauvegarde-" + new Date().toISOString().slice(0,10) + ".json";
   document.body.appendChild(a); a.click(); a.remove(); toast("Sauvegarde exportée");
 }
 $("importFile").onchange = async e => {
   const f = e.target.files[0]; e.target.value = ""; if(!f) return;
   try{ const d = JSON.parse(await f.text()); if(!d || !Array.isArray(d.subjects)) throw 0;
     if(!confirm(tr("Remplacer tes données par cette sauvegarde ?"))) return;
-    const x = defaults(); state = Object.assign(x, migrate(lockedMig(d)), {settings:Object.assign(x.settings, d.settings || {})}); save(); closeSheet(); refresh(); renderSched(); toast("Sauvegarde importée");
+    const x = defaults(); state = Object.assign(x, migrate(lockedMig(abMig(d))), {settings:Object.assign(x.settings, d.settings || {})}); save(); closeSheet(); refresh(); renderSched(); toast("Sauvegarde importée");
   }catch(err){ toast("Ce fichier n'est pas une sauvegarde de l'app"); }
 };
 
@@ -1108,16 +1334,16 @@ const GROUPS = {
   "3MHi14":{dim:"hist", label:"Histoire", L:["Tue 1-2 Histoire @S1.14"]},
   "3MHiB1":{dim:"hist", label:"Histoire bilingue", L:["Tue 1-2 Histoire bilingue @S1.20"]},
   /* langue 2 */
-  "3MAl1":{dim:"l2", label:"Allemand", L:["Wed 3-4 Allemand @S1.16","Tue 9 Allemand #abl2=A","Tue 10 Allemand @S2.15 #abl2=B"]},
-  "3MAl2":{dim:"l2", label:"Allemand", L:["Wed 3-4 Allemand @S1.14","Tue 9 Allemand #abl2=A","Tue 10 Allemand #abl2=B"]},
-  "3MAl4":{dim:"l2", label:"Allemand", L:["Wed 3-4 Allemand @S1.13","Tue 9 Allemand @S1.13 #abl2=A","Tue 10 Allemand #abl2=B"]},
-  "3MIt1":{dim:"l2", label:"Italien", L:["Wed 3-4 Italien @S2.18","Tue 9 Italien #abl2=A","Tue 10 Italien #abl2=B"]},
-  "3MIt2":{dim:"l2", label:"Italien", L:["Wed 3-4 Italien @S2.20","Tue 9 Italien #abl2=A","Tue 10 Italien #abl2=B"]},
-  "3MIt3":{dim:"l2", label:"Italien", L:["Wed 3-4 Italien @S1.19","Tue 9 Italien #abl2=A","Tue 10 Italien #abl2=B"]},
+  "3MAl1":{dim:"l2", label:"Allemand", L:["Wed 3-4 Allemand @S1.16","Tue 9 Allemand #abl2=B","Tue 10 Allemand @S2.15 #abl2=A"]},
+  "3MAl2":{dim:"l2", label:"Allemand", L:["Wed 3-4 Allemand @S1.14","Tue 9 Allemand #abl2=B","Tue 10 Allemand #abl2=A"]},
+  "3MAl4":{dim:"l2", label:"Allemand", L:["Wed 3-4 Allemand @S1.13","Tue 9 Allemand @S1.13 #abl2=B","Tue 10 Allemand #abl2=A"]},
+  "3MIt1":{dim:"l2", label:"Italien", L:["Wed 3-4 Italien @S2.18","Tue 9 Italien #abl2=B","Tue 10 Italien #abl2=A"]},
+  "3MIt2":{dim:"l2", label:"Italien", L:["Wed 3-4 Italien @S2.20","Tue 9 Italien #abl2=B","Tue 10 Italien #abl2=A"]},
+  "3MIt3":{dim:"l2", label:"Italien", L:["Wed 3-4 Italien @S1.19","Tue 9 Italien #abl2=B","Tue 10 Italien #abl2=A"]},
   /* options spécifiques */
-  "3MSBC1":{dim:"os", label:"Biologie et chimie", L:["Wed 6-7 Chimie (OS) @S3.13","Fri 6-7 Biologie-Chimie TP @S3.10 #tp=1","Fri 6-7 Biologie-Chimie TP @S3.09 #tp=2"]},
-  "3MSBC2":{dim:"os", label:"Biologie et chimie", L:["Mon 9-10 Chimie (OS) @S3.16","Thu 1-2 Biologie-Chimie TP @S3.07 #tp=1","Thu 1-2 Biologie-Chimie TP @S3.12 #tp=2"]},
-  "3MSBC3":{dim:"os", label:"Biologie et chimie", L:["Mon 7-8 Chimie (OS) @S3.13","Tue 7-8 Biologie-Chimie TP @S3.10 #tp=1","Tue 7-8 Biologie-Chimie TP @S3.07 #tp=2"]},
+  "3MSBC1":{dim:"os", label:"Biologie et chimie", L:["Wed 6-7 Chimie (OS) @S3.13","Fri 6-7 Biologie-Chimie TP @S3.10 #tp=A","Fri 6-7 Biologie-Chimie TP @S3.09 #tp=B"]},
+  "3MSBC2":{dim:"os", label:"Biologie et chimie", L:["Mon 9-10 Chimie (OS) @S3.16","Thu 1-2 Biologie-Chimie TP @S3.07 #tp=A","Thu 1-2 Biologie-Chimie TP @S3.12 #tp=B"]},
+  "3MSBC3":{dim:"os", label:"Biologie et chimie", L:["Mon 7-8 Chimie (OS) @S3.13","Tue 7-8 Biologie-Chimie TP @S3.10 #tp=A","Tue 7-8 Biologie-Chimie TP @S3.07 #tp=B"]},
   "3MSPM1":{dim:"os", label:"Physique et applications des maths", L:["Tue 7-8 Applications des maths @S2.08","Thu 1-2 Physique (OS) @S3.06","Fri 7 Physique TP @S3.03"]},
   "3MSPM2":{dim:"os", label:"Physique et applications des maths", L:["Mon 9-10 Applications des maths @S2.12","Tue 7-8 Physique (OS) @S3.06","Fri 1-2 Physique TP @S3.01"]},
   "3MSPP1":{dim:"os", label:"Philosophie et psychologie", L:["Mon 9 Philosophie (OS) @S2.01","Tue 7-8 Psychologie (OS) @S1.19","Fri 1-2 Philosophie (OS) @S1.09"]},
@@ -1133,7 +1359,7 @@ const GROUPS = {
 
 const CLASSES = {
   "3M01":{g:["3MRe1","3MSt1","3MSt4","3MSBC1"], L:[
-    "Mon 3 Allemand @P02.32 #abl2=A","Mon 3 Anglais @P02.33 #aben=A","Mon 4 Allemand @P02.32 #abl2=B","Mon 4 Anglais @P02.33 #aben=B",
+    "Mon 3 Allemand @P02.32 #abl2=B","Mon 3 Anglais @P02.33 #aben=A","Mon 4 Allemand @P02.32 #abl2=A","Mon 4 Anglais @P02.33 #aben=B",
     "Mon 6-7 Français @S1.04","Mon 8 Biologie @S3.18","Mon 9 Philosophie @S1.06",
     "Tue 1-2 Biologie @S3.18","Tue 7-8 Sport @VD6",
     "Wed 1-2 Allemand @S1.16","Wed 3-4 Histoire @S-1.14","Wed 8-9 Philosophie @S1.06",
@@ -1143,7 +1369,7 @@ const CLASSES = {
     "Mon 3-4 Allemand @S1.04","Mon 7-8 Philosophie @S1.06",
     "Tue 1-2 Anglais @P02.20","Tue 7-8 Biologie @S3.18",
     "Wed 1 Philosophie @S1.06","Wed 2 Français @S1.01","Wed 3 Français @S1.01","Wed 5-6 Sport @VD6",
-    "Wed 7 Allemand @S1.07 #abl2=A","Wed 7 Anglais @S1.12 #aben=A","Wed 8 Allemand @S1.07 #abl2=B","Wed 8 Anglais @S1.12 #aben=B",
+    "Wed 7 Allemand @S1.07 #abl2=B","Wed 7 Anglais @S1.12 #aben=A","Wed 8 Allemand @S1.07 #abl2=A","Wed 8 Anglais @S1.12 #aben=B",
     "Fri 1-2 Français @S2.13","Fri 3-4 Géographie @S-1.09","Fri 5 Biologie @S2.06","Fri 7-8 Histoire @S-1.12"]},
   "3M03":{g:["3MRe4","3MSB1","3MSt1","3MSt4","3MHi3","3MHiB1","3MAl1","3MIt1","3MIt2","3MIt3","3MSBC3"], L:[
     "Mon 3-4 Géographie @S-1.11","Mon 5 Biologie @S2.06","Mon 9 Philosophie @S1.07",
@@ -1158,7 +1384,7 @@ const CLASSES = {
     "Mon 2 Philosophie @S1.06","Mon 3 Philosophie @S1.06","Mon 4-5 Biologie @S3.07, S3.18","Mon 7-8 Français @S1.14",
     "Tue 1-2 Anglais @P02.15","Tue 3-4 Maths renforcé @S2.10","Tue 9-10 Allemand @S2.16",
     "Wed 1-2 Géographie @S-1.09","Wed 3 Philosophie @S1.06","Wed 5-6 Sport @VD6","Wed 7-8 Maths renforcé @S2.07",
-    "Thu 1 Allemand @S1.13 #abl2=A","Thu 1 Anglais @S1.20 #aben=A","Thu 2 Allemand @S1.13 #abl2=B","Thu 2 Anglais @S1.20 #aben=B","Thu 3-4 Français @P02.31",
+    "Thu 1 Allemand @S1.13 #abl2=B","Thu 1 Anglais @S1.20 #aben=A","Thu 2 Allemand @S1.13 #abl2=A","Thu 2 Anglais @S1.20 #aben=B","Thu 3-4 Français @P02.31",
     "Fri 3 Biologie @S2.06","Fri 4-5 Maths renforcé @S2.10","Fri 7-8 Histoire @S1.01"]},
   "3M07":{g:["3MRe3","3MSt3","3MAl1","3MAl2","3MIt2","3MIt3","3MSED1","3MSLa1","3MSPP1","3MSEs1"], L:[
     "Mon 1-2 Sport @VD6","Mon 3-4 Philosophie @S1.14","Mon 7-8 Anglais @P02.32",
@@ -1186,7 +1412,7 @@ const CLASSES = {
     "Fri 3-4 Sport @VD6","Fri 6-7 Maths standard @S2.16"]},
   "3M11":{g:["3MSED1","3MSED3","3MSEs2","3MSPP1","3MSPP2"], L:[
     "Mon 2 Philosophie @S1.14","Mon 3-4 Histoire @S2.01",
-    "Mon 7 Allemand @S2.15 #abl2=A","Mon 7 Anglais @S1.12 #aben=A","Mon 8 Allemand @S2.15 #abl2=B","Mon 8 Anglais @S1.12 #aben=B",
+    "Mon 7 Allemand @S2.15 #abl2=B","Mon 7 Anglais @S1.12 #aben=A","Mon 8 Allemand @S2.15 #abl2=A","Mon 8 Anglais @S1.12 #aben=B",
     "Tue 1-2 Maths standard @S2.07","Tue 3-4 Allemand @S2.20","Tue 9-10 Sport @VD6",
     "Wed 1-2 Anglais @S1.02","Wed 3-4 Philosophie @S1.03","Wed 7-8 Français @P02.20","Wed 9 Biologie @S3.16",
     "Thu 1-2 Maths standard @S2.07","Thu 3-4 Géographie @S-1.14",
@@ -1196,18 +1422,18 @@ const CLASSES = {
     "Tue 1-2 Maths standard @S2.13","Tue 3-4 Biologie @S3.09, S3.18","Tue 9-10 Sport @VD6",
     "Wed 1-2 Allemand @S1.14","Wed 3-4 Anglais @S1.11","Wed 6 Philosophie @S1.06","Wed 7-8 Maths standard @S2.09",
     "Thu 1-2 Philosophie @S1.06",
-    "Fri 3 Allemand @S1.11 #abl2=A","Fri 3 Anglais @S1.01 #aben=A","Fri 4 Allemand @S1.11 #abl2=B","Fri 4 Anglais @S1.01 #aben=B","Fri 5 Biologie @S2.04"]},
+    "Fri 3 Allemand @S1.11 #abl2=B","Fri 3 Anglais @S1.01 #aben=A","Fri 4 Allemand @S1.11 #abl2=A","Fri 4 Anglais @S1.01 #aben=B","Fri 5 Biologie @S2.04"]},
   "3M13":{g:["3MSED2"], L:[
     "Mon 1-2 Géographie @S-1.09","Mon 3-4 Histoire @S-1.12","Mon 6 Philosophie @S1.07","Mon 7 Biologie @S3.18",
     "Tue 1-2 Philosophie @P02.36","Tue 3-4 Biologie @S2.06, S3.16","Tue 7-8 Maths standard @S2.11",
     "Wed 3-4 Anglais @P02.31","Wed 6-7 Allemand @S2.17",
     "Thu 1-2 Français @P02.36","Thu 3-4 Maths standard @S2.08",
     "Fri 1-2 Français @P02.36","Fri 5-6 Sport @VD6",
-    "Fri 7 Allemand @S1.17 #abl2=A","Fri 7 Anglais @S1.02 #aben=A","Fri 8 Allemand @S1.17 #abl2=B","Fri 8 Anglais @S1.02 #aben=B"]},
+    "Fri 7 Allemand @S1.17 #abl2=B","Fri 7 Anglais @S1.02 #aben=A","Fri 8 Allemand @S1.17 #abl2=A","Fri 8 Anglais @S1.02 #aben=B"]},
   "3M14":{g:["3MSB1","3MSt5","3MHi14","3MHiB1","3MSAV1","3MSED3","3MSEs1","3MSEs2","3MSPP2"], L:[
     "Mon 1-2 Sport @VD6","Mon 3 Biologie @S2.06","Mon 6-7 Anglais @S1.08","Mon 8 Philosophie @S2.08",
     "Tue 9-10 Philosophie @S1.07",
-    "Wed 1 Allemand @S1.18 #abl2=A","Wed 1 Anglais @S1.08 #aben=A","Wed 2 Allemand @S1.18 #abl2=B","Wed 2 Anglais @S1.08 #aben=B",
+    "Wed 1 Allemand @S1.18 #abl2=B","Wed 1 Anglais @S1.08 #aben=A","Wed 2 Allemand @S1.18 #abl2=A","Wed 2 Anglais @S1.08 #aben=B",
     "Wed 3-4 Géographie @S-1.11","Wed 7-8 Français @S1.18",
     "Thu 1-2 Biologie @S3.09, S3.18",
     "Fri 3-4 Français @S1.12","Fri 6-7 Allemand @S1.12"]}
@@ -1281,7 +1507,11 @@ const ocSlots = oc => OC_SLOTS[oc] || (oc ? ["Thu 6-8 " + oc + " (OC)"] : []);
 function weekLessons(){
   const t = tt(), C = CLASSES[t.cls]; let out = [];
   if(C){
-    C.L.forEach(s => { const l = parseL(s); if(l) out.push(l); });
+    C.L.forEach(s => { const l = parseL(s); if(!l) return;
+      // biology in two rooms at once = the class splits for TP: group A in the first room, group B in the second
+      const rooms = l.room.split(/,\s*/);
+      if(/^Biologie$/.test(l.name) && rooms.length === 2) rooms.forEach((r, i) => out.push(Object.assign({}, l, {room:r, tags:Object.assign({}, l.tags, {bio:i ? "B" : "A"})})));
+      else out.push(l); });
     C.g.forEach(code => { const G = GROUPS[code], dimGroups = groupsOf(t.cls, G.dim), chosen = t.ans[G.dim];
       if(chosen && chosen !== code) return;
       G.L.forEach(s => { const l = parseL(s, {group:code, gdim:G.dim, gshow:!chosen && dimGroups.length > 1}); if(l) out.push(l); }); });
@@ -1292,11 +1522,11 @@ function weekLessons(){
     if(GROUPS[os]) GROUPS[os].L.forEach(s => { const l = parseL(s, {group:os, gdim:"os"}); if(l) out.push(l); });
     else if(OSMAP[os]) osBlock(t.cls).forEach(([d, a, b]) => { const l = parseL(`${d} ${a}${b > a ? "-" + b : ""} ${OSMAP[os].long} (OS)`, {estimated:true}); if(l) out.push(l); });
   }
-  const other = x => x === "A" ? "B" : "A";
-  const want = k => k === "aben" ? t.ans.ab : k === "abl2" ? (t.ans.ab ? other(t.ans.ab) : null) : t.ans[k];
+  // one letter for everything split in half-classes: English, language 2, biology TP, OS TP
+  const want = k => k === "aben" || k === "abl2" || k === "bio" || k === "tp" ? t.ans.ab : t.ans[k];
   out = out.filter(l => Object.entries(l.tags).every(([k, v]) => !want(k) || want(k) === v));
   if(t.oc) ocSlots(t.oc).forEach((s, i) => { if(t.ocSlots && !t.ocSlots.includes(i)) return; const l = parseL(s, {oc:true, estimated:!OC_SLOTS[t.oc]}); if(l) out.push(l); });
-  out.forEach(l => { l.key = [l.day, l.p1, l.name, l.group || "", l.tags.abl2 || l.tags.aben || l.tags.tp || ""].join("|"); if(t.rooms[l.key] != null) l.room = t.rooms[l.key]; });
+  out.forEach(l => { l.key = [l.day, l.p1, l.name, l.group || "", l.tags.abl2 || l.tags.aben || l.tags.tp || l.tags.bio || ""].join("|"); if(t.rooms[l.key] != null) l.room = t.rooms[l.key]; });
   out = out.filter(l => !t.hidden.includes(l.key));
   t.extra.forEach(x => out.push(Object.assign({}, x, {tags:{}, key:"x|" + x.id, extra:true})));
   return out.sort((a, b) => a.day - b.day || a.p1 - b.p1 || a.name.localeCompare(b.name));
@@ -1428,24 +1658,27 @@ function gcalUrl(x){
 function exportIcs(){
   const e2 = t => String(t).replace(/[\\,;]/g, m => "\\" + m).replace(/\n/g, "\\n");
   const stamp = new Date().toISOString().replace(/[-:]/g, "").slice(0, 15) + "Z";
-  const L = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Gymnase//FR", "CALSCALE:GREGORIAN"]; let n = 0;
+  const L = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Matu//FR", "CALSCALE:GREGORIAN"]; let n = 0;
   const add = (uidv, date, title, tm) => { const d = date.replace(/-/g, ""); n++;
     L.push("BEGIN:VEVENT", "UID:" + uidv + "@gymnase", "DTSTAMP:" + stamp);
     if(tm) L.push("DTSTART:" + d + "T" + tm[0].replace(":", "") + "00", "DTEND:" + d + "T" + tm[1].replace(":", "") + "00");
     else { const e = fromIso(date); e.setDate(e.getDate() + 1); L.push("DTSTART;VALUE=DATE:" + d, "DTEND;VALUE=DATE:" + iso(e).replace(/-/g, "")); }
     L.push("SUMMARY:" + e2(title), "BEGIN:VALARM", "ACTION:DISPLAY", "DESCRIPTION:" + e2(title), "TRIGGER:-PT12H", "END:VALARM", "END:VEVENT"); };
-  tests().filter(x => x.date >= todayIso()).forEach(x => { const sb = sub(x.sid); add("t" + x.id, x.date, evT(0, sb, x.name), lessonTimeFor(x.sid, x.date)); });
+  openTests().filter(x => x.date >= todayIso()).forEach(x => { const sb = sub(x.sid); add("t" + x.id, x.date, evT(0, sb, x.name), lessonTimeFor(x.sid, x.date)); });
   hws().filter(x => !x.done && x.due >= todayIso()).forEach(x => { const sb = sub(x.sid); add("h" + x.id, x.due, evT(1, sb, x.text), lessonTimeFor(x.sid, x.due)); });
   L.push("END:VCALENDAR");
   if(!n){ toast("Aucun test ni devoir à venir"); return; }
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([L.join("\r\n")], {type:"text/calendar"}));
-  a.download = "gymnase-agenda.ics"; document.body.appendChild(a); a.click(); a.remove();
+  a.download = "matu-agenda.ics"; document.body.appendChild(a); a.click(); a.remove();
   toast(n + (n > 1 ? " événements exportés" : " événement exporté"));
 }
 
 /* ============ tests ============ */
 function tests(){ if(!state.tests) state.tests = []; return state.tests; }
+// a test that already has its grade keeps a link to it (gid); it then moves to "Tests passés"
+function testGrade(x){ if(!x.gid) return null; const s = sub(x.gsid) || state.subjects.find(s => s.grades.some(g => g.id === x.gid)); return s ? s.grades.find(g => g.id === x.gid) || null : null; }
+const openTests = () => tests().filter(x => !testGrade(x));
 const sortTests = a => a.sort((x, y) => x.date < y.date ? -1 : x.date > y.date ? 1 : 0);
 function lessonSubject(l){
   const S = state.subjects, by = n => S.find(s => norm(s.name) === norm(n));
@@ -1460,30 +1693,33 @@ function lessonSubject(l){
 function testCard(x, act, mode){
   const sb = sub(x.sid), d = fromIso(x.date), drop = mode === "drop";
   const chip = drop ? `<span class="dchip te"><b style="font-size:15px">TE</b></span>` : `<span class="dchip"><b>${d.getDate()}</b><small>${MONTHS[d.getMonth()]}</small></span>`;
-  return `<button class="tcard" data-${act}="test" data-id="${x.id}">${chip}<span class="tcx"><b>${x.name ? uesc(x.name) : "Test"}</b><span>${sb ? esc(sb.name) : "Branche supprimée"}${x.w !== 1 ? ", ×" + f2(x.w) : ""}${drop ? "" : ", " + esc(relTxt(x.date))}</span></span>${drop ? "" : '<span class="kind">TE</span>'}</button>`;
+  return `<button class="tcard" data-${act}="test" data-id="${x.id}">${chip}<span class="tcx"><b>${x.name ? uesc(x.name) : "Test"}</b><span>${sb ? esc(sb.name) : "Branche supprimée"}${sameW(x.w, 1) ? "" : ", " + wTxt(x.w)}${drop ? "" : ", " + esc(relTxt(x.date))}</span></span>${drop ? "" : '<span class="kind">TE</span>'}</button>`;
 }
 function testSheet(id, preset){
   const ex = id ? tests().find(x => x.id === id) : null;
   const d = ex ? Object.assign({}, ex) : Object.assign({id:null, sid:(state.subjects[0] || {}).id, date:iso(sDate()), name:"", w:1}, preset || {});
-  const due = ex && ex.date <= todayIso();
+  const due = ex && ex.date <= todayIso(), tg = ex ? testGrade(ex) : null;
   openSheet(`<h3>${ex ? (ex.name ? uesc(ex.name) : "Test") : "Nouveau test"}</h3>${ex ? `<p class="note" style="margin:0 0 4px">${esc((sub(ex.sid) || {}).name || "")}, ${esc(relTxt(ex.date))}</p>` : ""}
     <span class="lab2">Branche</span><div class="chips" id="tsSub">${state.subjects.map(s => `<button class="chip" data-v="${s.id}" aria-pressed="${d.sid === s.id}">${esc(s.name)}</button>`).join("")}</div>
     <span class="lab2">Date</span><input class="inp" type="date" id="tsDate" value="${d.date}">
     <span class="lab2">Nom (facultatif)</span><input class="inp" id="tsName" placeholder="p. ex. TS chapitre 3" value="${esc(d.name)}">
-    <span class="lab2">Pondération</span><div class="chips" id="tsW">${[0.5,1,2,3].map(w => `<button class="chip" data-v="${w}" aria-pressed="${d.w === w}">×${w}</button>`).join("")}</div>
-    ${due ? `<button class="primary" id="tsGrade">Entrer la note</button><button class="secondary" id="tsSave">Enregistrer</button>` : `<button class="primary" id="tsSave">${ex ? "Enregistrer" : "Ajouter le test"}</button>`}
+    <span class="lab2">Pondération</span><div class="chips" id="tsW">${W_CHIPS.map(w => `<button class="chip" data-v="${w}" aria-pressed="${sameW(d.w, w)}">${wTxt(w)}</button>`).join("")}</div>
+    ${tg ? `<p class="note" style="margin:14px 0 0">Note : <b class="${col(tg.g)}">${f2(tg.g)}</b></p><button class="primary" id="tsGrade">Modifier la note</button><button class="secondary" id="tsSave">Enregistrer</button>`
+    : due ? `<button class="primary" id="tsGrade">Entrer la note</button><button class="secondary" id="tsSave">Enregistrer</button>` : `<button class="primary" id="tsSave">${ex ? "Enregistrer" : "Ajouter le test"}</button>`}
     ${ex ? `<button class="secondary danger" id="tsDel">Supprimer le test</button><button class="textlink" id="tsCal">Ajouter à Google Agenda</button>` : ""}`);
-  if($("tsCal")) $("tsCal").onclick = () => window.open(gcalUrl(ex), "_blank");
+  if($("tsCal")) $("tsCal").onclick = () => { if(navigator.onLine === false){ toast("Pas de connexion"); return; } window.open(gcalUrl(ex), "_blank"); };
   const pick = (box, k, numeric) => $(box).onclick = e => { const c = e.target.closest(".chip"); if(!c) return; d[k] = numeric ? +c.dataset.v : c.dataset.v; $(box).querySelectorAll(".chip").forEach(x => x.setAttribute("aria-pressed", x === c)); };
   pick("tsSub", "sid"); pick("tsW", "w", true);
   const collect = () => { d.date = $("tsDate").value || d.date; d.name = $("tsName").value.trim(); };
   $("tsSave").onclick = () => { collect(); if(!d.sid){ toast("Choisis une branche"); return; }
     if(ex) Object.assign(ex, d); else tests().push(Object.assign(d, {id:uid()}));
     save(); closeSheet(); refreshAll(); toast(ex ? "Enregistré" : "Test ajouté"); };
-  if($("tsGrade")) $("tsGrade").onclick = () => { collect(); Object.assign(ex, d); save(); closeSheet(); setTimeout(() => gradeSheet(null, {sid:ex.sid, name:ex.name, w:ex.w, testId:ex.id}), 260); };
+  if($("tsGrade")) $("tsGrade").onclick = () => { collect(); Object.assign(ex, d); save(); closeSheet();
+    setTimeout(() => { const g = testGrade(ex); if(g) gradeSheet(Object.assign({sid:ex.gsid || ex.sid}, g)); else gradeTest(ex); }, 260); };
   if($("tsDel")) $("tsDel").onclick = () => { const i = tests().indexOf(ex); tests().splice(i, 1); save(); closeSheet(); refreshAll();
     toast("Test supprimé", {label:"Annuler", fn:() => { tests().splice(i, 0, ex); save(); refreshAll(); }}); };
 }
+function gradeTest(x){ gradeSheet(null, {sid:x.sid, name:x.name, w:x.w, testId:x.id, date:x.date}); }
 const bonusTxt = b => (b > 0 ? "+" : b < 0 ? "−" : "") + f2(Math.abs(Math.round(b * 100) / 100));
 // Three grades from 1 to 6: the difference to 3 × 4 runs from −9 (three 1s) to +6 (three 6s), in half points.
 const BMIN = -9, BMAX = 6;
@@ -1508,7 +1744,7 @@ function lockedSheet(){
   if($("lpClear")) $("lpClear").onclick = () => { state.lockedPoints = null; save(); closeSheet(); refreshAll(); };
 }
 const FEEDBACK_EMAIL = "gradesapp@outlook.com";   // ← adresse qui reçoit les feedbacks
-const APP_VERSION = "1.16";
+const APP_VERSION = "1.17";
 function feedbackSheet(kind, text){
   const kinds = [["bug","Un bug"],["idee","Une idée"],["horaire","Horaire faux"],["autre","Autre"]];
   let k = kind || "idee";
@@ -1524,21 +1760,35 @@ function feedbackSheet(kind, text){
     let body = msg + "\n\n---\nType : " + label + "\nVersion : " + APP_VERSION;
     if($("fbInfo").checked) body += "\nClasse : " + (t.cls || "-") + "\nOptions : " + (Object.entries(t.ans).map(([a, b]) => a + "=" + b).join(", ") || "-") + "\nOC : " + (t.oc || "-");
     if(!FEEDBACK_EMAIL){ toast("Le feedback n'est pas encore configuré"); return; }
-    location.href = "mailto:" + FEEDBACK_EMAIL + "?subject=" + encodeURIComponent("Feedback app gymnase : " + label) + "&body=" + encodeURIComponent(body);
+    location.href = "mailto:" + FEEDBACK_EMAIL + "?subject=" + encodeURIComponent("Feedback Matu : " + label) + "&body=" + encodeURIComponent(body);
     closeSheet(); toast("Ton app mail s'ouvre, il reste à envoyer");
   };
 }
 /* ============ agenda tab ============ */
-let showDone = false;
+let showDone = false, showGraded = false;
+function pastCard(x){
+  const sb = sub(x.sid), d = fromIso(x.date), g = testGrade(x);
+  return `<div class="tcard past"><span class="dchip"><b>${d.getDate()}</b><small>${MONTHS[d.getMonth()]}</small></span>
+    <button class="tcx" data-g2="test" data-id="${x.id}"><b>${x.name ? uesc(x.name) : "Test"}</b><span>${sb ? esc(sb.name) : "Branche supprimée"}${sameW(x.w, 1) ? "" : ", " + wTxt(x.w)}, ${esc(relTxt(x.date))}</span></button>
+    ${g ? `<button class="gdone ${col(g.g)}" data-g2="test" data-id="${x.id}">${f2(g.g)}</button>` : `<button class="addnote" data-g2="gradetest" data-id="${x.id}">Ajouter la note</button>`}</div>`;
+}
 function renderAgenda(){
   const t = todayIso(), el = $("agenda");
   const items = [];
-  tests().forEach(x => { if(x.date >= t) items.push({k:"t", d:x.date, x}); });
+  openTests().forEach(x => { if(x.date >= t) items.push({k:"t", d:x.date, x}); });
   hws().forEach(x => { if(!x.done) items.push({k:"h", d:x.due, x}); });
   const late = items.filter(i => i.k === "h" && i.d < t).sort((a, b) => a.d < b.d ? -1 : 1);
   const fut = items.filter(i => i.d >= t).sort((a, b) => a.d < b.d ? -1 : a.d > b.d ? 1 : a.k === b.k ? 0 : a.k === "t" ? -1 : 1);
   let h = countdownHTML();
   if(late.length) h += `<h4 class="agh late">En retard</h4>` + late.map(i => hwCard(i.x, "g2")).join("");
+  { // tests whose date has passed: add the grade, or see the ones already graded
+    const past = tests().filter(x => x.date < t), toGrade = past.filter(x => !testGrade(x)).sort((a, b) => a.date < b.date ? 1 : -1), graded = past.filter(x => testGrade(x)).sort((a, b) => a.date < b.date ? 1 : -1);
+    if(past.length){
+      h += `<h4 class="agh">Tests passés${toGrade.length ? `<small>${toGrade.length} à noter</small>` : ""}</h4>` + toGrade.map(pastCard).join("");
+      if(graded.length){ h += `<button class="textlink" data-g2="showgraded" style="margin:${toGrade.length ? 2 : -2}px auto 6px">${showGraded ? "Masquer" : "Voir"} les tests notés (${graded.length})</button>`;
+        if(showGraded) h += graded.slice(0, 30).map(pastCard).join(""); }
+    }
+  }
   let last = null;
   fut.forEach(i => {
     if(i.d !== last){ last = i.d; const n = daysUntil(i.d), dd = fromIso(i.d);
@@ -1562,6 +1812,8 @@ $("agenda").addEventListener("click", e => {
   if(a === "hw") hwSheet(b.dataset.id);
   if(a === "hwdone") toggleHw(b.dataset.id);
   if(a === "showdone"){ showDone = !showDone; renderAgenda(); }
+  if(a === "showgraded"){ showGraded = !showGraded; renderAgenda(); }
+  if(a === "gradetest"){ const x = tests().find(t => t.id === b.dataset.id); if(x) gradeTest(x); }
 });
 
 /* ============ grade trend ============ */
@@ -1690,7 +1942,7 @@ function renderSched(animDir){
   }
   const all = weekLessons(), day = all.filter(l => l.day === sDay), dIso = iso(sDate()), isToday = dIso === todayIso();
   const thisWeek = iso(sWeek) === iso(homeWeek()), nowM = new Date().getHours() * 60 + new Date().getMinutes();
-  const dayTests = sortTests(tests().filter(x => x.date === dIso)), dayHw = hws().filter(x => !x.done && x.due === dIso), hol = holidayOn(dIso);
+  const dayTests = sortTests(openTests().filter(x => x.date === dIso)), dayHw = hws().filter(x => !x.done && x.due === dIso), hol = holidayOn(dIso);
   const lessonSids = new Set(day.map(l => (lessonSubject(l) || {}).id).filter(Boolean));
   let h = `<div class="dseg" role="tablist"><span class="dind" style="transform:translateX(${sDay * 100}%)"></span>${DAYS_FR.map((d, i) => { const di = iso(dayDate(i));
     return `<button role="tab" data-s="day" data-d="${i}" aria-selected="${i === sDay}"${holidayOn(di) ? ' class="hol"' : ""}>${d}<small>${dayDate(i).getDate()}</small>${di === todayIso() ? "<i></i>" : ""}</button>`; }).join("")}</div>`;
@@ -1703,7 +1955,7 @@ function renderSched(animDir){
     if(cur){ const s = mins(PERIODS[cur.p1][0]), e = mins(PERIODS[cur.p2][1]);
       h += `<div class="nowc"><span class="lab">En cours, jusqu'à ${PERIODS[cur.p2][1]}</span><b>${esc(cur.name)}</b><span>${cur.room ? esc(cur.room) : "Salle inconnue"}${nxt ? `. Ensuite : ${esc(nxt.name)} à ${PERIODS[nxt.p1][0]}${nxt.room ? " en " + esc(nxt.room) : ""}` : ". Dernier cours de la journée"}</span><div class="nbar"><i style="width:${(nowM - s) / (e - s) * 100}%"></i></div></div>`; }
     else if(nxt){ const m = mins(PERIODS[nxt.p1][0]) - nowM;
-      h += `<div class="nowc"><span class="lab">Prochain cours dans ${m >= 60 ? Math.floor(m / 60) + " h " + (m % 60) + " min" : m + " min"}</span><b>${esc(nxt.name)}</b><span>${PERIODS[nxt.p1][0]}${nxt.room ? " en " + esc(nxt.room) : ""}</span></div>`; }
+      h += `<div class="nowc next"><span class="lab">Prochain cours dans ${m >= 60 ? Math.floor(m / 60) + " h " + (m % 60) + " min" : m + " min"}</span><b>${esc(nxt.name)}</b><span>${PERIODS[nxt.p1][0]}${nxt.room ? " en " + esc(nxt.room) : ""}</span></div>`; }
     else h += `<div class="nowc done"><b>Fini pour aujourd'hui</b><span>Bonne soirée.</span></div>`;
   }
   if(isToday && !hol){
@@ -1721,18 +1973,18 @@ function renderSched(animDir){
       const st = PERIODS[l.p1][0], en = PERIODS[l.p2][1];
       if(lastEnd !== null && l.p1 > lastEnd + 1){ h += `<div class="free">Libre de ${PERIODS[lastEnd + 1][0]} à ${PERIODS[l.p1 - 1][1]}</div>`; }
       lastEnd = Math.max(lastEnd ?? 0, l.p2);
-      const past = isToday && mins(en) <= nowM, live = isToday && mins(st) <= nowM && nowM < mins(en);
+      const past = isToday && mins(en) <= nowM, live = isToday && mins(st) <= nowM && nowM < mins(en), prog = live ? (nowM - mins(st)) / (mins(en) - mins(st)) * 100 : 0;
       const tags = [];
       if(l.gshow) tags.push(GROUPS[l.group].label + " " + l.group);
-      if(l.tags.abl2 || l.tags.aben) tags.push("Groupe " + (l.tags.abl2 || l.tags.aben));
-      if(l.tags.tp) tags.push("Groupe TP " + l.tags.tp);
+      if(l.tags.abl2 || l.tags.aben || l.tags.tp) tags.push("Groupe " + (l.tags.abl2 || l.tags.aben || l.tags.tp));
+      if(l.tags.bio) tags.push("TP · Groupe " + l.tags.bio);
       if(l.extra) tags.push("Ajouté par toi");
       if(l.estimated) tags.push("à vérifier");
       const ls = lessonSubject(l), lt = ls ? dayTests.filter(x => x.sid === ls.id) : [], lh = ls ? dayHw.filter(x => x.sid === ls.id) : [];
       const card = `<button class="les${past ? " past" : ""}${live ? " live" : ""}" data-s="les" data-k="${esc(l.key)}">
         <span class="lt"><b>${st}</b><span>${en}</span></span><span class="lbar" style="background:${colorFor(l.name)}"></span>
-        <span class="lc"><b class="lname"><span class="ln">${esc(l.name)}</span>${lt.length ? '<span class="tpill">TE</span>' : ""}${lh.length ? '<span class="tpill dv">DV</span>' : ""}</b><span>${l.room ? esc(l.room) : "Salle ?"}${tags.length ? " · " + tags.map(esc).join(", ") : ""}</span></span></button>`;
-      h += lt.length || lh.length ? `<div class="lesbox${openLes.has(dIso + l.key) ? " open" : ""}" data-ok="${esc(dIso + l.key)}">${card}<button class="lchev" data-s="exp" aria-label="Voir les tests et devoirs"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button><div class="ldrop"><div>${lt.map(x => testCard(x, "s", "drop")).join("")}${lh.map(x => hwCard(x, "s")).join("")}</div></div></div>` : card;
+        <span class="lc"><b class="lname"><span class="ln">${esc(l.name)}</span>${lt.length ? '<span class="tpill">TE</span>' : ""}${lh.length ? '<span class="tpill dv">DV</span>' : ""}</b><span>${live ? '<em class="livetag">En cours</em>' : ""}${l.room ? esc(l.room) : "Salle ?"}${tags.length ? " · " + tags.map(esc).join(", ") : ""}</span></span>${live ? `<i class="lprog" style="width:${prog.toFixed(1)}%"></i>` : ""}</button>`;
+      h += lt.length || lh.length ? `<div class="lesbox${openLes.has(dIso + l.key) ? " open" : ""}${live ? " live" : ""}" data-ok="${esc(dIso + l.key)}">${card}<button class="lchev" data-s="exp" aria-label="Voir les tests et devoirs"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button><div class="ldrop"><div>${lt.map(x => testCard(x, "s", "drop")).join("")}${lh.map(x => hwCard(x, "s")).join("")}</div></div></div>` : card;
     });
     h += `</div>`;
   }
@@ -1780,7 +2032,7 @@ document.addEventListener("touchend", e => { if(tx === null) return; const dx = 
 
 function lessonSheet(key){
   const l = weekLessons().find(x => x.key === key); if(!l) return;
-  const ls = lessonSubject(l), up = ls ? sortTests(tests().filter(x => x.sid === ls.id && x.date >= todayIso())) : [];
+  const ls = lessonSubject(l), up = ls ? sortTests(openTests().filter(x => x.sid === ls.id && x.date >= todayIso())) : [];
   const uh = ls ? hws().filter(x => x.sid === ls.id && !x.done).sort((a, b) => a.due < b.due ? -1 : 1) : [];
   openSheet(`<h3>${esc(l.name)}</h3><p class="note" style="margin:0 0 6px">${DAYNAMES[l.day]}, de ${PERIODS[l.p1][0]} à ${PERIODS[l.p2][1]}${l.group ? ", groupe " + esc(l.group) : ""}</p>
     ${ls ? `<span class="lab2">${esc(ls.name)} : à venir</span>${up.map(x => testCard(x, "ls")).join("")}${uh.map(x => hwCard(x, "ls")).join("")}${up.length || uh.length ? "" : `<p class="note" style="margin:0 0 8px">Aucun test ni devoir prévu.</p>`}
@@ -1827,16 +2079,18 @@ function obSteps(){
     if(groupsOf(t.cls, "math").length > 1) s.push("math");
     if(groupsOf(t.cls, "hist").length > 1) s.push("hist");
     if(groupsOf(t.cls, "l2").length > 1) s.push("l2");
-    const C = CLASSES[t.cls];
-    if(C.L.some(x => /#ab(l2|en)=/.test(x)) || groupsOf(t.cls, "l2").length) s.push("ab");
   }
   s.push("os");
-  const os = effOS();
-  if(t.cls && GROUPS[os] && GROUPS[os].L.some(x => x.includes("#tp="))) s.push("tp");
+  if(t.cls && hasAB()) s.push("ab");
   s.push("locked", "oc");
   if(t.oc && OC_SLOTS[t.oc] && OC_SLOTS[t.oc].length > 1) s.push("ocslots");
   s.push("done");
   return s;
+}
+// does this class (or its option) split in half-classes A / B?
+function hasAB(){
+  const t = tt(), C = CLASSES[t.cls], os = effOS(); if(!C) return false;
+  return C.L.some(x => /#ab(l2|en)=/.test(x) || /^\S+ \S+ Biologie @[^,#]+,/.test(x)) || groupsOf(t.cls, "l2").length > 0 || !!(GROUPS[os] && GROUPS[os].L.some(x => x.includes("#tp=")));
 }
 function openOnboarding(start){ obHist = []; obStep = start || "intro"; $("ob").classList.add("on"); drawOb(0); }
 function closeOb(){ $("ob").classList.remove("on"); state.onboarded = true; state.ob = null; save(); showTab(tab, false); }
@@ -1851,7 +2105,7 @@ function drawOb(dir){
   let h = "", skip = true;
   switch(obStep){
     case "intro": skip = false;
-      h = `<div class="obhero">🎓</div><h2>Bienvenue</h2><p>Une app pour les élèves du gymnase, de la 3M01 à la 3M14. Tout ce qu'il te faut au quotidien, au même endroit.</p>
+      h = `<div class="obhero">🎓</div><h2>Bienvenue sur Matu</h2><p>Une app pour les élèves du gymnase, de la 3M01 à la 3M14. Tout ce qu'il te faut au quotidien, au même endroit.</p>
         <div class="list" style="margin:0 0 18px">
           <div class="row" style="cursor:default"><div class="rname"><b>📅 Horaire</b><span class="muted">Ta semaine avec les vraies dates, les vacances vaudoises et le prochain cours.</span></div></div>
           <div class="row" style="cursor:default"><div class="rname"><b>✅ Agenda</b><span class="muted">Tes tests (TE) et devoirs (DV), avec export vers Google Agenda.</span></div></div>
@@ -1871,13 +2125,11 @@ function drawOb(dir){
     case "l2":
       h = `<h2>Ta langue 2</h2><p>Allemand ou italien, et ton groupe.</p>${groupsOf(t.cls, "l2").map(g => opt(g, GROUPS[g].label, g, t.ans.l2 === g)).join("")}`; break;
     case "ab":
-      h = `<h2>Ton groupe en anglais : A ou B ?</h2><p>Pour les cours de langue en demi-classe. Une seule question : quand ta moitié de classe a anglais, l'autre a allemand ou italien, donc l'app règle ta langue 2 toute seule.</p>${opt("A", "Groupe A en anglais", "Langue 2 : groupe B", t.ans.ab === "A")}${opt("B", "Groupe B en anglais", "Langue 2 : groupe A", t.ans.ab === "B")}`; break;
+      h = `<h2>Ton groupe : A ou B ?</h2><p>Ta classe se divise en deux pour l'anglais, l'allemand ou l'italien, et les TP de biologie. Tu es dans le même groupe pour tous ces cours.</p>${opt("A", "Groupe A", "Anglais, langue 2 et TP en groupe A", t.ans.ab === "A")}${opt("B", "Groupe B", "Anglais, langue 2 et TP en groupe B", t.ans.ab === "B")}`; break;
     case "os": { const cg = groupsOf(t.cls, "os");
       const others = OS_ORDER.flatMap(k => { const gs = Object.keys(GROUPS).filter(g => GROUPS[g].dim === "os" && g.replace(/\d+$/, "") === k && !cg.includes(g));
         return gs.length ? gs.map(g => opt(g, GROUPS[g].label, "Groupe " + g, t.ans.os === g)) : [opt(k, OSMAP[k].long, "", t.ans.os === k)]; });
       h = `<h2>Ton option spécifique</h2><p>La branche choisie en 1re année.</p>${cg.length ? `<span class="lab2" style="margin-top:0">Dans ta classe</span>` : ""}${cg.map(g => opt(g, GROUPS[g].label, "Groupe " + g, t.ans.os === g)).join("")}<span class="lab2">${cg.length ? "Autres options" : "Toutes les options"}</span>${others.join("")}`; break; }
-    case "tp": { const rooms = GROUPS[effOS()].L.map(x => parseL(x)).filter(x => x.tags.tp);
-      h = `<h2>Groupe de TP biologie-chimie</h2><p>La classe se divise en deux pour les travaux pratiques.</p>${rooms.map(r => opt(r.tags.tp, "Groupe TP " + r.tags.tp, "Salle " + r.room, t.ans.tp === r.tags.tp)).join("")}`; break; }
     case "locked":
       h = `<h2>Tes notes bloquées de 2e année</h2><p>Combien de points en plus ou en moins tes notes de chimie, physique et arts te donnent ? Chaque note compte par rapport à 4.</p>
         ${lockedFields()}<button class="primary" data-o="lpok">Continuer</button>`; break;
@@ -1887,7 +2139,7 @@ function drawOb(dir){
       h = `<h2>Quels cours de ${esc(t.oc.toLowerCase())} sont les tiens ?</h2><p>Cette option a plusieurs blocs. Coche les tiens.</p>${sl.map((x, k) => `<button class="opt multi" data-m="${k}" aria-pressed="${sel.includes(k)}"><b>${esc(slotText(x))}</b></button>`).join("")}<button class="primary" data-o="slotsok">Continuer</button>`; break; }
     case "done": { skip = false;
       const hasGrades = state.subjects.some(x => x.grades.length) || state.tm.g != null;
-      const rows = [["Classe", t.cls], ["Maths", t.ans.math], ["Histoire", t.ans.hist], ["Langue 2", t.ans.l2 ? GROUPS[t.ans.l2].label + " " + t.ans.l2 : null], ["Groupe d'anglais", t.ans.ab], ["Option spécifique", effOS() ? osLabel(effOS()) : null], ["Groupe TP", t.ans.tp], ["Notes de 2e année", state.lockedPoints != null ? bonusTxt(state.lockedPoints - 12) + (Math.abs(state.lockedPoints - 12) > 1 ? " points" : " point") : null], ["Option complémentaire", t.oc]];
+      const rows = [["Classe", t.cls], ["Maths", t.ans.math], ["Histoire", t.ans.hist], ["Langue 2", t.ans.l2 ? GROUPS[t.ans.l2].label + " " + t.ans.l2 : null], ["Option spécifique", effOS() ? osLabel(effOS()) : null], ["Groupe A/B", t.ans.ab], ["Notes de 2e année", state.lockedPoints != null ? bonusTxt(state.lockedPoints - 12) + (Math.abs(state.lockedPoints - 12) > 1 ? " points" : " point") : null], ["Option complémentaire", t.oc]];
       h = `<h2>C'est prêt</h2><div class="list" style="margin:6px 0 16px">${rows.map(([k, v]) => `<div class="row" style="cursor:default"><div class="rname"><b>${k}</b></div><span class="${v ? "" : "muted"}">${v ? esc(v) : "Tous / plus tard"}</span></div>`).join("")}</div>
         ${hasGrades ? `<p>Tu as déjà des notes. Mettre à jour tes branches selon ces réponses ? Tes notes sont gardées.</p><button class="primary" data-o="apply">Mettre à jour et terminer</button><button class="secondary" data-o="finish">Garder mes branches</button>`
                     : `<button class="primary" data-o="apply">Terminer</button>`}`; break; }
@@ -1948,6 +2200,21 @@ function applyGrades(){
   old.forEach(o => { if(!used.has(o) && o.grades.length){ o.counts = false; subjects.push(o); } });
   state.subjects = subjects; dedupe(state); save();
 }
+
+/* ============ offline ============ */
+function netState(){ $("offbar").classList.toggle("on", navigator.onLine === false); }
+function offlineSheet(){
+  openSheet(`<div class="offhero"><svg viewBox="0 0 24 24"><path d="M3 3l18 18"/><path d="M8.5 16.4a5 5 0 0 1 6-.8M5 12.9a10 10 0 0 1 4.2-2.5M19 12.9a10 10 0 0 0-3-2M2 9.3a15 15 0 0 1 4-2.6M22 9.3a15 15 0 0 0-11.5-4.2"/><path d="M12 20h.01"/></svg></div><h3 style="text-align:center">Pas de connexion</h3>
+    <p class="note" style="text-align:center;margin:0 0 4px">Ton téléphone n'est pas connecté à internet.</p>
+    <div class="list" style="margin-top:14px"><div class="row" style="cursor:default"><div class="rname"><b>Ce qui marche</b><span>Horaire, agenda et notes : tout est enregistré sur ton téléphone.</span></div></div>
+    <div class="row" style="cursor:default"><div class="rname"><b>Ce qui attend la connexion</b><span>Google Agenda et les mises à jour de l'app.</span></div></div></div>
+    <button class="primary" id="offOk">OK</button>`);
+  $("offOk").onclick = closeSheet;
+}
+$("offbar").onclick = offlineSheet;
+addEventListener("offline", netState);
+addEventListener("online", () => { netState(); toast("De nouveau en ligne"); });
+netState();
 
 applyLang(true);
 applyTheme();
