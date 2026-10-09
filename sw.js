@@ -1,4 +1,4 @@
-const CACHE = "grades-v21";
+const CACHE = "grades-v22";
 const FILES = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png", "./icon-maskable.png"];
 // shown only if the app was never opened online on this phone (nothing in the cache yet)
 const OFFLINE = `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Matu</title>

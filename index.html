@@ -463,7 +463,6 @@ function abMig(st){
   const fix = k => { const p = String(k).split("|"); if(p.length !== 5) return [k];
     if(/^(Allemand|Italien)$/.test(p[2]) && /^[AB]$/.test(p[4])){ p[4] = p[4] === "A" ? "B" : "A"; return [p.join("|")]; }
     if(/TP$/.test(p[2]) && /^[12]$/.test(p[4])){ p[4] = p[4] === "1" ? "A" : "B"; return [p.join("|")]; }
-    if(p[2] === "Biologie" && !p[3] && !p[4]) return [k, k + "A", k + "B"];
     return [k]; };
   if(Array.isArray(t.hidden)) t.hidden = [...new Set(t.hidden.flatMap(fix))];
   if(t.rooms){ const r = {}; Object.entries(t.rooms).forEach(([k, v]) => fix(k).forEach(k2 => r[k2] = v)); t.rooms = r; }
@@ -714,7 +713,8 @@ const TX = [
   ["Les parties sans note ne comptent pas encore.","Parts without a grade don't count yet.","Teile ohne Note zählen noch nicht."],
   ["Entre au moins une partie entre 1 et 6","Enter at least one part between 1 and 6","Gib mindestens einen Teil zwischen 1 und 6 ein"],
   ["Tests passés","Past tests","Vergangene Tests"], ["Note :","Grade:","Note:"],
-  ["En cours","Now","Jetzt"],
+  ["En cours","Now","Jetzt"], ["TP à régler","Set up TP weeks","TP-Wochen einstellen"],
+  ["Cette semaine en biologie","This week in biology","Diese Woche in Biologie"], ["Cours (1re semaine)","Class (1st week)","Unterricht (1. Woche)"], ["Cours (2e semaine)","Class (2nd week)","Unterricht (2. Woche)"],
   ["Ton groupe : A ou B ?","Your group: A or B?","Deine Gruppe: A oder B?"],
   ["Ta classe se divise en deux pour l'anglais, l'allemand ou l'italien, et les TP de biologie. Tu es dans le même groupe pour tous ces cours.","Your class splits in two for English, German or Italian, and biology practicals. You are in the same group for all of them.","Deine Klasse teilt sich für Englisch, Deutsch oder Italienisch und die Biologie-Praktika in zwei. Du bist in allen diesen Lektionen in derselben Gruppe."],
   ["Hors ligne","Offline","Offline"], ["Tout marche quand même","Everything still works","Alles funktioniert trotzdem"], ["Pas de connexion","No connection","Keine Verbindung"],
@@ -729,6 +729,9 @@ const RU = [
   [/^Classe (\S+)(?:, groupe ([AB]))?\. Change ta classe, tes groupes ou tes options\.$/, (m, c, g) => `Class ${c}${g ? ", group " + g : ""}. Change your class, groups or options.`, (m, c, g) => `Klasse ${c}${g ? ", Gruppe " + g : ""}. Ändere deine Klasse, Gruppen oder Optionen.`],
   [/^Anglais, langue 2 et TP en groupe ([AB])$/, "English, language 2 and practicals in group $1", "Englisch, Sprache 2 und Praktika in Gruppe $1"],
   [/^Moyennes du semestre (\d), juste pour voir\. Le total en haut compte toute l'année\.$/, "Semester $1 averages, just to look at. The total at the top counts the whole year.", "Durchschnitte von Semester $1, nur zum Anschauen. Das Total oben zählt das ganze Jahr."],
+  [/TP à régler/, "set TP weeks", "TP-Wochen einstellen"],
+  [/^TP groupe ([AB])$/, "TP group $1", "TP Gruppe $1"],
+  [/^2 semaines de cours en (\S+), puis 2 semaines de TP en (\S+) : groupe A la 1re, groupe B la 2e\. Choisis ce qu'il y a cette semaine, l'app calcule les suivantes\.$/, "2 weeks of class in $1, then 2 weeks of TP in $2: group A the 1st, group B the 2nd. Pick what this week is, the app works out the next ones.", "2 Wochen Unterricht in $1, dann 2 Wochen TP in $2: Gruppe A in der 1., Gruppe B in der 2. Wähle, was diese Woche ist, die App berechnet die nächsten."],
   [/^Semestre (\d)$/, "Semester $1", "Semester $1"],
   [/^(\d+) à noter$/, "$1 to grade", "$1 zu benoten"],
   [/^(Masquer|Voir) les tests notés \((\d+)\)$/, (m, a, n) => `${a === "Voir" ? "Show" : "Hide"} graded tests (${n})`, (m, a, n) => `Benotete Tests ${a === "Voir" ? "anzeigen" : "ausblenden"} (${n})`],
@@ -1504,14 +1507,26 @@ function ocWhen(oc){
   return `${DAYNAMES[3]}, de ${PERIODS[sl[0].p1][0]} à ${PERIODS[sl[0].p2][1]}`;
 }
 const ocSlots = oc => OC_SLOTS[oc] || (oc ? ["Thu 6-8 " + oc + " (OC)"] : []);
-function weekLessons(){
+/* Biology "@room1, room2": a 4-week cycle. 2 weeks of normal class in room 1, then 2 weeks of TP in room 2:
+   group A the first TP week, group B the second. The student sets which week it is once (tt().bio = {ref, ph}). */
+const isSchoolWeek = m => [0, 1, 2, 3, 4].some(i => { const d = new Date(m); d.setDate(d.getDate() + i); return !holidayOn(iso(d)); });
+function schoolWeeksBetween(a, b){
+  const step = b > a ? 1 : -1, d = new Date(a); let n = 0;
+  for(let i = 0; i < 120 && iso(d) !== iso(b); i++){ d.setDate(d.getDate() + 7 * step); if(isSchoolWeek(d)) n += step; }
+  return n;
+}
+function bioPhase(mon){ const b = tt().bio; if(!mon || !b) return null; return ((b.ph + schoolWeeksBetween(fromIso(b.ref), mondayOf(mon))) % 4 + 4) % 4; }
+function weekLessons(mon){
   const t = tt(), C = CLASSES[t.cls]; let out = [];
   if(C){
     C.L.forEach(s => { const l = parseL(s); if(!l) return;
-      // biology in two rooms at once = the class splits for TP: group A in the first room, group B in the second
       const rooms = l.room.split(/,\s*/);
-      if(/^Biologie$/.test(l.name) && rooms.length === 2) rooms.forEach((r, i) => out.push(Object.assign({}, l, {room:r, tags:Object.assign({}, l.tags, {bio:i ? "B" : "A"})})));
-      else out.push(l); });
+      if(/^Biologie$/.test(l.name) && rooms.length === 2){
+        const ph = bioPhase(mon), extra = {bioSplit:true, coursRoom:rooms[0], tpRoom:rooms[1], bioPh:ph};
+        if(ph === 2 || ph === 3){ const g = ph === 2 ? "A" : "B";
+          if(!t.ans.ab || t.ans.ab === g) out.push(Object.assign({}, l, extra, {room:rooms[1], tp:g, tags:Object.assign({}, l.tags, {bio:"TP"})})); }
+        else out.push(Object.assign({}, l, extra, {room:rooms[0]}));
+      } else out.push(l); });
     C.g.forEach(code => { const G = GROUPS[code], dimGroups = groupsOf(t.cls, G.dim), chosen = t.ans[G.dim];
       if(chosen && chosen !== code) return;
       G.L.forEach(s => { const l = parseL(s, {group:code, gdim:G.dim, gshow:!chosen && dimGroups.length > 1}); if(l) out.push(l); }); });
@@ -1523,7 +1538,7 @@ function weekLessons(){
     else if(OSMAP[os]) osBlock(t.cls).forEach(([d, a, b]) => { const l = parseL(`${d} ${a}${b > a ? "-" + b : ""} ${OSMAP[os].long} (OS)`, {estimated:true}); if(l) out.push(l); });
   }
   // one letter for everything split in half-classes: English, language 2, biology TP, OS TP
-  const want = k => k === "aben" || k === "abl2" || k === "bio" || k === "tp" ? t.ans.ab : t.ans[k];
+  const want = k => k === "aben" || k === "abl2" || k === "tp" ? t.ans.ab : k === "bio" ? null : t.ans[k];
   out = out.filter(l => Object.entries(l.tags).every(([k, v]) => !want(k) || want(k) === v));
   if(t.oc) ocSlots(t.oc).forEach((s, i) => { if(t.ocSlots && !t.ocSlots.includes(i)) return; const l = parseL(s, {oc:true, estimated:!OC_SLOTS[t.oc]}); if(l) out.push(l); });
   out.forEach(l => { l.key = [l.day, l.p1, l.name, l.group || "", l.tags.abl2 || l.tags.aben || l.tags.tp || l.tags.bio || ""].join("|"); if(t.rooms[l.key] != null) l.room = t.rooms[l.key]; });
@@ -1940,7 +1955,7 @@ function renderSched(animDir){
     el.innerHTML = `<div class="card empty2"><b>Pas encore d'horaire</b><p>Choisis ta classe et tes options, et ta semaine se remplit toute seule.</p><button class="primary" data-s="setup">Configurer mon horaire</button></div>`;
     return;
   }
-  const all = weekLessons(), day = all.filter(l => l.day === sDay), dIso = iso(sDate()), isToday = dIso === todayIso();
+  const all = weekLessons(sWeek), day = all.filter(l => l.day === sDay), dIso = iso(sDate()), isToday = dIso === todayIso();
   const thisWeek = iso(sWeek) === iso(homeWeek()), nowM = new Date().getHours() * 60 + new Date().getMinutes();
   const dayTests = sortTests(openTests().filter(x => x.date === dIso)), dayHw = hws().filter(x => !x.done && x.due === dIso), hol = holidayOn(dIso);
   const lessonSids = new Set(day.map(l => (lessonSubject(l) || {}).id).filter(Boolean));
@@ -1977,7 +1992,8 @@ function renderSched(animDir){
       const tags = [];
       if(l.gshow) tags.push(GROUPS[l.group].label + " " + l.group);
       if(l.tags.abl2 || l.tags.aben || l.tags.tp) tags.push("Groupe " + (l.tags.abl2 || l.tags.aben || l.tags.tp));
-      if(l.tags.bio) tags.push("TP · Groupe " + l.tags.bio);
+      if(l.tp) tags.push("TP · Groupe " + l.tp);
+      else if(l.bioSplit && l.bioPh == null) tags.push("TP à régler");
       if(l.extra) tags.push("Ajouté par toi");
       if(l.estimated) tags.push("à vérifier");
       const ls = lessonSubject(l), lt = ls ? dayTests.filter(x => x.sid === ls.id) : [], lh = ls ? dayHw.filter(x => x.sid === ls.id) : [];
@@ -2031,16 +2047,20 @@ document.addEventListener("touchend", e => { if(tx === null) return; const dx = 
   if(Math.abs(dx) > 50 && Math.abs(dy) < Math.abs(dx) * 0.7) goDay(sDay + (dx < 0 ? 1 : -1)); }, {passive:true});
 
 function lessonSheet(key){
-  const l = weekLessons().find(x => x.key === key); if(!l) return;
+  const l = weekLessons(sWeek).find(x => x.key === key); if(!l) return;
   const ls = lessonSubject(l), up = ls ? sortTests(openTests().filter(x => x.sid === ls.id && x.date >= todayIso())) : [];
   const uh = ls ? hws().filter(x => x.sid === ls.id && !x.done).sort((a, b) => a.due < b.due ? -1 : 1) : [];
   openSheet(`<h3>${esc(l.name)}</h3><p class="note" style="margin:0 0 6px">${DAYNAMES[l.day]}, de ${PERIODS[l.p1][0]} à ${PERIODS[l.p2][1]}${l.group ? ", groupe " + esc(l.group) : ""}</p>
     ${ls ? `<span class="lab2">${esc(ls.name)} : à venir</span>${up.map(x => testCard(x, "ls")).join("")}${uh.map(x => hwCard(x, "ls")).join("")}${up.length || uh.length ? "" : `<p class="note" style="margin:0 0 8px">Aucun test ni devoir prévu.</p>`}
     <div class="row2" style="margin-top:2px"><button class="secondary" id="lsAddTest" style="margin:0">+ Test</button><button class="secondary" id="lsAddHw" style="margin:0">+ Devoir</button></div>` : ""}
+    ${l.bioSplit ? `<span class="lab2">Cette semaine en biologie</span><div class="chips" id="bioPh">${[[0, "Cours (1re semaine)"], [1, "Cours (2e semaine)"], [2, "TP groupe A"], [3, "TP groupe B"]].map(([v, x]) => `<button class="chip" data-v="${v}" aria-pressed="${l.bioPh === v}">${x}</button>`).join("")}</div>
+      <p class="note">2 semaines de cours en ${esc(l.coursRoom)}, puis 2 semaines de TP en ${esc(l.tpRoom)} : groupe A la 1re, groupe B la 2e. Choisis ce qu'il y a cette semaine, l'app calcule les suivantes.</p>` : ""}
     <span class="lab2">Salle</span><input class="inp" id="roomIn" value="${esc(l.room)}" placeholder="p. ex. S2.14">
     <button class="primary" id="roomSave">Enregistrer</button>
     <button class="secondary ${l.extra ? "danger" : ""}" id="hideL">${l.extra ? "Supprimer ce cours" : "Masquer ce cours"}</button>
     <button class="textlink" id="lsReport">Signaler une erreur dans ce cours</button>`);
+  if($("bioPh")) $("bioPh").onclick = e => { const c = e.target.closest(".chip"); if(!c) return;
+    tt().bio = {ref:iso(mondayOf(sWeek)), ph:+c.dataset.v}; save(); closeSheet(); renderSched(); toast("Enregistré"); };
   $("lsReport").onclick = () => { closeSheet(); setTimeout(() => feedbackSheet("horaire", `${l.name}, ${DAYNAMES[l.day].toLowerCase()} de ${PERIODS[l.p1][0]} à ${PERIODS[l.p2][1]}, salle ${l.room || "?"} : `), 260); };
   if($("lsAddTest")) $("lsAddTest").onclick = () => { closeSheet(); setTimeout(() => testSheet(null, {sid:ls.id, date:iso(dayDate(l.day))}), 260); };
   $("sheetBody").querySelectorAll('[data-ls="test"]').forEach(b => b.onclick = () => { closeSheet(); setTimeout(() => testSheet(b.dataset.id), 260); });
