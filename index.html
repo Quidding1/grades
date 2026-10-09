@@ -459,7 +459,7 @@ function lockedMig(st){
 function abMig(st){
   if(st.abMig) return st; st.abMig = true;
   const t = st.tt; if(!t) return st;
-  if(t.ans){ if(!t.ans.ab && t.ans.tp) t.ans.ab = t.ans.tp === "2" ? "B" : "A"; delete t.ans.tp; }
+  if(t.ans){ if(!t.ans.biotp && t.ans.tp) t.ans.biotp = t.ans.tp === "2" ? "B" : "A"; delete t.ans.tp; }
   const fix = k => { const p = String(k).split("|"); if(p.length !== 5) return [k];
     if(/^(Allemand|Italien)$/.test(p[2]) && /^[AB]$/.test(p[4])){ p[4] = p[4] === "A" ? "B" : "A"; return [p.join("|")]; }
     if(/TP$/.test(p[2]) && /^[12]$/.test(p[4])){ p[4] = p[4] === "1" ? "A" : "B"; return [p.join("|")]; }
@@ -713,10 +713,15 @@ const TX = [
   ["Les parties sans note ne comptent pas encore.","Parts without a grade don't count yet.","Teile ohne Note zählen noch nicht."],
   ["Entre au moins une partie entre 1 et 6","Enter at least one part between 1 and 6","Gib mindestens einen Teil zwischen 1 und 6 ein"],
   ["Tests passés","Past tests","Vergangene Tests"], ["Note :","Grade:","Note:"],
-  ["En cours","Now","Jetzt"], ["TP à régler","Set up TP weeks","TP-Wochen einstellen"],
+  ["En cours","Now","Jetzt"], ["Ton groupe de TP","Your TP group","Deine TP-Gruppe"], ["TP de biologie","Biology TP","Biologie-TP"], ["Groupe de langues","Language group","Sprachgruppe"],
+  ["Ton groupe de langues : A ou B ?","Your language group: A or B?","Deine Sprachgruppe: A oder B?"],
+  ["Ta classe se divise en deux pour l'anglais et l'allemand ou l'italien. Tu es dans le même groupe pour les deux.","Your class splits in two for English and German or Italian. You are in the same group for both.","Deine Klasse teilt sich für Englisch und Deutsch oder Italienisch in zwei. Du bist in beiden in derselben Gruppe."],
+  ["Ton groupe de TP de biologie : A ou B ?","Your biology TP group: A or B?","Deine Biologie-TP-Gruppe: A oder B?"],
+  ["L'année commence par 2 semaines de cours normaux, puis 2 semaines de TP : groupe A la 1re semaine, groupe B la 2e. L'autre groupe n'a pas biologie cette semaine-là.","The year starts with 2 weeks of normal class, then 2 weeks of TP: group A the 1st week, group B the 2nd. The other group has no biology that week.","Das Jahr beginnt mit 2 Wochen normalem Unterricht, dann 2 Wochen TP: Gruppe A in der 1. Woche, Gruppe B in der 2. Die andere Gruppe hat in dieser Woche keine Biologie."],
+  ["TP la 1re semaine","TP in the 1st week","TP in der 1. Woche"], ["TP la 2e semaine","TP in the 2nd week","TP in der 2. Woche"],
   ["Cette semaine en biologie","This week in biology","Diese Woche in Biologie"], ["Cours (1re semaine)","Class (1st week)","Unterricht (1. Woche)"], ["Cours (2e semaine)","Class (2nd week)","Unterricht (2. Woche)"],
   ["Ton groupe : A ou B ?","Your group: A or B?","Deine Gruppe: A oder B?"],
-  ["Ta classe se divise en deux pour l'anglais, l'allemand ou l'italien, et les TP de biologie. Tu es dans le même groupe pour tous ces cours.","Your class splits in two for English, German or Italian, and biology practicals. You are in the same group for all of them.","Deine Klasse teilt sich für Englisch, Deutsch oder Italienisch und die Biologie-Praktika in zwei. Du bist in allen diesen Lektionen in derselben Gruppe."],
+  ["__unused__","Your class splits in two for English, German or Italian, and biology practicals. You are in the same group for all of them.","Deine Klasse teilt sich für Englisch, Deutsch oder Italienisch und die Biologie-Praktika in zwei. Du bist in allen diesen Lektionen in derselben Gruppe."],
   ["Hors ligne","Offline","Offline"], ["Tout marche quand même","Everything still works","Alles funktioniert trotzdem"], ["Pas de connexion","No connection","Keine Verbindung"],
   ["Ton téléphone n'est pas connecté à internet.","Your phone is not connected to the internet.","Dein Telefon ist nicht mit dem Internet verbunden."],
   ["Ce qui marche","What works","Was funktioniert"], ["Horaire, agenda et notes : tout est enregistré sur ton téléphone.","Schedule, agenda and grades: everything is saved on your phone.","Stundenplan, Agenda und Noten: alles ist auf deinem Telefon gespeichert."],
@@ -727,11 +732,10 @@ const TX = [
 // [regex, en, de]: texts with numbers or names. Replacements are strings ($1...) or functions.
 const RU = [
   [/^Classe (\S+)(?:, groupe ([AB]))?\. Change ta classe, tes groupes ou tes options\.$/, (m, c, g) => `Class ${c}${g ? ", group " + g : ""}. Change your class, groups or options.`, (m, c, g) => `Klasse ${c}${g ? ", Gruppe " + g : ""}. Ändere deine Klasse, Gruppen oder Optionen.`],
-  [/^Anglais, langue 2 et TP en groupe ([AB])$/, "English, language 2 and practicals in group $1", "Englisch, Sprache 2 und Praktika in Gruppe $1"],
+  [/^Anglais et langue 2 en groupe ([AB])$/, "English and language 2 in group $1", "Englisch und Sprache 2 in Gruppe $1"],
   [/^Moyennes du semestre (\d), juste pour voir\. Le total en haut compte toute l'année\.$/, "Semester $1 averages, just to look at. The total at the top counts the whole year.", "Durchschnitte von Semester $1, nur zum Anschauen. Das Total oben zählt das ganze Jahr."],
-  [/TP à régler/, "set TP weeks", "TP-Wochen einstellen"],
   [/^TP groupe ([AB])$/, "TP group $1", "TP Gruppe $1"],
-  [/^2 semaines de cours en (\S+), puis 2 semaines de TP en (\S+) : groupe A la 1re, groupe B la 2e\. Choisis ce qu'il y a cette semaine, l'app calcule les suivantes\.$/, "2 weeks of class in $1, then 2 weeks of TP in $2: group A the 1st, group B the 2nd. Pick what this week is, the app works out the next ones.", "2 Wochen Unterricht in $1, dann 2 Wochen TP in $2: Gruppe A in der 1., Gruppe B in der 2. Wähle, was diese Woche ist, die App berechnet die nächsten."],
+  [/^2 semaines de cours en (\S+), puis 2 semaines de TP en (\S+) : groupe A la 1re, groupe B la 2e\.$/, "2 weeks of class in $1, then 2 weeks of TP in $2: group A the 1st, group B the 2nd.", "2 Wochen Unterricht in $1, dann 2 Wochen TP in $2: Gruppe A in der 1., Gruppe B in der 2."],
   [/^Semestre (\d)$/, "Semester $1", "Semester $1"],
   [/^(\d+) à noter$/, "$1 to grade", "$1 zu benoten"],
   [/^(Masquer|Voir) les tests notés \((\d+)\)$/, (m, a, n) => `${a === "Voir" ? "Show" : "Hide"} graded tests (${n})`, (m, a, n) => `Benotete Tests ${a === "Voir" ? "anzeigen" : "ausblenden"} (${n})`],
@@ -1507,15 +1511,17 @@ function ocWhen(oc){
   return `${DAYNAMES[3]}, de ${PERIODS[sl[0].p1][0]} à ${PERIODS[sl[0].p2][1]}`;
 }
 const ocSlots = oc => OC_SLOTS[oc] || (oc ? ["Thu 6-8 " + oc + " (OC)"] : []);
-/* Biology "@room1, room2": a 4-week cycle. 2 weeks of normal class in room 1, then 2 weeks of TP in room 2:
-   group A the first TP week, group B the second. The student sets which week it is once (tt().bio = {ref, ph}). */
+/* Biology "@room1, room2": a 4-week cycle counted in school weeks from the first day of the year.
+   2 weeks of normal class in room 1, then 2 weeks of TP in room 2: group A the first TP week, group B the second.
+   The other group has no biology in a TP week. The TP group is asked in the setup (tt().ans.biotp). */
+const SCHOOL_START = "2026-08-24";
 const isSchoolWeek = m => [0, 1, 2, 3, 4].some(i => { const d = new Date(m); d.setDate(d.getDate() + i); return !holidayOn(iso(d)); });
 function schoolWeeksBetween(a, b){
   const step = b > a ? 1 : -1, d = new Date(a); let n = 0;
   for(let i = 0; i < 120 && iso(d) !== iso(b); i++){ d.setDate(d.getDate() + 7 * step); if(isSchoolWeek(d)) n += step; }
   return n;
 }
-function bioPhase(mon){ const b = tt().bio; if(!mon || !b) return null; return ((b.ph + schoolWeeksBetween(fromIso(b.ref), mondayOf(mon))) % 4 + 4) % 4; }
+function bioPhase(mon){ return mon ? (schoolWeeksBetween(fromIso(SCHOOL_START), mondayOf(mon)) % 4 + 4) % 4 : 0; }
 function weekLessons(mon){
   const t = tt(), C = CLASSES[t.cls]; let out = [];
   if(C){
@@ -1524,7 +1530,7 @@ function weekLessons(mon){
       if(/^Biologie$/.test(l.name) && rooms.length === 2){
         const ph = bioPhase(mon), extra = {bioSplit:true, coursRoom:rooms[0], tpRoom:rooms[1], bioPh:ph};
         if(ph === 2 || ph === 3){ const g = ph === 2 ? "A" : "B";
-          if(!t.ans.ab || t.ans.ab === g) out.push(Object.assign({}, l, extra, {room:rooms[1], tp:g, tags:Object.assign({}, l.tags, {bio:"TP"})})); }
+          if(!t.ans.biotp || t.ans.biotp === g) out.push(Object.assign({}, l, extra, {room:rooms[1], tp:g, tags:Object.assign({}, l.tags, {bio:"TP"})})); }
         else out.push(Object.assign({}, l, extra, {room:rooms[0]}));
       } else out.push(l); });
     C.g.forEach(code => { const G = GROUPS[code], dimGroups = groupsOf(t.cls, G.dim), chosen = t.ans[G.dim];
@@ -1538,7 +1544,7 @@ function weekLessons(mon){
     else if(OSMAP[os]) osBlock(t.cls).forEach(([d, a, b]) => { const l = parseL(`${d} ${a}${b > a ? "-" + b : ""} ${OSMAP[os].long} (OS)`, {estimated:true}); if(l) out.push(l); });
   }
   // one letter for everything split in half-classes: English, language 2, biology TP, OS TP
-  const want = k => k === "aben" || k === "abl2" || k === "tp" ? t.ans.ab : k === "bio" ? null : t.ans[k];
+  const want = k => k === "aben" || k === "abl2" ? t.ans.ab : k === "tp" ? t.ans.biotp : k === "bio" ? null : t.ans[k];
   out = out.filter(l => Object.entries(l.tags).every(([k, v]) => !want(k) || want(k) === v));
   if(t.oc) ocSlots(t.oc).forEach((s, i) => { if(t.ocSlots && !t.ocSlots.includes(i)) return; const l = parseL(s, {oc:true, estimated:!OC_SLOTS[t.oc]}); if(l) out.push(l); });
   out.forEach(l => { l.key = [l.day, l.p1, l.name, l.group || "", l.tags.abl2 || l.tags.aben || l.tags.tp || l.tags.bio || ""].join("|"); if(t.rooms[l.key] != null) l.room = t.rooms[l.key]; });
@@ -1993,7 +1999,6 @@ function renderSched(animDir){
       if(l.gshow) tags.push(GROUPS[l.group].label + " " + l.group);
       if(l.tags.abl2 || l.tags.aben || l.tags.tp) tags.push("Groupe " + (l.tags.abl2 || l.tags.aben || l.tags.tp));
       if(l.tp) tags.push("TP · Groupe " + l.tp);
-      else if(l.bioSplit && l.bioPh == null) tags.push("TP à régler");
       if(l.extra) tags.push("Ajouté par toi");
       if(l.estimated) tags.push("à vérifier");
       const ls = lessonSubject(l), lt = ls ? dayTests.filter(x => x.sid === ls.id) : [], lh = ls ? dayHw.filter(x => x.sid === ls.id) : [];
@@ -2053,14 +2058,14 @@ function lessonSheet(key){
   openSheet(`<h3>${esc(l.name)}</h3><p class="note" style="margin:0 0 6px">${DAYNAMES[l.day]}, de ${PERIODS[l.p1][0]} à ${PERIODS[l.p2][1]}${l.group ? ", groupe " + esc(l.group) : ""}</p>
     ${ls ? `<span class="lab2">${esc(ls.name)} : à venir</span>${up.map(x => testCard(x, "ls")).join("")}${uh.map(x => hwCard(x, "ls")).join("")}${up.length || uh.length ? "" : `<p class="note" style="margin:0 0 8px">Aucun test ni devoir prévu.</p>`}
     <div class="row2" style="margin-top:2px"><button class="secondary" id="lsAddTest" style="margin:0">+ Test</button><button class="secondary" id="lsAddHw" style="margin:0">+ Devoir</button></div>` : ""}
-    ${l.bioSplit ? `<span class="lab2">Cette semaine en biologie</span><div class="chips" id="bioPh">${[[0, "Cours (1re semaine)"], [1, "Cours (2e semaine)"], [2, "TP groupe A"], [3, "TP groupe B"]].map(([v, x]) => `<button class="chip" data-v="${v}" aria-pressed="${l.bioPh === v}">${x}</button>`).join("")}</div>
-      <p class="note">2 semaines de cours en ${esc(l.coursRoom)}, puis 2 semaines de TP en ${esc(l.tpRoom)} : groupe A la 1re, groupe B la 2e. Choisis ce qu'il y a cette semaine, l'app calcule les suivantes.</p>` : ""}
+    ${l.bioSplit ? `<span class="lab2">Ton groupe de TP</span><div class="chips" id="bioG">${["A", "B"].map(g => `<button class="chip" data-v="${g}" aria-pressed="${tt().ans.biotp === g}">Groupe ${g}</button>`).join("")}</div>
+      <p class="note">2 semaines de cours en ${esc(l.coursRoom)}, puis 2 semaines de TP en ${esc(l.tpRoom)} : groupe A la 1re, groupe B la 2e.</p>` : ""}
     <span class="lab2">Salle</span><input class="inp" id="roomIn" value="${esc(l.room)}" placeholder="p. ex. S2.14">
     <button class="primary" id="roomSave">Enregistrer</button>
     <button class="secondary ${l.extra ? "danger" : ""}" id="hideL">${l.extra ? "Supprimer ce cours" : "Masquer ce cours"}</button>
     <button class="textlink" id="lsReport">Signaler une erreur dans ce cours</button>`);
-  if($("bioPh")) $("bioPh").onclick = e => { const c = e.target.closest(".chip"); if(!c) return;
-    tt().bio = {ref:iso(mondayOf(sWeek)), ph:+c.dataset.v}; save(); closeSheet(); renderSched(); toast("Enregistré"); };
+  if($("bioG")) $("bioG").onclick = e => { const c = e.target.closest(".chip"); if(!c) return;
+    tt().ans.biotp = c.dataset.v; save(); closeSheet(); renderSched(); toast("Enregistré"); };
   $("lsReport").onclick = () => { closeSheet(); setTimeout(() => feedbackSheet("horaire", `${l.name}, ${DAYNAMES[l.day].toLowerCase()} de ${PERIODS[l.p1][0]} à ${PERIODS[l.p2][1]}, salle ${l.room || "?"} : `), 260); };
   if($("lsAddTest")) $("lsAddTest").onclick = () => { closeSheet(); setTimeout(() => testSheet(null, {sid:ls.id, date:iso(dayDate(l.day))}), 260); };
   $("sheetBody").querySelectorAll('[data-ls="test"]').forEach(b => b.onclick = () => { closeSheet(); setTimeout(() => testSheet(b.dataset.id), 260); });
@@ -2102,6 +2107,7 @@ function obSteps(){
   }
   s.push("os");
   if(t.cls && hasAB()) s.push("ab");
+  if(t.cls && hasBioTP()) s.push("biotp");
   s.push("locked", "oc");
   if(t.oc && OC_SLOTS[t.oc] && OC_SLOTS[t.oc].length > 1) s.push("ocslots");
   s.push("done");
@@ -2110,7 +2116,12 @@ function obSteps(){
 // does this class (or its option) split in half-classes A / B?
 function hasAB(){
   const t = tt(), C = CLASSES[t.cls], os = effOS(); if(!C) return false;
-  return C.L.some(x => /#ab(l2|en)=/.test(x) || /^\S+ \S+ Biologie @[^,#]+,/.test(x)) || groupsOf(t.cls, "l2").length > 0 || !!(GROUPS[os] && GROUPS[os].L.some(x => x.includes("#tp=")));
+  return C.L.some(x => /#ab(l2|en)=/.test(x)) || groupsOf(t.cls, "l2").length > 0;
+}
+// biology TP in half-classes (class biology in two rooms, or the bio-chimie option's TP)
+function hasBioTP(){
+  const t = tt(), C = CLASSES[t.cls], os = effOS(); if(!C) return false;
+  return C.L.some(x => /^\S+ \S+ Biologie @[^,#]+,/.test(x)) || !!(GROUPS[os] && GROUPS[os].L.some(x => x.includes("#tp=")));
 }
 function openOnboarding(start){ obHist = []; obStep = start || "intro"; $("ob").classList.add("on"); drawOb(0); }
 function closeOb(){ $("ob").classList.remove("on"); state.onboarded = true; state.ob = null; save(); showTab(tab, false); }
@@ -2145,7 +2156,9 @@ function drawOb(dir){
     case "l2":
       h = `<h2>Ta langue 2</h2><p>Allemand ou italien, et ton groupe.</p>${groupsOf(t.cls, "l2").map(g => opt(g, GROUPS[g].label, g, t.ans.l2 === g)).join("")}`; break;
     case "ab":
-      h = `<h2>Ton groupe : A ou B ?</h2><p>Ta classe se divise en deux pour l'anglais, l'allemand ou l'italien, et les TP de biologie. Tu es dans le même groupe pour tous ces cours.</p>${opt("A", "Groupe A", "Anglais, langue 2 et TP en groupe A", t.ans.ab === "A")}${opt("B", "Groupe B", "Anglais, langue 2 et TP en groupe B", t.ans.ab === "B")}`; break;
+      h = `<h2>Ton groupe de langues : A ou B ?</h2><p>Ta classe se divise en deux pour l'anglais et l'allemand ou l'italien. Tu es dans le même groupe pour les deux.</p>${opt("A", "Groupe A", "Anglais et langue 2 en groupe A", t.ans.ab === "A")}${opt("B", "Groupe B", "Anglais et langue 2 en groupe B", t.ans.ab === "B")}`; break;
+    case "biotp":
+      h = `<h2>Ton groupe de TP de biologie : A ou B ?</h2><p>L'année commence par 2 semaines de cours normaux, puis 2 semaines de TP : groupe A la 1re semaine, groupe B la 2e. L'autre groupe n'a pas biologie cette semaine-là.</p>${opt("A", "Groupe A", "TP la 1re semaine", t.ans.biotp === "A")}${opt("B", "Groupe B", "TP la 2e semaine", t.ans.biotp === "B")}`; break;
     case "os": { const cg = groupsOf(t.cls, "os");
       const others = OS_ORDER.flatMap(k => { const gs = Object.keys(GROUPS).filter(g => GROUPS[g].dim === "os" && g.replace(/\d+$/, "") === k && !cg.includes(g));
         return gs.length ? gs.map(g => opt(g, GROUPS[g].label, "Groupe " + g, t.ans.os === g)) : [opt(k, OSMAP[k].long, "", t.ans.os === k)]; });
@@ -2159,7 +2172,7 @@ function drawOb(dir){
       h = `<h2>Quels cours de ${esc(t.oc.toLowerCase())} sont les tiens ?</h2><p>Cette option a plusieurs blocs. Coche les tiens.</p>${sl.map((x, k) => `<button class="opt multi" data-m="${k}" aria-pressed="${sel.includes(k)}"><b>${esc(slotText(x))}</b></button>`).join("")}<button class="primary" data-o="slotsok">Continuer</button>`; break; }
     case "done": { skip = false;
       const hasGrades = state.subjects.some(x => x.grades.length) || state.tm.g != null;
-      const rows = [["Classe", t.cls], ["Maths", t.ans.math], ["Histoire", t.ans.hist], ["Langue 2", t.ans.l2 ? GROUPS[t.ans.l2].label + " " + t.ans.l2 : null], ["Option spécifique", effOS() ? osLabel(effOS()) : null], ["Groupe A/B", t.ans.ab], ["Notes de 2e année", state.lockedPoints != null ? bonusTxt(state.lockedPoints - 12) + (Math.abs(state.lockedPoints - 12) > 1 ? " points" : " point") : null], ["Option complémentaire", t.oc]];
+      const rows = [["Classe", t.cls], ["Maths", t.ans.math], ["Histoire", t.ans.hist], ["Langue 2", t.ans.l2 ? GROUPS[t.ans.l2].label + " " + t.ans.l2 : null], ["Option spécifique", effOS() ? osLabel(effOS()) : null], ["Groupe de langues", t.ans.ab], ["TP de biologie", t.ans.biotp], ["Notes de 2e année", state.lockedPoints != null ? bonusTxt(state.lockedPoints - 12) + (Math.abs(state.lockedPoints - 12) > 1 ? " points" : " point") : null], ["Option complémentaire", t.oc]];
       h = `<h2>C'est prêt</h2><div class="list" style="margin:6px 0 16px">${rows.map(([k, v]) => `<div class="row" style="cursor:default"><div class="rname"><b>${k}</b></div><span class="${v ? "" : "muted"}">${v ? esc(v) : "Tous / plus tard"}</span></div>`).join("")}</div>
         ${hasGrades ? `<p>Tu as déjà des notes. Mettre à jour tes branches selon ces réponses ? Tes notes sont gardées.</p><button class="primary" data-o="apply">Mettre à jour et terminer</button><button class="secondary" data-o="finish">Garder mes branches</button>`
                     : `<button class="primary" data-o="apply">Terminer</button>`}`; break; }
